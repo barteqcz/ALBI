@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Check the system boot mode
+if [[ -d "/sys/firmware/efi/" ]]; then
+    boot_mode="UEFI"
+else
+    boot_mode="BIOS"
+fi
+
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
 hwclock --systohc
@@ -59,8 +66,13 @@ sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 
 # Install GRUB
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux"
-grub-mkconfig -o /boot/grub/grub.cfg
+if [[ $boot_mode == "UEFI" ]]; then
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux"
+    grub-mkconfig -o /boot/grub/grub.cfg
+else
+    grub-install --target=i386-pc /dev/sda
+    grub-mkconfig -o /boot/grub/grub.cfg
+fi
 
 # Install Pipewire
 pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
