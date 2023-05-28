@@ -99,6 +99,9 @@ mkswap /swapfile
 echo "# /swapfile" >> /etc/fstab
 echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
 
+# Disable onboard PC speaker
+echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
+
 # Re-generate initramfs
 mkinitcpio -P
 
