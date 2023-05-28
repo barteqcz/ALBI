@@ -2,4 +2,4 @@
 
 run `sh setup.sh`
 
-For fully customizable installation, see [ALBI](https://github.com/barteqcz/albi)
+That's not an interactive installer. For interactive, semi-graphical installation, see [ALBI](https://github.com/barteqcz/albi)
