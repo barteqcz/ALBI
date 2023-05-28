@@ -4,6 +4,15 @@
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
 hwclock --systohc
 
+# Fix potential archlinux-keyring problem
+while ! pacman -Sy --noconfirm; do
+    killall gpg-agent
+    rm -rf /etc/pacman.d/gnupg
+    pacman-key --init 
+    pacman-key --populate
+    pacman -Sy archlinux-keyring
+done
+
 # Install basic packages
 pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g --noconfirm
 
