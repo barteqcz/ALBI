@@ -1,6 +1,5 @@
 #!/bin/bash
 
-passwd="ilovelinux"
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
@@ -53,7 +52,7 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 # User configuration
 useradd -m bartosz
-echo "bartosz:$passwd" | chpasswd
+echo "bartosz:examplepasswd" | chpasswd
 usermod -aG wheel bartosz
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
