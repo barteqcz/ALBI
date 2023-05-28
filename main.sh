@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# I applied password setting in a variable to prevent any vulnerabilities, but keep the script doing its work automatically. Chang this accordingly
 passwd="ilovelinux"
 
 # Set timezone
