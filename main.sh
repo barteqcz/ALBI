@@ -95,6 +95,7 @@ if [[ $de == "GNOME" ]]; then
     systemctl enable gdm
 elif [[ $de == "XFCE" ]]; then
     pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager network-manager-applet cups hplip htop git firefox papirus-icon-theme --noconfirm
+    sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
     systemctl enable lightdm
 fi
 systemctl enable cups
