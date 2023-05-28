@@ -1,5 +1,7 @@
 #!/bin/bash
 
+passwd=ilovelinux
+
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
 hwclock --systohc
@@ -41,7 +43,7 @@ echo "MS-7817" > /etc/hostname
 
 # User configuration
 useradd -m bartosz
-echo "bartosz:bartosz" | chpasswd
+echo "bartosz:$passwd" | chpasswd
 usermod -aG wheel bartosz
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
