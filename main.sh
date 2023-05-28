@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Password for the user
-password="examplepasswd"
+# Variables to adjust the installation
+password="examplepasswd" # password for the user
+de="XFCE" # Desired DE (GNOME, XFCE)
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
@@ -87,11 +88,16 @@ pacman -S xorg --noconfirm
 # Install NVIDIA driver
 pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
-# Install DE (I use GNOME for now), NetworkManager and other useful stuff
-pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
-pacman -R epiphany gnome-software --noconfirm
+# Install DE + useful stuff
+if [[ $de == "GNOME" ]]; then
+    pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
+    pacman -R epiphany gnome-software --noconfirm
+    systemctl enable gdm
+elif [[ $de == "XFCE" ]]; then
+    pacman -S xfce4 xfce4-goodies xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme --noconfirm
+    systemctl enable lightdm
+fi
 systemctl enable cups
-systemctl enable gdm
 systemctl enable NetworkManager
 
 # Disable broken HPLIP-related shortcuts
