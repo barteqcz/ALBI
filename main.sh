@@ -102,6 +102,6 @@ mkinitcpio -P
 while pacman -Qtdq > /dev/null 2>&1; do
     pacman -R $(pacman -Qtdq) --noconfirm
 done
-pacman -Scc --noconfirm
+yes | pacman -Scc
 rm -rf /main.sh
 exit
