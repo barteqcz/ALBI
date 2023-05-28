@@ -1,6 +1,6 @@
 #!/bin/bash
 
-passwd=ilovelinux
+passwd="ilovelinux"
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
