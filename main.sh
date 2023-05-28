@@ -80,13 +80,6 @@ systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
 
-# Install yay
-pacman -S go --noconfirm
-git clone https://aur.archlinux.org/yay
-cd yay
-makepkg -si --noconfirm
-cd
-rm -rf yay
 
 # Disable broken HPLIP-related shortcuts
 mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
