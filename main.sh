@@ -80,5 +80,6 @@ echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
 # Re-generate initramfs
 mkinitcpio -P
 
-# Exit
+# Clean up and exit
+rm -rf /main.sh
 exit
