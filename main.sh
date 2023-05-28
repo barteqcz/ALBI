@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
 hwclock --systohc
@@ -79,7 +78,6 @@ pacman -R epiphany gnome-software
 systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
-
 
 # Disable broken HPLIP-related shortcuts
 mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
