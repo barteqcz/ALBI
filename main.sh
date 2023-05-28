@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Check the system boot mode
-if [[ -d "/sys/firmware/efi/" ]]; then
-    boot_mode="UEFI"
-else
-    boot_mode="BIOS"
-fi
-
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
 hwclock --systohc
@@ -22,6 +15,13 @@ done
 
 # Install basic packages
 pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g --noconfirm
+
+# Detect the system boot mode
+if [[ -d "/sys/firmware/efi/" ]]; then
+    boot_mode="UEFI"
+else
+    boot_mode="BIOS"
+fi
 
 # Detect CPU vendor and install appropiate ucode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
@@ -69,7 +69,7 @@ sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nan
 if [[ $boot_mode == "UEFI" ]]; then
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux"
     grub-mkconfig -o /boot/grub/grub.cfg
-else
+elif [[ $boot_mode == "BIOS" ]]; then
     grub-install --target=i386-pc /dev/sda
     grub-mkconfig -o /boot/grub/grub.cfg
 fi
