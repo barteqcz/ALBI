@@ -94,7 +94,7 @@ if [[ $de == "GNOME" ]]; then
     pacman -R epiphany gnome-software --noconfirm
     systemctl enable gdm
 elif [[ $de == "XFCE" ]]; then
-    pacman -S xfce4 xfce4-goodies xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme --noconfirm
+    pacman -S xfce4 xfce4-whiskermenu-plugin xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme --noconfirm
     systemctl enable lightdm
 fi
 systemctl enable cups
