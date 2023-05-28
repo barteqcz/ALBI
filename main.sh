@@ -31,6 +31,7 @@ fi
 
 # /etc/locale.gen configuration
 sed -i 's/#cs_CZ.UTF-8/cs_CZ.UTF-8/' /etc/locale.gen
+locale-gen
 
 # /etc/locale.conf configuration
 echo "LANG=cs_CZ.UTF-8" > /etc/locale.conf
