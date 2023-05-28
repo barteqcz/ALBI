@@ -99,7 +99,7 @@ echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 mkinitcpio -P
 
 # Clean up and exit
-while pacman -Qtdq >/dev/null 2>&1; do
+while pacman -Qtdq > /dev/null 2>&1; do
     pacman -R $(pacman -Qtdq) --noconfirm
 done
 pacman -Scc --noconfirm
