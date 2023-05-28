@@ -75,7 +75,7 @@ pacman -S xorg --noconfirm
 pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
 # Install DE, NetworkManager and useful stuff
-pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git --noconfirm
+pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git firefox --noconfirm
 systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
