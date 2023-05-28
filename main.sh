@@ -62,7 +62,7 @@ systemctl enable --global pipewire pipewire-pulse
 pacman -S xorg --noconfirm
 
 # Install NVIDIA driver
-pacman -S nvidia nvidia-utils nvidia-settings
+pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
 # Install DE, NetworkManager and stuff
 pacman -S gnome gnome-terminal gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip --noconfirm
