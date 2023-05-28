@@ -73,11 +73,20 @@ pacman -S xorg --noconfirm
 # Install NVIDIA driver
 pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
-# Install DE, NetworkManager and useful stuff
-pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git firefox --noconfirm
+# Install DE (I use GNOME for now), NetworkManager and other useful stuff
+pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
+pacman -R epiphany gnome-software
 systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
+
+# Install yay
+pacman -S go --noconfirm
+git clone https://aur.archlinux.org/yay
+cd yay
+makepkg -si --noconfirm
+cd
+rm -rf yay
 
 # Disable broken HPLIP-related shortcuts
 mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
@@ -94,5 +103,7 @@ echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
 mkinitcpio -P
 
 # Clean up and exit
+pacman -R $(pacman -Qtdq) --noconfirm
+pacman -Scc --noconfirm
 rm -rf /main.sh
 exit
