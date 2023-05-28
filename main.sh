@@ -80,6 +80,10 @@ systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
 
+# Disable broken HPLIP-related shortcuts
+mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
+mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.broken
+
 # Setup swapfile
 fallocate -l 4G /swapfile
 chmod 600 /swapfile
