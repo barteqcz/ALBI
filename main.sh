@@ -89,7 +89,7 @@ pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
 # Install DE (I use GNOME for now), NetworkManager and other useful stuff
 pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups cups-pdf hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
-pacman -R epiphany gnome-software
+pacman -R epiphany gnome-software --noconfirm
 systemctl enable cups
 systemctl enable gdm
 systemctl enable NetworkManager
