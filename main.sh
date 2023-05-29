@@ -90,7 +90,7 @@ pacman -S xorg --noconfirm
 
 # Install GPU driver
 if [[ $gpu_driver == "nvidia" ]]; then
-    pacman -S nvidia nvidia-utils nvidia-settings
+    pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 elif [[ $gpu_drvier == "amd" ]]; then
     pacman -S mesa xf86-video-amdgpu xf86-video-ati libva-mesa-driver vulkan-radeon --noconfirm
 elif [[ $gpu_driver == "intel" ]]; then
