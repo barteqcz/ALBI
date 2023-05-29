@@ -107,7 +107,7 @@ elif [[ $de == "xfce" ]]; then
     pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox papirus-icon-theme --noconfirm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
     systemctl enable lightdm
-elif [[ $de == "" ]]; then
+elif [[ $de == "none" || $de == "" ]]; then
     :
 fi
 systemctl enable NetworkManager
