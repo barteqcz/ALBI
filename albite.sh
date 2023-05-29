@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source config.conf
-
 # Install base system
 pacstrap -K /mnt base linux linux-firmware linux-headers
 
