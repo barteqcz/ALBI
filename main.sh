@@ -27,13 +27,10 @@ fi
 
 # Detect CPU vendor and install appropiate ucode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
-
 if [[ $vendor == "GenuineIntel" ]]; then
     pacman -Sy intel-ucode --noconfirm
-
 elif [[ $vendor == "AuthenticAMD" ]]; then
     pacman -Sy amd-ucode --noconfirm
-
 fi
 
 # /etc/locale.gen configuration
