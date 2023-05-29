@@ -130,7 +130,8 @@ mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.b
 mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.broken
 
 # Setup swapfile
-fallocate -l 4G /swapfile
+if [[ $create_swapfile == "yes" ]]; then
+fallocate -l $swapfile_size_gbG /swapfile
 chmod 600 /swapfile
 mkswap /swapfile
 echo "# /swapfile" >> /etc/fstab
