@@ -44,7 +44,7 @@ locale-gen
 echo "LANG=$language" > /etc/locale.conf
 
 # /etc/vconsole.conf configuration
-echo "KEYMAP=$keymap" > /etc/vconsole.conf
+echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
 
 # /etc/hostname configuration
 echo "$hostname" > /etc/hostname
