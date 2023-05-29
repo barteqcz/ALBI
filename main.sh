@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Variables to adjust the installation
-password="examplepasswd" # password for the user
-de="XFCE" # Desired DE (GNOME, XFCE)
+source config.conf
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
