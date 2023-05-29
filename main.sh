@@ -3,7 +3,7 @@
 source config.conf
 
 # Set timezone
-ln -sf /usr/share/zoneinfo/Europe/Prague /etc/localtime
+ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 hwclock --systohc
 
 # Fix potential archlinux-keyring problem
@@ -37,17 +37,17 @@ elif [[ $vendor == "AuthenticAMD" ]]; then
 fi
 
 # /etc/locale.gen configuration
-sed -i 's/#cs_CZ.UTF-8/cs_CZ.UTF-8/' /etc/locale.gen
+sed -i 's/#$language/$language/' /etc/locale.gen
 locale-gen
 
 # /etc/locale.conf configuration
-echo "LANG=cs_CZ.UTF-8" > /etc/locale.conf
+echo "LANG=$language" > /etc/locale.conf
 
 # /etc/vconsole.conf configuration
-echo "KEYMAP=cz" > /etc/vconsole.conf
+echo "KEYMAP=$keymap" > /etc/vconsole.conf
 
 # /etc/hostname configuration
-echo "MS-7817" > /etc/hostname
+echo "$hostname" > /etc/hostname
 
 # /etc/hosts configuration
 echo "# The following lines are desirable for IPv4 capable hosts" > /etc/hosts
@@ -59,9 +59,9 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 # User configuration
-useradd -m bartosz
-echo "bartosz:$password" | chpasswd
-usermod -aG wheel bartosz
+useradd -m $username
+echo "$username:$password" | chpasswd
+usermod -aG wheel $username
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 # Tweak nano
@@ -77,14 +77,28 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 # Install Pipewire
-pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
-systemctl enable --global pipewire pipewire-pulse
+if [[ $audio_server == "pipewire" ]]; then
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
+    systemctl enable --global pipewire pipewire-pulse
+elif [[ $audio_server == "pulseaudio" ]]; then
+    pacman -S pulseaudio --noconfirm
+    systemctl enable --global pulseaudio
 
 # Install Xorg
 pacman -S xorg --noconfirm
 
-# Install NVIDIA driver
-pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
+# Install GPU driver
+if [[ $gpu_driver == "nvidia" ]]; then
+    pacman -S nvidia nvidia-utils nvidia-settings
+elif [[ $gpu_drvier == "amd" ]]; then
+    pacman -S mesa xf86-video-amdgpu xf86-video-ati libva-mesa-driver vulkan-radeon --noconfirm
+elif [[ $gpu_driver == "intel" ]]; then
+    pacman -S mesa libva-intel-driver intel-media-driver vulkan-intel --noconfirm
+elif [[ $gpu_driver == "vm" ]]; then
+    pacman -S mesa xf86-video-vmware --noconfirm
+elif [[ $gpu_driver == "nouveau" ]]; then
+    pacman -S mesa xf86-video-nouveau libva-mesa-driver --noconfirm
+fi
 
 # Install DE + useful stuff
 if [[ $de == "gnome" ]]; then
