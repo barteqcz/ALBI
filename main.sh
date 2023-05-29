@@ -34,7 +34,7 @@ elif [[ $vendor == "AuthenticAMD" ]]; then
 fi
 
 # /etc/locale.gen configuration
-sed -i 's/#${language}/${language}/' /etc/locale.gen
+sed -i "/$language/s/^#//" /etc/locale.gen
 locale-gen
 
 # /etc/locale.conf configuration
