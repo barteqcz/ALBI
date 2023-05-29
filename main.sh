@@ -103,15 +103,24 @@ fi
 
 # Install DE
 if [[ $de == "gnome" ]]; then
-    pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
+    pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
     pacman -R epiphany gnome-software --noconfirm
     systemctl enable gdm
 elif [[ $de == "xfce" ]]; then
-    pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager network-manager-applet cups hplip htop git firefox papirus-icon-theme --noconfirm
+    pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager network-manager-applet htop git firefox papirus-icon-theme --noconfirm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
     systemctl enable lightdm
 elif [[ $de == "" || $de == "none" ]]; then
     :
+fi
+
+# CUPS installation
+if [[ $cups_installation == "yes" ]]; then
+    pacman -S cups hplip --noconfirm
+elif [[ $cups_installation == "no" ]]; then
+    :
+else
+    echo "Wrong setting in the config file"
 fi
 systemctl enable cups
 systemctl enable NetworkManager
