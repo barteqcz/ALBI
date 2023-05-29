@@ -101,7 +101,7 @@ elif [[ $gpu_driver == "nouveau" ]]; then
     pacman -S mesa xf86-video-nouveau libva-mesa-driver --noconfirm
 fi
 
-# Install DE + useful stuff
+# Install DE
 if [[ $de == "gnome" ]]; then
     pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
     pacman -R epiphany gnome-software --noconfirm
