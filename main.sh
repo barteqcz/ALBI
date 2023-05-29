@@ -16,7 +16,7 @@ while ! pacman -Sy --noconfirm; do
 done
 
 # Install basic packages
-pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g --noconfirm
+pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager --noconfirm
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
@@ -100,11 +100,11 @@ fi
 
 # Install DE
 if [[ $de == "gnome" ]]; then
-    pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
+    pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
     pacman -R epiphany gnome-software --noconfirm
     systemctl enable gdm
 elif [[ $de == "xfce" ]]; then
-    pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager network-manager-applet htop git firefox papirus-icon-theme --noconfirm
+    pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox papirus-icon-theme --noconfirm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
     systemctl enable lightdm
 elif [[ $de == "" ]]; then
