@@ -87,11 +87,11 @@ pacman -S xorg --noconfirm
 pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
 
 # Install DE + useful stuff
-if [[ $de == "GNOME" ]]; then
+if [[ $de == "gnome" ]]; then
     pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager cups hplip htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
     pacman -R epiphany gnome-software --noconfirm
     systemctl enable gdm
-elif [[ $de == "XFCE" ]]; then
+elif [[ $de == "xfce" ]]; then
     pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs networkmanager network-manager-applet cups hplip htop git firefox papirus-icon-theme --noconfirm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
     systemctl enable lightdm
