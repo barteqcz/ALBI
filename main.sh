@@ -126,11 +126,13 @@ mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.d
 
 # Setup swapfile
 if [[ $create_swapfile == "yes" ]]; then
-fallocate -l $swapfile_size_gbG /swapfile
-chmod 600 /swapfile
-mkswap /swapfile
-echo "# /swapfile" >> /etc/fstab
-echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
+    fallocate -l $swapfile_size_gbG /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    echo "# /swapfile" >> /etc/fstab
+    echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
+elif [[ $create_swapfile == "no" ]]; then
+    :
 fi
 
 # Disable onboard PC speaker
