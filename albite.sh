@@ -1,5 +1,14 @@
 #!/bin/bash
 
+source config.conf
+
+# Partitioning
+mkfs.ext4 $main_part
+mkfs.fat -F32 $efi_part
+mount $main_part /
+mkdir -p /mnt/boot/efi
+mount $efi_part /mnt/boot/efi
+
 # Install base system
 pacstrap -K /mnt base linux linux-firmware linux-headers
 
