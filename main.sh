@@ -146,5 +146,6 @@ while pacman -Qtdq > /dev/null 2>&1; do
     pacman -R $(pacman -Qtdq) --noconfirm
 done
 yes | pacman -Scc
+rm -rf /config.conf
 rm -rf /main.sh
 exit
