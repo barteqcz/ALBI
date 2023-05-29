@@ -83,6 +83,7 @@ if [[ $audio_server == "pipewire" ]]; then
 elif [[ $audio_server == "pulseaudio" ]]; then
     pacman -S pulseaudio --noconfirm
     systemctl enable --global pulseaudio
+fi
 
 # Install Xorg
 pacman -S xorg --noconfirm
