@@ -76,7 +76,7 @@ elif [[ $boot_mode == "BIOS" ]]; then
     grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
-# Install Pipewire
+# Install audio server
 if [[ $audio_server == "pipewire" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
     systemctl enable --global pipewire pipewire-pulse
@@ -121,8 +121,6 @@ if [[ $cups_installation == "yes" ]]; then
     systemctl enable cups
 elif [[ $cups_installation == "no" ]]; then
     :
-else
-    echo "Wrong setting in the config file"
 fi
 
 # Disable broken HPLIP-related shortcuts
