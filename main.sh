@@ -113,17 +113,17 @@ elif [[ $de == "xfce" ]]; then
 elif [[ $de == "" ]]; then
     :
 fi
+systemctl enable NetworkManager
 
 # CUPS installation
 if [[ $cups_installation == "yes" ]]; then
     pacman -S cups hplip --noconfirm
+    systemctl enable cups
 elif [[ $cups_installation == "no" ]]; then
     :
 else
     echo "Wrong setting in the config file"
 fi
-systemctl enable cups
-systemctl enable NetworkManager
 
 # Disable broken HPLIP-related shortcuts
 mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
