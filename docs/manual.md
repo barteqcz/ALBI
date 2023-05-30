@@ -23,7 +23,7 @@ Possible values:
 
 `pulseaudio` - Installs pulseaudio
 
-`none` - doesn't install any audio server
+`none` - Doesn't install any audio server
 
 ### GPU driver setting
 Possible values:
@@ -44,7 +44,9 @@ Possible values:
 Possible values:
 
 `gnome` - Installs GNOME desktop environment
+
 `xfce` - Installs XFCE desktop environment
+
 `none` - Doesn't install any DE
 
 ### CUPS instlallation
