@@ -10,13 +10,14 @@ hwclock --systohc
 while ! pacman -Sy --noconfirm; do
     killall gpg-agent
     rm -rf /etc/pacman.d/gnupg
-    pacman-key --init 
-    pacman-key --populate
-    pacman -Sy archlinux-keyring
+    pacman-key --init > /dev/null
+    pacman-key --populate > /dev/null
+    pacman -Sy archlinux-keyring --noconfirm > /dev/null
 done
 
 # Install basic packages
-pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils --noconfirm
+echo "Installing basic packages..."
+pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils xorg xdg-utils xdg-user-dirs --noconfirm > /dev/null
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
@@ -28,22 +29,19 @@ fi
 # Detect CPU vendor and install appropiate ucode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ $vendor == "GenuineIntel" ]]; then
-    pacman -Sy intel-ucode --noconfirm
+    echo "Detected Intel CPU. Installing Intel microcode package..."
+    pacman -Sy intel-ucode --noconfirm > /dev/null
 elif [[ $vendor == "AuthenticAMD" ]]; then
-    pacman -Sy amd-ucode --noconfirm
+    echo "Detected AMD CPU. Installing AMD microcode package..."
+    pacman -Sy amd-ucode --noconfirm > /dev/null
 fi
 
-# /etc/locale.gen configuration
+# Locales and hostname configuration
+echo "Configurating locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
-locale-gen
-
-# /etc/locale.conf configuration
 echo "LANG=$language" > /etc/locale.conf
-
-# /etc/vconsole.conf configuration
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
-
-# /etc/hostname configuration
+locale-gen
 echo "$hostname" > /etc/hostname
 
 # /etc/hosts configuration
@@ -56,7 +54,7 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 # User configuration
-useradd -m $username
+useradd -m $username > /dev/null
 echo "$username:$password" | chpasswd
 usermod -aG wheel $username
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
@@ -66,65 +64,75 @@ sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nan
 
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
-    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux"
-    grub-mkconfig -o /boot/grub/grub.cfg
+    echo "Installing GRUB for UEFI boot mode..."
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux" > /dev/null
+    grub-mkconfig -o /boot/grub/grub.cfg > /dev/null
 elif [[ $boot_mode == "BIOS" ]]; then
-    grub-install --target=i386-pc /dev/sda
-    grub-mkconfig -o /boot/grub/grub.cfg
+    echo "Installing GRUB for BIOS boot mode..."
+    grub-install --target=i386-pc /dev/sda > /dev/null
+    grub-mkconfig -o /boot/grub/grub.cfg > /dev/null
 fi
 
 # Install audio server
 if [[ $audio_server == "pipewire" ]]; then
-    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
-    systemctl enable --global pipewire pipewire-pulse
+    echo "Installing Pipewire..."
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm > /dev/null
+    systemctl enable --global pipewire pipewire-pulse > /dev/null
 elif [[ $audio_server == "pulseaudio" ]]; then
-    pacman -S pulseaudio --noconfirm
-    systemctl enable --global pulseaudio
+    echo "Installing Pulseaudio..."
+    pacman -S pulseaudio --noconfirm > /dev/null
+    systemctl enable --global pulseaudio > /dev/null
 fi
-
-# Install Xorg
-pacman -S xorg --noconfirm
 
 # Install GPU driver
 if [[ $gpu_driver == "nvidia" ]]; then
-    pacman -S nvidia nvidia-utils nvidia-settings --noconfirm
+    echo "Installing NVIDIA proprietary GPU driver..."
+    pacman -S nvidia nvidia-utils nvidia-settings --noconfirm > /dev/null
 elif [[ $gpu_drvier == "amd" ]]; then
-    pacman -S mesa xf86-video-amdgpu xf86-video-ati libva-mesa-driver vulkan-radeon --noconfirm
+    echo "Installing AMD GPU driver..."
+    pacman -S mesa xf86-video-amdgpu xf86-video-ati libva-mesa-driver vulkan-radeon --noconfirm > /dev/null
 elif [[ $gpu_driver == "intel" ]]; then
-    pacman -S mesa libva-intel-driver intel-media-driver vulkan-intel --noconfirm
+    echo "Installing Intel GPU driver..."
+    pacman -S mesa libva-intel-driver intel-media-driver vulkan-intel --noconfirm > /dev/null
 elif [[ $gpu_driver == "vm" ]]; then
-    pacman -S mesa xf86-video-vmware --noconfirm
+    echo "Installing VMware GPU driver..."
+    pacman -S mesa xf86-video-vmware --noconfirm > /dev/null
 elif [[ $gpu_driver == "nouveau" ]]; then
-    pacman -S mesa xf86-video-nouveau libva-mesa-driver --noconfirm
+    echo "Installing Nouveau GPU driver..."
+    pacman -S mesa xf86-video-nouveau libva-mesa-driver --noconfirm > /dev/null
 fi
 
 # Install DE
 if [[ $de == "gnome" ]]; then
-    pacman -S gnome nautilus gdm xdg-utils xdg-user-dirs noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm
-    pacman -R epiphany gnome-software --noconfirm
-    systemctl enable gdm
+    echo "Installing GNOME desktop environment..."
+    pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm > /dev/null
+    pacman -R epiphany gnome-software --noconfirm > /dev/null
+    systemctl enable gdm > /dev/null
 elif [[ $de == "xfce" ]]; then
-    pacman -S xfce4 xdg-utils xdg-user-dirs xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox papirus-icon-theme --noconfirm
+    echo "Installing XFCE desktop environment..."
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox papirus-icon-theme --noconfirm > /dev/null
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
-    systemctl enable lightdm
+    systemctl enable lightdm > /dev/null
 elif [[ $de == "none" || $de == "" ]]; then
     :
 fi
-systemctl enable NetworkManager
+systemctl enable NetworkManager > /dev/null
 
 # CUPS installation
 if [[ $cups_installation == "yes" ]]; then
-    pacman -S cups --noconfirm
-    systemctl enable cups
+    echo "Installing CUPS..."
+    pacman -S cups --noconfirm > /dev/null
+    systemctl enable cups > /dev/null
 elif [[ $cups_installation == "no" ]]; then
     :
 fi
 
 # Setup swapfile
 if [[ $create_swapfile == "yes" ]]; then
-    fallocate -l $swapfile_size_gbG /swapfile
+    echo "Creating swapfile..."
+    fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
-    mkswap /swapfile
+    mkswap /swapfile > /dev/null
     echo "# /swapfile" >> /etc/fstab
     echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
 elif [[ $create_swapfile == "no" ]]; then
@@ -135,13 +143,15 @@ fi
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
 
 # Re-generate initramfs
-mkinitcpio -P
+echo "Regenerating initramfs image..."
+mkinitcpio -P > /dev/null
 
 # Clean up and exit
+echo "Cleaning up..."
 while pacman -Qtdq > /dev/null 2>&1; do
-    pacman -R $(pacman -Qtdq) --noconfirm
+    pacman -R $(pacman -Qtdq) --noconfirm > /dev/null
 done
-yes | pacman -Scc
+yes | pacman -Scc > /dev/null
 rm -rf /config.conf
 rm -rf /main.sh
 exit
