@@ -1,4 +1,4 @@
-### This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of possible usage:
+This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of possible usage:
 
 ### Timezone
 `timezone` - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available [here](https://github.com/barteqcz/albi/blob/main/files/timezone_temp)
