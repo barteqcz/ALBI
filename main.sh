@@ -41,7 +41,7 @@ echo "Configurating locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
-locale-gen
+locale-gen >/dev/null 2>&1
 echo "$hostname" > /etc/hostname
 
 # /etc/hosts configuration
