@@ -2,7 +2,7 @@
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware linux-headers > /dev/null
+pacstrap -K /mnt base linux linux-firmware linux-headers >/dev/null 2>&1
 
 # Generate /etc/fstab
 echo "Generating /etc/fstab..."
