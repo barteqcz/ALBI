@@ -6,5 +6,6 @@ It's actually an Arch Linux installer which doesn't use semi-gui configuration -
 
 To get into the script directory, you can run `cd albite`
 The config file is named `config.conf` and it's available in the script directory. There you can configure the whole installation process.
+Manual is available [here](https://github.com/barteqcz/albite/blob/main/docs/manual.md)
 
 That's not an interactive installer. For interactive, semi-graphical installation, see [ALBI](https://github.com/barteqcz/albi)
