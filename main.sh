@@ -37,7 +37,7 @@ elif [[ $vendor == "AuthenticAMD" ]]; then
 fi
 
 # Locales and hostname configuration
-echo "Configurating locales and hostname..."
+echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
