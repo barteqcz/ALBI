@@ -21,6 +21,7 @@ Possible values:
 
 `pipewire` - Installs pipewire audio server
 `pulseaudio` - Installs pulseaudio
+`none` - doesn't install any audio server
 
 ### GPU driver setting
 Possible values:
@@ -30,12 +31,14 @@ Possible values:
 `intel` - Installs Intel GPU driver
 `vm` - Installs vmware GPU driver
 `nouveau` - Installs Nouveau GPU driver (open-source driver meant to work with NVIDIA GPUs)
+`none` - Doesn't install any GPU driver
 
 ### Desktop environment setting
 Possible values:
 
 `gnome` - Installs GNOME desktop environment
 `xfce` - Installs XFCE desktop environment
+`none` - Doesn't install any DE
 
 ### CUPS instlallation
 `cups_installation` - Installs CUPS printing support
