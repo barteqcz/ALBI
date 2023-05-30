@@ -16,7 +16,7 @@ while ! pacman -Sy --noconfirm; do
 done
 
 # Install basic packages
-pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget --noconfirm
+pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils --noconfirm
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
