@@ -5,6 +5,7 @@ echo "Installing base system..."
 pacstrap -K /mnt base linux linux-firmware linux-headers > /dev/null
 
 # Generate /etc/fstab
+echo "Generating /etc/fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # Copy second part of the script to /
