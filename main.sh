@@ -114,15 +114,11 @@ systemctl enable NetworkManager
 
 # CUPS installation
 if [[ $cups_installation == "yes" ]]; then
-    pacman -S cups hplip --noconfirm
+    pacman -S cups --noconfirm
     systemctl enable cups
 elif [[ $cups_installation == "no" ]]; then
     :
 fi
-
-# Disable broken HPLIP-related shortcuts
-mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.broken
-mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.broken
 
 # Setup swapfile
 if [[ $create_swapfile == "yes" ]]; then
