@@ -1,7 +1,7 @@
 ### This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of possible usage:
 
 ### Timezone
-`timezone` - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available here:
+`timezone` - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available [here](https://github.com/barteqcz/albi/blob/main/files/timezone_temp)
 
 ### User configuration
 `username` - It can be anything that fits a Linux username. It can't begin with a number
@@ -9,9 +9,9 @@
 `password` - It can be anything. I recommend setting a strong password
 
 ### Locales settings
-`language` - The list of available languages is available here:
+`language` - The list of available languages is available [here](https://github.com/barteqcz/albi/blob/main/files/lang_temp)
 
-`console_keyboard_layout` - This keyboard layout will be used systemwide as a console keyboard layout. But take it into account, that it won't be used in graphical environment
+`console_keyboard_layout` - This keyboard layout will be used systemwide as a console keyboard layout. But take it into account, that it won't be used in graphical environment. Full list is available [here](https://github.com/barteqcz/albi/blob/main/files/keymap_temp)
 
 ### Hostname
 `hostname` - This is the hostname of the machine
