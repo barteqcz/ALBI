@@ -20,17 +20,24 @@
 Possible values:
 
 `pipewire` - Installs pipewire audio server
+
 `pulseaudio` - Installs pulseaudio
+
 `none` - doesn't install any audio server
 
 ### GPU driver setting
 Possible values:
 
 `nvidia` - Installs NVIDIA GPU driver
+
 `amd` - Installs AMD GPU driver
+
 `intel` - Installs Intel GPU driver
+
 `vm` - Installs vmware GPU driver
+
 `nouveau` - Installs Nouveau GPU driver (open-source driver meant to work with NVIDIA GPUs)
+
 `none` - Doesn't install any GPU driver
 
 ### Desktop environment setting
