@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Install base system
-pacstrap -K /mnt base linux linux-firmware linux-headers
+echo "Installing base system..."
+pacstrap -K /mnt base linux linux-firmware linux-headers > /dev/null
 
 # Generate /etc/fstab
 genfstab -U /mnt >> /mnt/etc/fstab
