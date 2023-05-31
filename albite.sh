@@ -1,5 +1,86 @@
 #!/bin/bash
 
+# Detect the system boot mode
+if [[ -d "/sys/firmware/efi/" ]]; then
+    boot_mode="UEFI"
+    touch -c config.conf
+    cat <<EOF > config.conf
+    # Here is the configuration for the installation. For any needed help, refer to the documentation.
+    
+    # Timezone setting
+    timezone="Europe/Prague"
+    
+    # User configuration
+    username="exampleusername"
+    password="examplepasswd"
+    
+    # Locales settings
+    language="cs_CZ.UTF-8"
+    console_keyboard_layout="cz"
+    
+    # Hostname
+    hostname="examplehostname"
+    
+    # GRUB settings
+    efi_partition="/boot/efi"
+    
+    # Audio server setting
+    audio_server="pipewire"
+    
+    # GPU driver
+    gpu_driver="nvidia"
+    
+    # DE settings
+    de="xfce"
+    
+    # Decide whether CUPS should be installed
+    cups_installation="yes"
+    
+    # Swapfile settings
+    create_swapfile="yes"
+    swapfile_size_gb="4"
+    EOF
+else
+    boot_mode="BIOS"
+    touch -c config.conf
+    cat <<EOF > config.conf
+    # Here is the configuration for the installation. For any needed help, refer to the documentation.
+    
+    # Timezone setting
+    timezone="Europe/Prague"
+    
+    # User configuration
+    username="exampleusername"
+    password="examplepasswd"
+    
+    # Locales settings
+    language="cs_CZ.UTF-8"
+    console_keyboard_layout="cz"
+    
+    # Hostname
+    hostname="examplehostname"
+    
+    # GRUB settings
+    grub_disk="/dev/sda"
+    
+    # Audio server setting
+    audio_server="pipewire"
+    
+    # GPU driver
+    gpu_driver="nvidia"
+    
+    # DE settings
+    de="xfce"
+    
+    # Decide whether CUPS should be installed
+    cups_installation="yes"
+    
+    # Swapfile settings
+    create_swapfile="yes"
+    swapfile_size_gb="4"
+    EOF
+fi
+
 # Install base system
 echo "Installing base system..."
 pacstrap -K /mnt base linux linux-firmware linux-headers >/dev/null 2>&1
