@@ -1,6 +1,6 @@
 #!/bin/bash
 
-$config="config.conf"
+config="config.conf"
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
