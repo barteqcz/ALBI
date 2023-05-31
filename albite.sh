@@ -9,7 +9,7 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    source config.conf
+    source /root/albite/config.conf
 else
     touch config.conf
     cat <<EOF > config.conf
