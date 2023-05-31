@@ -66,7 +66,13 @@ fi
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base $kernel_variant >/dev/null 2>&1
+if [[ $kernel_variant == "normal" ]]; then
+    pacstrap -K /mnt base linux linux-firmware linux-headers >/dev/null 2>&1
+elif [[ $kernel_variant == "lts" ]]; then
+    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers >/dev/null 2>&1
+elif [[ $kernel_variant == "zen" ]]; then
+    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers >/dev/null 2>&1
+fi
 
 # Generate /etc/fstab
 echo "Generating /etc/fstab..."
