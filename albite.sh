@@ -15,6 +15,9 @@ else
     cat <<EOF > config.conf
 # Here is the configuration for the installation. For any needed help, refer to the documentation.
 
+# Kernel variant
+kernel_variant="normal"
+
 # Timezone setting
 timezone="Europe/Prague"
 
@@ -63,7 +66,7 @@ fi
 
 # Install base system
 echo "Installing base system..."
-pacstrap -K /mnt base linux linux-firmware linux-headers >/dev/null 2>&1
+pacstrap -K /mnt base $kernel_variant >/dev/null 2>&1
 
 # Generate /etc/fstab
 echo "Generating /etc/fstab..."
