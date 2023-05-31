@@ -1,10 +1,19 @@
 This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of possible usage:
 
+### Kernel variant
+`kernel_variant` - This allows you to select which kernel variant do you wanna install.
+
+Possible values:
+
+`normal` - Installs normal kernel
+`lts` - Installs LTS kernel
+`zen` - Installs ZEN kernel
+
 ### Timezone
 `timezone` - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available [here](https://github.com/barteqcz/albi/blob/main/files/timezone_temp)
 
 ### User configuration
-`username` - It can be anything that fits a Linux username. It can't begin with a number
+`username` - It can be anything that fits a Linux username rules. It can't begin with a number
 
 `password` - It can be anything. I recommend setting a strong password
 
@@ -17,11 +26,13 @@ This is a list of available options that can be applied in the config file. Thos
 `hostname` - This is the hostname of the machine
 
 ### GRUB settings
-`bios_grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed.
+`bios_grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed
 
-`uefi_efi_partition` - This allows you to select the EFI partition for GRUB (UEFI) installation
+`efi_partition` - This allows you to select the EFI partition for GRUB (UEFI) installation
 
 ### Audio server setting
+`audio_server` - This allows you to install selected audio server
+
 Possible values:
 
 `pipewire` - Installs pipewire audio server
