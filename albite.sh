@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Detect current working directory and save it to a variable
+cwd=$(pwd)
+
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
@@ -9,7 +12,7 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    source /root/albite/config.conf
+    source "$cwd"/config.conf
 else
     touch config.conf
     cat <<EOF > config.conf
