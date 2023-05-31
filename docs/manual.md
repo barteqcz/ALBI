@@ -17,8 +17,9 @@ This is a list of available options that can be applied in the config file. Thos
 `hostname` - This is the hostname of the machine
 
 ### GRUB settings
-`grub_disk` - This allows to select drive,
+`bios_grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed.
 
+`uefi_efi_partition` - This allows you to select the EFI partition for GRUB (UEFI) installation
 
 ### Audio server setting
 Possible values:
