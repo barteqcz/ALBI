@@ -1,7 +1,5 @@
 #!/bin/bash
 
-config="config.conf"
-
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
@@ -11,7 +9,7 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    source $config
+    source config.conf
 else
     touch config.conf
     cat <<EOF > config.conf
