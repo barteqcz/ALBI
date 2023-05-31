@@ -16,6 +16,10 @@ This is a list of available options that can be applied in the config file. Thos
 ### Hostname
 `hostname` - This is the hostname of the machine
 
+### GRUB settings
+`grub_disk` - This allows to select drive,
+
+
 ### Audio server setting
 Possible values:
 
