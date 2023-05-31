@@ -41,7 +41,7 @@ EOF
 if [[ $boot_mode == "UEFI" ]]; then
     echo 'efi_partition="/boot/efi"' >> config.conf
 else
-    echo 'grub_installation_disk="/dev/sda"' >> config.conf
+    echo 'grub_disk="/dev/sda"' >> config.conf
 fi
 
 cat <<EOF >> config.conf
