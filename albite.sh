@@ -9,7 +9,7 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    echo "Config file already exists"
+    :
 else
     touch config.conf
     cat <<EOF > config.conf
@@ -57,6 +57,7 @@ swapfile_size_gb="4"
 EOF
 
 echo "Config file was generated successfully. Edit it to adjust it to your needs."
+exit
 fi
 
 # Install base system
