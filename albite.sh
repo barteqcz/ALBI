@@ -1,6 +1,5 @@
 #!/bin/bash
 
-touch config.conf
 source config.conf
 rm config.conf
 
