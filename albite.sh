@@ -64,6 +64,8 @@ echo "Config file was generated successfully. Edit it to adjust it to your needs
 exit
 fi
 
+source config.conf
+
 # Install base system
 echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
