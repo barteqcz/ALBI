@@ -65,11 +65,11 @@ sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nan
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB for UEFI boot mode..."
-    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id="Arch Linux" >/dev/null 2>&1
+    grub-install --target=x86_64-efi --efi-directory=$efi_partition --bootloader-id="Arch Linux" >/dev/null 2>&1
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB for BIOS boot mode..."
-    grub-install --target=i386-pc /dev/sda >/dev/null 2>&1
+    grub-install --target=i386-pc $grub_disk >/dev/null 2>&1
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
