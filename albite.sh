@@ -39,6 +39,7 @@ else
 fi
 
 cat <<EOF >> config.conf
+
 # Audio server setting
 audio_server="pipewire"
 
