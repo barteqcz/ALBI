@@ -76,11 +76,11 @@ fi
 # Install audio server
 if [[ $audio_server == "pipewire" ]]; then
     echo "Installing Pipewire..."
-    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm >/dev/null 2>&1
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm >/dev/null 2>&1
     systemctl enable --global pipewire pipewire-pulse >/dev/null 2>&1
 elif [[ $audio_server == "pulseaudio" ]]; then
     echo "Installing Pulseaudio..."
-    pacman -S pulseaudio --noconfirm >/dev/null 2>&1
+    pacman -S pulseaudio pavucontrol --noconfirm >/dev/null 2>&1
     systemctl enable --global pulseaudio >/dev/null 2>&1
 fi
 
@@ -121,7 +121,7 @@ systemctl enable NetworkManager >/dev/null 2>&1
 # CUPS installation
 if [[ $cups_installation == "yes" ]]; then
     echo "Installing CUPS..."
-    pacman -S cups --noconfirm >/dev/null 2>&1
+    pacman -S cups cups-pk-helper cups-filters bluez-cups foomatic-db system-config-printer --noconfirm >/dev/null 2>&1
     systemctl enable cups >/dev/null 2>&1
 elif [[ $cups_installation == "no" ]]; then
     :
