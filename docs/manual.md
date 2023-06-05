@@ -26,8 +26,11 @@ Possible values:
 `hostname` - This is the hostname of the machine
 
 ### GRUB settings
-`bios_grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed
 
+#### BIOS
+`grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed
+
+#### UEFI
 `efi_partition` - This allows you to select the EFI partition for GRUB (UEFI) installation
 
 ### Audio server setting
