@@ -4,7 +4,10 @@ It's actually an Arch Linux installer which doesn't use semi-gui configuration -
 ### Downloading
 You'll need to download this repo. 
 
-You can do it using `git`: `git clone https://github.com/barteqcz/albite`
+You can do it using `git`:
+
+`git clone https://github.com/barteqcz/albite`
+
 But also manually, for example from some other PC, then put it on an USB drive, and mount so that it will be available in Arch installation medium
 
 ### Configuration and running
