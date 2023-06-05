@@ -6,7 +6,9 @@ This is a list of available options that can be applied in the config file. Thos
 Possible values:
 
 `normal` - Installs normal kernel
+
 `lts` - Installs LTS kernel
+
 `zen` - Installs ZEN kernel
 
 ### Timezone
