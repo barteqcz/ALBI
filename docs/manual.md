@@ -78,3 +78,5 @@ Possible values: `yes` and `no`
 Possible values: `yes` and `no`
 
 `swapfile_size_gb` - Select size for the swapfile (if it's gonna be created)
+
+Possible values are **only numbers**
