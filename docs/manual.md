@@ -26,7 +26,6 @@ Possible values:
 `hostname` - This is the hostname of the machine
 
 ### GRUB settings
-
 #### BIOS
 `grub_disk` - This allows you to select the drive where GRUB (BIOS) is to be installed
 
