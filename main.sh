@@ -126,17 +126,6 @@ elif [[ $de == "none" || $de == "" ]]; then
 fi
 systemctl enable NetworkManager >/dev/null 2>&1
 
-# CUPS installation
-if [[ $cups_installation == "yes" ]]; then
-    echo "Installing CUPS..."
-    pacman -S cups cups-pk-helper cups-filters bluez-cups foomatic-db system-config-printer --noconfirm >/dev/null 2>&1
-    systemctl enable cups >/dev/null 2>&1
-    systemctl enable cups-browsed >/dev/null 2>&1
-    systemctl enable avahi-daemon >/dev/null 2>&1
-elif [[ $cups_installation == "no" ]]; then
-    :
-fi
-
 # Setup swapfile
 if [[ $create_swapfile == "yes" ]]; then
     echo "Creating swapfile..."
