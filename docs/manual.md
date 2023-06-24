@@ -69,11 +69,6 @@ Possible values:
 
 `none` - Doesn't install any DE
 
-### CUPS instlallation
-`cups_installation` - Installs CUPS printing support
-
-Possible values: `yes` and `no`
-
 ### Swapfile installation
 `create_swapfile` - Decide whether swapfile should be created or not
 
