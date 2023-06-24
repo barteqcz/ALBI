@@ -22,7 +22,7 @@ Possible values:
 ### Locales settings
 `language` - Sets selected language systemwide. The full list of available languages is available [here](https://github.com/barteqcz/albi/blob/main/files/lang_temp)
 
-`console_keyboard_layout` - This keyboard layout will be used systemwide as a console keyboard layout. But take it into account, that it won't be used in graphical environment. Full list is available [here](https://github.com/barteqcz/albi/blob/main/files/keymap_temp)
+`console_keyboard_layout` - This keyboard layout will be used systemwide as a console keyboard layout. But take into account, that it won't be used in graphical environment. Full list is available [here](https://github.com/barteqcz/albi/blob/main/files/keymap_temp)
 
 ### Hostname
 `hostname` - This is the hostname of the machine
