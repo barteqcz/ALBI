@@ -113,7 +113,7 @@ fi
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S xorg wayland xorg-wayland glfw-wayland gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
+    pacman -S xorg wayland xorg-wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
     pacman -R epiphany gnome-software --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
@@ -138,13 +138,13 @@ systemctl enable NetworkManager >/dev/null 2>&1
 # Installing CUPS
 if [[ $cups_instalation == "yes" ]]; then
     echo "Installing CUPS..."
-    pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript nss-mdns --noconfirm
+    pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript nss-mdns --noconfirm >/dev/null 2>&1
     systemctl enable cups.service
     systemctl enable cups.socket
-    systemctl enable cups-browsed
+    systemctl enable cups-browsed.service
     systemctl enable avahi-daemon.service
     systemctl enable avahi-daemon.socket
-elif [[ $cups_installation == "no" ]]; then
+elif [[ $cups_installation == "no" || $cups_installation == "" ]]; then
     :
 fi
 
