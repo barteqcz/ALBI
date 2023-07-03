@@ -16,7 +16,7 @@ if [ -e "config.conf" ]; then
 else
     touch config.conf
     cat <<EOF > config.conf
-# Here is the configuration for the installation. For any needed help, refer to the documentation.
+# Here is the configuration for the installation. For any needed help, refer to the documentation in docs/manual.md.
 
 # Kernel variant
 kernel_variant="normal"
