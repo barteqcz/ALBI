@@ -122,11 +122,8 @@ elif [[ $de == "xfce" ]]; then
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
-    pacman -S xorg wayland xorg-wayland qt5-wayland glfw-wayland plasma kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
+    pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland plasma kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
     systemctl enable sddm >/dev/null 2>&1
-    if [[ $gpu_driver == "nvidia" ]]; then
-        pacman -S egl-wayland --noconfirm
-    fi
 elif [[ $de == "none" || $de == "" ]]; then
     :
 fi
