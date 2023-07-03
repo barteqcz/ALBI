@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Source variables from config file
 source /config.conf
 
 # Set timezone
