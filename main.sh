@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Interruptiob handler
+# Interruption handler
 interrupt_handler() {
     echo "Interruption signal received. Exiting..."
     exit 0
