@@ -29,8 +29,8 @@ username="exampleusername"
 password="examplepasswd"
 
 # Locales settings
-language="cs_CZ.UTF-8"
-console_keyboard_layout="cz"
+language="en_US.UTF-8"
+console_keyboard_layout="us"
 
 # Hostname
 hostname="examplehostname"
@@ -53,7 +53,7 @@ audio_server="pipewire"
 gpu_driver="nvidia"
 
 # DE settings
-de="xfce"
+de="plasma"
 
 # CUPS installation
 cups_installation="yes"
