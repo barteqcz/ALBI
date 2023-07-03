@@ -46,7 +46,7 @@ elif [[ $vendor == "AuthenticAMD" ]]; then
     pacman -Sy amd-ucode --noconfirm >/dev/null 2>&1
 fi
 
-# Locales and hostname configuration
+# Configure locales and hostname
 echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
@@ -54,7 +54,7 @@ echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
 locale-gen >/dev/null 2>&1
 echo "$hostname" > /etc/hostname
 
-# /etc/hosts configuration
+# Configure the /etc/hosts file
 echo "# The following lines are desirable for IPv4 capable hosts" > /etc/hosts
 echo "127.0.0.1       localhost" >> /etc/hosts
 echo "" >> /etc/hosts
@@ -63,7 +63,7 @@ echo "::1             localhost ip6-localhost ip6-loopback" >> /etc/hosts
 echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
-# User configuration
+# Configure the user
 useradd -m $username >/dev/null 2>&1
 echo "$username:$password" | chpasswd
 usermod -aG wheel $username
@@ -74,11 +74,11 @@ sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nan
 
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
-    echo "Installing GRUB for UEFI boot mode..."
+    echo "Installing GRUB (UEFI)..."
     grub-install --target=x86_64-efi --efi-directory=$efi_partition --bootloader-id="Arch Linux" >/dev/null 2>&1
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 elif [[ $boot_mode == "BIOS" ]]; then
-    echo "Installing GRUB for BIOS boot mode..."
+    echo "Installing GRUB (BIOS)..."
     grub-install --target=i386-pc $grub_disk >/dev/null 2>&1
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
@@ -96,7 +96,7 @@ fi
 
 # Install GPU driver
 if [[ $gpu_driver == "nvidia" ]]; then
-    echo "Installing NVIDIA proprietary GPU driver..."
+    echo "Installing NVIDIA GPU driver..."
     pacman -S nvidia nvidia-utils nvidia-settings --noconfirm >/dev/null 2>&1
 elif [[ $gpu_drvier == "amd" ]]; then
     echo "Installing AMD GPU driver..."
@@ -118,26 +118,28 @@ if [[ $de == "gnome" ]]; then
     pacman -S xorg wayland xorg-wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
     pacman -R epiphany gnome-software --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
+elif [[ $de == "plasma" ]]; then
+    echo "Installing KDE Plasma desktop environment..."
+    pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland sddm plasma-wayland-session plasma kwalletmanager kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
+    systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
     pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
-elif [[ $de == "plasma" ]]; then
-    echo "Installing KDE Plasma desktop environment..."
-    pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland sddm plasma-wayland-session plasma kwalletmanager kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
-    if [[ $gpu_driver == "nvidia" ]]; then
-        sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
-        grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
-    fi
-    systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "none" || $de == "" ]]; then
     :
+fi
+
+# Enable Nvidia driver KMS if it's needed
+if [[ $de != "none" || $de != "" && $gpu_driver == "nvidia" ]]; then
+    sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
 # Enable Network Manager
 systemctl enable NetworkManager >/dev/null 2>&1
 
-# Installing CUPS
+# Install CUPS
 if [[ $cups_installation == "yes" ]]; then
     echo "Installing CUPS..."
     pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint nss-mdns system-config-printer --noconfirm >/dev/null 2>&1
@@ -151,7 +153,7 @@ elif [[ $cups_installation == "no" || $cups_installation == "" ]]; then
     :
 fi
 
-# Setup swapfile
+# Set-up swapfile
 if [[ $create_swapfile == "yes" ]]; then
     echo "Creating swapfile..."
     fallocate -l "$swapfile_size_gb"G /swapfile
