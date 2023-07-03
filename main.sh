@@ -125,7 +125,7 @@ elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
     pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland sddm plasma-wayland-session plasma kwalletmanager kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
     if [[ $gpu_driver == "nvidia" ]]; then
-        sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
+        sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
         grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
     fi
     systemctl enable sddm >/dev/null 2>&1
