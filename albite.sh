@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Interruption handler
+interrupt_handler() {
+    echo "Interruption signal received. Exiting..."
+    rm -f .temp.json
+    exit 0
+}
+
+trap interrupt_handler SIGINT
+
 # Detect current working directory and save it to a variable
 cwd=$(pwd)
 
