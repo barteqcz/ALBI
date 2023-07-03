@@ -18,14 +18,6 @@ hwclock --systohc
 # Fix potential archlinux-keyring problem
 while ! pacman -Sy --noconfirm >/dev/null 2>&1; do
     killall gpg-agent >/dev/null 2>&1
-    killall gpg-agent >/dev/null 2>&1
-    killall gpg-agent >/dev/null 2>&1
-    killall gpg-agent >/dev/null 2>&1
-    killall gpg-agent >/dev/null 2>&1
-    rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
-    rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
-    rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
-    rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
     rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
     pacman-key --init >/dev/null 2>&1
     pacman-key --populate >/dev/null 2>&1
