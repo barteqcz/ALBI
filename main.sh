@@ -113,17 +113,20 @@ fi
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S xorg wayland xorg-wayland glfw-wayland gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
+    pacman -S xorg wayland xorg-wayland glfw-wayland gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
     pacman -R epiphany gnome-software --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox --noconfirm >/dev/null 2>&1
+    pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
-    pacman -S xorg wayland xorg-wayland qt5-wayland glfw-wayland plasma kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S xorg wayland xorg-wayland qt5-wayland glfw-wayland plasma kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
     systemctl enable sddm >/dev/null 2>&1
+    if [[ $gpu_driver == "nvidia" ]]; then
+        pacman -S egl-wayland --noconfirm
+    fi
 elif [[ $de == "none" || $de == "" ]]; then
     :
 fi
