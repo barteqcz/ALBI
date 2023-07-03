@@ -69,6 +69,13 @@ Possible values:
 
 `none` - Doesn't install any DE
 
+### CUPS installation setting
+Possible values:
+
+`yes` - Installs full CUPS support
+
+`no` - Doesn't install CUPS
+
 ### Swapfile installation
 `create_swapfile` - Decide whether swapfile should be created or not
 
