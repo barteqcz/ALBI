@@ -55,6 +55,9 @@ gpu_driver="nvidia"
 # DE settings
 de="xfce"
 
+# CUPS installation
+cups_installation="yes"
+
 # Swapfile settings
 create_swapfile="yes"
 swapfile_size_gb="4"
