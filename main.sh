@@ -25,7 +25,7 @@ done
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils xorg xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
+pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
@@ -113,17 +113,22 @@ fi
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
+    pacman -S xorg wayland xorg-wayland glfw-wayland gnome nautilus gdm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop git firefox papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
     pacman -R epiphany gnome-software --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox papirus-icon-theme --noconfirm >/dev/null 2>&1
-    sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/' /etc/lightdm/lightdm.conf
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop git firefox --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
+elif [[ $de == "plasma" ]]; then
+    echo "Installing KDE Plasma desktop environment..."
+    pacman -S xorg wayland xorg-wayland qt5-wayland glfw-wayland plasma kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "none" || $de == "" ]]; then
     :
 fi
+
+# Enable Network Manager
 systemctl enable NetworkManager >/dev/null 2>&1
 
 # Setup swapfile
@@ -133,7 +138,7 @@ if [[ $create_swapfile == "yes" ]]; then
     chmod 600 /swapfile
     mkswap /swapfile >/dev/null 2>&1
     echo "# /swapfile" >> /etc/fstab
-    echo "/swapfile    none        swap        sw    0 0" >> /etc/fstab
+    echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
 elif [[ $create_swapfile == "no" ]]; then
     :
 fi
