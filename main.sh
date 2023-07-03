@@ -26,11 +26,12 @@ done
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion nano grub efibootmgr ntfs-3g networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
+pacman -Sy base-devel bash-completion nano grub ntfs-3g sshfs networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
+    pacman -S efibootmgr --noconfirm >/dev/null 2>&1
 else
     boot_mode="BIOS"
 fi
