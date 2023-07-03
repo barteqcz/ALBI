@@ -65,6 +65,8 @@ Possible values:
 
 `gnome` - Installs GNOME desktop environment
 
+`plasma` - Installs KDE Plasma desktop environment
+
 `xfce` - Installs XFCE desktop environment
 
 `none` - Doesn't install any DE
