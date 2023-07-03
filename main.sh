@@ -144,6 +144,7 @@ if [[ $cups_installation == "yes" ]]; then
     systemctl enable cups-browsed.service
     systemctl enable avahi-daemon.service
     systemctl enable avahi-daemon.socket
+    sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
 elif [[ $cups_installation == "no" || $cups_installation == "" ]]; then
     :
 fi
