@@ -140,11 +140,11 @@ systemctl enable NetworkManager >/dev/null 2>&1
 if [[ $cups_installation == "yes" ]]; then
     echo "Installing CUPS..."
     pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript nss-mdns --noconfirm >/dev/null 2>&1
-    systemctl enable cups.service
-    systemctl enable cups.socket
-    systemctl enable cups-browsed.service
-    systemctl enable avahi-daemon.service
-    systemctl enable avahi-daemon.socket
+    systemctl enable cups.service >/dev/null 2>&1
+    systemctl enable cups.socket >/dev/null 2>&1
+    systemctl enable cups-browsed.service >/dev/null 2>&1
+    systemctl enable avahi-daemon.service >/dev/null 2>&1
+    systemctl enable avahi-daemon.socket >/dev/null 2>&1
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
 elif [[ $cups_installation == "no" || $cups_installation == "" ]]; then
     :
