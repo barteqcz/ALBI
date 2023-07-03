@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Interruptiob handler
+interrupt_handler() {
+    echo "Interruption signal received. Exiting..."
+    exit 0
+}
+
+trap interrupt_handler SIGINT
+
 # Source variables from config file
 source /config.conf
 
