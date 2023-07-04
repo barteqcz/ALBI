@@ -4,7 +4,7 @@
 interrupt_handler() {
     echo "Interruption signal received. Exiting..."
     rm -f .temp.json
-    exit 0
+    exit
 }
 
 trap interrupt_handler SIGINT
@@ -79,18 +79,22 @@ fi
 # Check the config file
 if [[ $kernel_variant != "normal" || $kernel_variant != "lts" || $kernel_variant != "zen" ]]; then
     echo "Wrong value for kernel variant. For possible values, check the manual"
+    exit
 fi
 
 if [[ $audio_server != "pipewire" || $audio_server != "pulseaudio" || $audio_server != "none" ]]; then
     echo "Wrong value for audio server. For possible values, check the manual"
+    exit
 fi
 
 if [[ $gpu_driver != "nvidia" || $gpu_driver != "amd" || $gpu_driver != "intel" || $gpu_driver != "vm" || $gpu_driver != "nouveau" || $gpu_driver != "none" ]]; then
     echo "Wrong value for gpu driver. For possible values, check the manual"
+    exit
 fi
 
 if [[ $de != "gnome" || $de != "plasma" || $de != "xfce" || $de != "none" ]]; then
     echo "Wrong value for desktop environment. For possible values, check the manual"
+    exit
 fi
 
 # Install base system
