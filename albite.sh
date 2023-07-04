@@ -102,6 +102,7 @@ if bash -n ""$cwd"/config.conf"; then
     :
 else
     echo "Config file syntax is broken. Delete the config file and run ALBITE again"
+    exit
 fi
 
 # Install base system
