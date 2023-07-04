@@ -76,6 +76,23 @@ echo "Config file was generated successfully and it is named config.conf. Edit i
 exit
 fi
 
+# Check the config file
+if [[ $kernel_variant != "normal" || $kernel_variant != "lts" || $kernel_variant != "zen" ]]; then
+    echo "Wrong value for kernel variant. For possible values, check the manual"
+fi
+
+if [[ $audio_server != "pipewire" || $audio_server != "pulseaudio" || $audio_server != "none" ]]; then
+    echo "Wrong value for audio server. For possible values, check the manual"
+fi
+
+if [[ $gpu_driver != "nvidia" || $gpu_driver != "amd" || $gpu_driver != "intel" || $gpu_driver != "vm" || $gpu_driver != "nouveau" || $gpu_driver != "none" ]]; then
+    echo "Wrong value for gpu driver. For possible values, check the manual"
+fi
+
+if [[ $de != "gnome" || $de != "plasma" || $de != "xfce" || $de != "none" ]]; then
+    echo "Wrong value for desktop environment. For possible values, check the manual"
+fi
+
 # Install base system
 echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
