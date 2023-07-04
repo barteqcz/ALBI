@@ -120,7 +120,7 @@ if [[ $de == "gnome" ]]; then
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
-    pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland sddm plasma-wayland-session plasma kwalletmanager kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
+    pacman -S xorg xorg-xwayland wayland qt5-wayland glfw-wayland sddm plasma-wayland-session plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop --noconfirm >/dev/null 2>&1
     systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
