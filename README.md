@@ -7,6 +7,9 @@ It's actually an Arch Linux installer which doesn't use semi-gui configuration -
 - low-resource requirements - the installer is text-only, the code is written in Bash - it's very straight and simple, so it will run even on weak hardware
 - automatization & flexibility - you set all the settings in a config file before the installation, so that then the installation is 'hands-free' - you don't have to do anything during the installation. Additionally, you can even copy that config file and use on other machines
 
+### To do list
+- config error checker - will check the configuration file for errors
+
 ### Downloading
 You'll need to download this repo. 
 
