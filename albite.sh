@@ -72,7 +72,7 @@ create_swapfile="yes"
 swapfile_size_gb="4"
 EOF
 
-echo "Config file was generated successfully and it is named config.conf. Edit it to adjust it to your needs (for example by running 'nano config.conf')."
+echo "config.conf was generated successfully. Edit it to customize the installation"
 exit
 fi
 
