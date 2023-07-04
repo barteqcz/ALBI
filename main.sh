@@ -110,13 +110,15 @@ elif [[ $gpu_driver == "vm" ]]; then
 elif [[ $gpu_driver == "nouveau" ]]; then
     echo "Installing Nouveau GPU driver..."
     pacman -S mesa xf86-video-nouveau libva-mesa-driver --noconfirm >/dev/null 2>&1
+elif [[ $gpu_driver == "none" ]]; then
+    :
 fi
 
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
     pacman -S xorg wayland xorg-wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop papirus-icon-theme gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
-    pacman -R epiphany gnome-software --noconfirm >/dev/null 2>&1
+    pacman -R epiphany --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
@@ -126,12 +128,12 @@ elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
     pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet htop --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
-elif [[ $de == "none" || $de == "" ]]; then
+elif [[ $de == "none" ]]; then
     :
 fi
 
 # Enable Nvidia driver KMS if it's needed
-if [[ $de != "none" || $de != "" && $gpu_driver == "nvidia" ]]; then
+if [[ $de != "none" && $gpu_driver == "nvidia" ]]; then
     sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
@@ -149,7 +151,7 @@ if [[ $cups_installation == "yes" ]]; then
     systemctl enable avahi-daemon.service >/dev/null 2>&1
     systemctl enable avahi-daemon.socket >/dev/null 2>&1
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
-elif [[ $cups_installation == "no" || $cups_installation == "" ]]; then
+elif [[ $cups_installation == "no" ]]; then
     :
 fi
 
