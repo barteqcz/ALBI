@@ -19,4 +19,5 @@ But also manually, for example from some other PC, then put it on an USB drive, 
 
 ### Configuration and running
 To get into the script directory, you can run `cd albite`. To run the program, run `sh albite.sh`. On the first run, the script will create a configuration file depending on the boot mode (UEFI or BIOS), and its name will be `config.conf`. You can use nano or vim, etc. to edit it and adjust to your needs
+
 Manual is available [here](https://github.com/barteqcz/albite/blob/main/docs/manual.md)
