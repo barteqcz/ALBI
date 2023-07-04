@@ -39,10 +39,10 @@ fi
 # Detect CPU vendor and install appropiate ucode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ $vendor == "GenuineIntel" ]]; then
-    echo "Detected Intel CPU. Installing Intel microcode package..."
+    echo "Installing Intel microcode package..."
     pacman -Sy intel-ucode --noconfirm >/dev/null 2>&1
 elif [[ $vendor == "AuthenticAMD" ]]; then
-    echo "Detected AMD CPU. Installing AMD microcode package..."
+    echo "Installing AMD microcode package..."
     pacman -Sy amd-ucode --noconfirm >/dev/null 2>&1
 fi
 
