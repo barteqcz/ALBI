@@ -76,7 +76,7 @@ echo "config.conf was generated successfully. Edit it to customize the installat
 exit
 fi
 
-# Check the config file
+# Check the config file values
 if [[ $kernel_variant != "normal" || $kernel_variant != "lts" || $kernel_variant != "zen" ]]; then
     echo "Wrong value for kernel variant. For possible values, check the manual"
     exit
@@ -95,6 +95,13 @@ fi
 if [[ $de != "gnome" || $de != "plasma" || $de != "xfce" || $de != "none" ]]; then
     echo "Wrong value for desktop environment. For possible values, check the manual"
     exit
+fi
+
+# Check the config file syntax
+if bash -n ""$cwd"/config.conf"; then
+    :
+else
+    echo "Config file syntax is broken. Delete the config file and run ALBITE again"
 fi
 
 # Install base system
