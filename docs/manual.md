@@ -46,6 +46,8 @@ Possible values:
 `none` - Doesn't install any audio server
 
 ### GPU driver setting
+`gpu_driver` - This allows you to pick what GPU driver should be installed (if any)
+
 Possible values:
 
 `nvidia` - Installs NVIDIA GPU driver
@@ -61,6 +63,8 @@ Possible values:
 `none` - Doesn't install any GPU driver
 
 ### Desktop environment setting
+`de` - This allows you to pick what desktop environment should be installed (if any)
+
 Possible values:
 
 `gnome` - Installs GNOME desktop environment
@@ -72,6 +76,8 @@ Possible values:
 `none` - Doesn't install any DE
 
 ### CUPS installation setting
+`cups_installation` - This allows you to select whether CUPS should be installed or not
+
 Possible values: `yes` and `no`
 
 ### Swapfile installation
