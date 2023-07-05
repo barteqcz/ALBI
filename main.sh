@@ -69,8 +69,9 @@ echo "$username:$password" | chpasswd
 usermod -aG wheel $username
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
-# Tweak nano
+# Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
+sed -i '/Color/s/^#//g' /etc/pacman.conf
 
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
