@@ -1,5 +1,5 @@
 # Arch Linux Bash Installer Text Edition
-It's actually an Arch Linux installer which doesn't use semi-gui configuration - everyrthing is set in a config file and you just adjust it to your needs
+It's actually an Arch Linux installer, where everyrthing is set in a config file and you just adjust it to your needs
 
 ### Capabilities
 - speed - the script does its work very fast, but overall speed will vary based on your internet connection speed, and mirrors capabilities
