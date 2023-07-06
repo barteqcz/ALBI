@@ -86,8 +86,8 @@ sed -i '/Color/s/^#//g' /etc/pacman.conf
 cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
 sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
-sed -i "${dsln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
-sed -i "${dsln}s/$/\n##/" /etc/sudoers
+sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
+sed -i "${dln}s/$/\n##/" /etc/sudoers
 
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
