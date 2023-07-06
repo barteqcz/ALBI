@@ -72,8 +72,8 @@ sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 # Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
-cln=$(grep -n "Color" "/etc/pacman.conf" | cut -d ':' -f1)
-sed -i "${cln}s/$/\nILoveCandy/" "/etc/pacman.conf"
+cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
+sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 
 # Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
