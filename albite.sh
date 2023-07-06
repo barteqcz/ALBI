@@ -76,32 +76,40 @@ echo "config.conf was generated successfully. Edit it to customize the installat
 exit
 fi
 
-# Check the config file values
-if [[ $kernel_variant != "normal" || $kernel_variant != "lts" || $kernel_variant != "zen" ]]; then
-    echo "Wrong value for kernel variant. For possible values, check the manual"
-    exit
-fi
-
-if [[ $audio_server != "pipewire" || $audio_server != "pulseaudio" || $audio_server != "none" ]]; then
-    echo "Wrong value for audio server. For possible values, check the manual"
-    exit
-fi
-
-if [[ $gpu_driver != "nvidia" || $gpu_driver != "amd" || $gpu_driver != "intel" || $gpu_driver != "vm" || $gpu_driver != "nouveau" || $gpu_driver != "none" ]]; then
-    echo "Wrong value for gpu driver. For possible values, check the manual"
-    exit
-fi
-
-if [[ $de != "gnome" || $de != "plasma" || $de != "xfce" || $de != "none" ]]; then
-    echo "Wrong value for desktop environment. For possible values, check the manual"
-    exit
-fi
-
 # Check the config file syntax
 if bash -n ""$cwd"/config.conf"; then
     :
 else
     echo "Config file syntax is broken. Delete the config file and run ALBITE again"
+    exit
+fi
+
+# Check the config file values
+if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
+    :
+else
+    echo "Wrong value for kernel variant. For possible values, check the manual"
+    exit
+fi
+
+if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
+    :
+else
+    echo "Wrong value for audio server. For possible values, check the manual"
+    exit
+fi
+
+if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
+    :
+else
+    echo "Wrong value for gpu driver. For possible values, check the manual"
+    exit
+fi
+
+if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
+    :
+else
+    echo "Wrong value for desktop environment. For possible values, check the manual"
     exit
 fi
 
