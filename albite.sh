@@ -86,17 +86,17 @@ fi
 
 # Check the config file syntax
 while IFS= read -r line; do
-    # Skip comments and empty lines
-    if [[ "$line" =~ ^\s*# ]] || [[ -z "$line" ]]; then
-        continue
+  if [[ $line != "#"* ]]; then
+    if [[ $line != *"\"\""* ]]; then
+      echo "Invalid syntax: $line"
+      exit 1
     fi
+  fi
+done < "$cwd"/config.conf
 
-    eval "$line"
-    if [ $? -ne 0 ]; then
-        echo "Syntax error in the config file: $line"
-        exit 1
-    fi
-done
+echo "All lines follow the syntax rules."
+exit 0
+
 
 # Check the config file values
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
