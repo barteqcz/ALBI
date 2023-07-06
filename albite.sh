@@ -9,6 +9,7 @@ interrupt_handler() {
         elif [[ $response == "Y" || $response == "y" || $response == "" ]]; then
             echo "Exiting..."
             exit
+        fi
 }
 
 trap interrupt_handler SIGINT
