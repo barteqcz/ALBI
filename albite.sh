@@ -8,8 +8,6 @@ interrupt_handler() {
             :
         elif [[ $response == "Y" || $response == "y" || $response == "" ]]; then
             echo "Exiting..."
-            rm -rf /config.conf
-            rm -rf /main.sh
             exit
 }
 
