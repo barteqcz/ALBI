@@ -9,7 +9,10 @@ interrupt_handler() {
         elif [[ $response == "Y" || $response == "y" || $response == "" ]]; then
             echo "Exiting..."
             exit
+        else
+            echo "Invalid option"
         fi
+    done
 }
 
 trap interrupt_handler SIGINT
