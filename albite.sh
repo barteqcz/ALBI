@@ -33,34 +33,7 @@ if [ -e "config.conf" ]; then
     if [[ -n $output ]]; then
         echo "Syntax errors found in the configuration file"
     else
-        # Check the config file values
-        if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
-            :
-        else
-            echo "Kernel variant line broken"
-            exit
-        fi
-        
-        if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
-            :
-        else
-            echo "Audio server line broken"
-            exit
-        fi
-        
-        if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
-            :
-        else
-            echo "GPU driver line broken"
-            exit
-        fi
-        
-        if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
-            source "$cwd"/config.conf
-        else
-            echo "desktop environment line broken"
-            exit
-        fi
+        source "$cwd"/config.conf
     fi
 else
     touch config.conf
@@ -114,6 +87,35 @@ EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation"
 exit
+fi
+
+# Check the config file values
+if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
+    :
+else
+    echo "Kernel variant line broken"
+    exit
+fi
+
+if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
+    :
+else
+    echo "Audio server line broken"
+    exit
+fi
+
+if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
+    :
+else
+    echo "GPU driver line broken"
+    exit
+fi
+
+if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
+    :
+else
+    echo "desktop environment line broken"
+    exit
 fi
 
 # Install base system
