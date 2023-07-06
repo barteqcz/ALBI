@@ -2,8 +2,15 @@
 
 # Interruption handler
 interrupt_handler() {
-    echo "Interruption signal received. Exiting..."
-    exit
+    while true; do
+        read -rp "Interruption signal received. Do you really wanna abort the installation? [y/N] " response
+        if [[ $response == "N" || $response == "n" || $response == "" ]]; then
+            :
+        elif [[ $response == "Y" || $response == "y" || $response == "" ]]; then
+            echo "Exiting..."
+            rm -rf /config.conf
+            rm -rf /main.sh
+            exit
 }
 
 trap interrupt_handler SIGINT
