@@ -6,7 +6,7 @@ interrupt_handler() {
         read -rp "Interruption signal received. Do you really wanna abort the installation? [y/N] " response
         if [[ $response == "N" || $response == "n" || $response == "" ]]; then
             :
-        elif [[ $response == "Y" || $response == "y" || $response == "" ]]; then
+        elif [[ $response == "Y" || $response == "y" ]]; then
             echo "Exiting..."
             rm -rf /config.conf
             rm -rf /main.sh
