@@ -29,7 +29,7 @@ if [ -e "config.conf" ]; then
 else
     touch config.conf
     cat <<EOF > config.conf
-# Here is the configuration for the installation. For any needed help, refer to the documentation in docs/manual.md.
+# Here is the configuration for the installation. For any needed help, refer to the documentation in docs/manual.md or docs/manual.txt.
 
 # Kernel variant
 kernel_variant="normal"
