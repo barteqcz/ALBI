@@ -11,6 +11,10 @@ interrupt_handler() {
             rm -rf /config.conf
             rm -rf /main.sh
             exit
+        else
+            echo "Invalid option"
+        fi
+    done
 }
 
 trap interrupt_handler SIGINT
