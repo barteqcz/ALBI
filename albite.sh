@@ -2,17 +2,7 @@
 
 # Interruption handler
 interrupt_handler() {
-    while true; do
-        read -rp "Interruption signal received. Do you really wanna abort the installation? [y/N] " response
-        if [[ $response == "N" || $response == "n" || $response == "" ]]; then
-            :
-        elif [[ $response == "Y" || $response == "y" ]]; then
-            echo "Exiting..."
-            exit
-        else
-            echo "Invalid option"
-        fi
-    done
+    echo "Interruption signal received. Aborting... "
 }
 
 trap interrupt_handler SIGINT
