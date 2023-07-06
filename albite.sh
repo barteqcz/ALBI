@@ -29,7 +29,13 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    source "$cwd"/config.conf
+    output=$(bash -n "$config_file" 2>&1)
+    if [[ -n $output ]]; then
+        echo "Syntax errors found in the configuration file:"
+        echo "$output" | head -n 1
+    else
+        source "$cwd"/config.conf
+    fi
 else
     touch config.conf
     cat <<EOF > config.conf
@@ -82,16 +88,6 @@ EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation"
 exit
-fi
-
-# Check syntax
-output=$(bash -n "$config_file" 2>&1)
-
-if [[ -n $output ]]; then
-  echo "Syntax errors found in the configuration file:"
-  echo "$output" | head -n 1
-else
-  echo "No syntax errors found in the configuration file."
 fi
 
 # Check the config file values
