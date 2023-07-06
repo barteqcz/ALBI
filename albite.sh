@@ -3,7 +3,6 @@
 # Interruption handler
 interrupt_handler() {
     echo "Interruption signal received. Exiting..."
-    rm -f .temp.json
     exit
 }
 
