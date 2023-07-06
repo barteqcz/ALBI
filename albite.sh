@@ -84,19 +84,15 @@ echo "config.conf was generated successfully. Edit it to customize the installat
 exit
 fi
 
-# Check the config file syntax
-while IFS= read -r line; do
-  if [[ $line != "#"* ]]; then
-    if [[ $line != *"\"\""* ]]; then
-      echo "Invalid syntax: $line"
-      exit 1
-    fi
-  fi
-done < "$cwd"/config.conf
+# Check for syntax errors in the config file
+output=$(bash -n ""$cwd"/config.conf" 2>&1)
 
-echo "All lines follow the syntax rules."
-exit 0
-
+if [[ -n $output ]]; then
+  echo "Syntax errors found in the configuration file."
+  exit
+else
+  echo "No syntax errors found in the configuration file."
+fi
 
 # Check the config file values
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
