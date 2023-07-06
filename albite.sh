@@ -114,7 +114,7 @@ fi
 if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     :
 else
-    echo "desktop environment line broken"
+    echo "Desktop environment line broken"
     exit
 fi
 
