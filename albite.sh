@@ -84,14 +84,14 @@ echo "config.conf was generated successfully. Edit it to customize the installat
 exit
 fi
 
-# Check for syntax errors
-output=$(bash -n "$cwd/config.conf" 2>&1)
+# Check syntax
+output=$(bash -n "$config_file" 2>&1)
 
 if [[ -n $output ]]; then
-    first_line=$(echo "$output" | head -n 1)
-    echo "Syntax error found in the configuration file"
+  echo "Syntax errors found in the configuration file:"
+  echo "$output" | head -n 1
 else
-    :
+  echo "No syntax errors found in the configuration file."
 fi
 
 # Check the config file values
