@@ -102,7 +102,7 @@ fi
 
 # Install audio server
 if [[ $audio_server == "pipewire" ]]; then
-    echo "Installing Pipewire..."
+    echo "Installing PipeWire..."
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm >/dev/null 2>&1
     systemctl enable --global pipewire pipewire-pulse >/dev/null 2>&1
 elif [[ $audio_server == "pulseaudio" ]]; then
@@ -134,7 +134,7 @@ fi
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S xorg wayland xorg-wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
+    pacman -S xorg xorg-wayland wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs htop gnome-tweaks gnome-shell-extensions --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
