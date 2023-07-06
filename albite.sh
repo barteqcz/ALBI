@@ -29,7 +29,7 @@ fi
 
 # Create configuration file based on the boot mode
 if [ -e "config.conf" ]; then
-    output=$(bash -n "$config_file" 2>&1)
+    output=$(bash -n "$cwd"/config.conf 2>&1)
     if [[ -n $output ]]; then
         echo "Syntax errors found in the configuration file"
         exit
