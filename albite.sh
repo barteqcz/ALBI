@@ -31,8 +31,7 @@ fi
 if [ -e "config.conf" ]; then
     output=$(bash -n "$config_file" 2>&1)
     if [[ -n $output ]]; then
-        echo "Syntax errors found in the configuration file:"
-        echo "$output" | head -n 1
+        echo "Syntax errors found in the configuration file"
     else
         source "$cwd"/config.conf
     fi
