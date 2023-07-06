@@ -84,28 +84,28 @@ fi
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     :
 else
-    echo "Kernel variant line broken"
+    echo "Invalid value for the kernel variant. Check the manual for possible values."
     exit
 fi
 
 if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
     :
 else
-    echo "Audio server line broken"
+    echo "Invalid value for the audio server. Check the manual for possible values."
     exit
 fi
 
 if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
     :
 else
-    echo "GPU driver line broken"
+    echo "Invalid value for the GPU driver. Check the manual for possible values."
     exit
 fi
 
 if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     :
 else
-    echo "Desktop environment line broken"
+    echo "Invalid value for the DE. Check the manual for possible values."
     exit
 fi
 
