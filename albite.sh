@@ -134,13 +134,18 @@ fi
 
 pacman -Sy >/dev/null 2>&1
 
-for package in $custom_packages; do
-    if pacman -Qs "$package" >/dev/null 2>&1; then
+IFS=" " read -ra packages <<< "$custom_packages"
+
+for package in "${packages[@]}"; do
+    pacman_output=$(pacman -Ss "$package")
+    if [[ -n "$pacman_output" ]]; then
         :
     else
-        echo "Error: package '$package', given as a custom package to install, doesn't exist."
+        echo "Error: package '$package' not found."
+        exit
     fi
 done
+
 
 
 # Install base system
