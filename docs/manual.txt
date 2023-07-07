@@ -10,15 +10,15 @@ lts - Installs LTS kernel
 zen - Installs ZEN kernel
 
 # Timezone
-timezone - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available here - https://github.com/barteqcz/albi/blob/main/files/timezone_temp
+timezone - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available in docs/timezones_list.
 
 # User configuration
 username - It can be anything that fits a Linux username rules. It can't begin with a number.
 password - It can be anything. I recommend setting a strong password.
 
 # Locales settings
-language - Sets selected language systemwide. The full list of available languages is available here - https://github.com/barteqcz/albi/blob/main/files/lang_temp
-console_keyboard_layout - This keyboard layout will be used systemwide as a console keyboard layout. But take into account, that it won't be used in graphical environment. Full list is available here - https://github.com/barteqcz/albi/blob/main/files/keymap_temp
+language - Sets selected language systemwide. The full list of available languages is available in docs/languages_list.
+console_keyboard_layout - This keyboard layout will be used systemwide as a console keyboard layout. But take into account, that it won't be used in graphical environment. Full list is available in docs/keymaps_list.
 
 # Hostname
 hostname - This is the hostname of the machine.
