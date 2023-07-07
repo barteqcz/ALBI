@@ -76,7 +76,7 @@ create_swapfile="yes"
 swapfile_size_gb="4"
 
 # Custom packages (separated by spaces)
-custom_packages="firefox git"
+custom_packages="firefox git papirus-icon-theme"
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
