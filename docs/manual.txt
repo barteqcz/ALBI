@@ -5,9 +5,9 @@ kernel_variant - This allows you to select which kernel variant do you wanna ins
 
 Possible values:
 
-normal - Installs normal kernel
-lts - Installs LTS kernel
-zen - Installs ZEN kernel
+normal - Installs normal kernel.
+lts - Installs LTS kernel.
+zen - Installs ZEN kernel.
 
 # Timezone
 timezone - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available in docs/timezones_list.
@@ -35,45 +35,45 @@ audio_server - This allows you to install selected audio server.
 
 Possible values:
 
-pipewire - Installs pipewire audio server
-pulseaudio - Installs pulseaudio
-none - Doesn't install any audio server
+pipewire - Installs pipewire.
+pulseaudio - Installs pulseaudio.
+none - Doesn't install any audio server.
 
 # GPU driver setting
 gpu_driver - This allows you to pick what GPU driver should be installed (if any).
 
 Possible values:
 
-nvidia - Installs NVIDIA GPU driver
-amd - Installs AMD GPU driver
-intel - Installs Intel GPU driver
-vm - Installs vmware GPU driver
-nouveau - Installs Nouveau GPU driver (open-source driver meant to work with NVIDIA GPUs)
-none - Doesn't install any GPU driver
+nvidia - Installs NVIDIA GPU driver.
+amd - Installs AMD GPU driver.
+intel - Installs Intel GPU driver.
+vm - Installs vmware GPU driver.
+nouveau - Installs Nouveau GPU driver (open-source driver meant to work with NVIDIA GPUs).
+none - Doesn't install any GPU driver.
 
 # Desktop environment setting
 de - This allows you to pick what desktop environment should be installed (if any).
 
 Possible values:
 
-gnome - Installs GNOME desktop environment
-plasma - Installs KDE Plasma desktop environment
-xfce - Installs XFCE desktop environment
-none - Doesn't install any DE
+gnome - Installs GNOME desktop environment.
+plasma - Installs KDE Plasma desktop environment.
+xfce - Installs XFCE desktop environment.
+none - Doesn't install any DE.
 
 # CUPS installation setting
 cups_installation - This allows you to select whether CUPS should be installed or not.
 
-Possible values: yes and no
+Possible values: yes and no.
 
 # Swapfile installation
 create_swapfile - Decide whether swapfile should be created or not.
 
-Possible values: yes and no
+Possible values: yes and no.
 
 swapfile_size_gb - Select size for the swapfile (if it's gonna be created).
 
-Possible values are only numbers
+Possible values are only numbers.
 
 # Custom packages
 custom_packages - This allows you to define custom packages, which you wanna install in the system. The packages should be separated by spaces.
