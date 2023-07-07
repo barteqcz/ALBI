@@ -172,7 +172,7 @@ elif [[ $create_swapfile == "no" ]]; then
 fi
 
 # Install packages defined in custom_packages variable
-pacman -S $custom_packages >/dev/null 2>&1
+pacman -S $custom_packages --noconfirm >/dev/null 2>&1
 
 # Disable onboard PC speaker
 echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
