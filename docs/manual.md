@@ -88,3 +88,6 @@ Possible values: `yes` and `no`
 `swapfile_size_gb` - Select size for the swapfile (if it's gonna be created)
 
 Possible values are **only numbers**
+
+### Custom packages
+`custom_packages` - This allows you to define custom packages, which you wanna install in the system. The packages should be separated by spaces.
