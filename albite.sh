@@ -132,21 +132,24 @@ else
     echo "Error: invalid value for the swapfile size: the value isn't numeric."
 fi
 
-pacman -Sy >/dev/null 2>&1
-
-IFS=" " read -ra packages <<< "$custom_packages"
-
-for package in "${packages[@]}"; do
-    pacman_output=$(pacman -Ss "$package")
-    if [[ -n "$pacman_output" ]]; then
-        :
-    else
-        echo "Error: package '$package' not found."
-        exit
-    fi
-done
-
-
+# Check if any custom packages were defined
+if [ -z $custom_packages ]; then
+    :
+else
+    pacman -Sy >/dev/null 2>&1
+    
+    IFS=" " read -ra packages <<< "$custom_packages"
+    
+    for package in "${packages[@]}"; do
+        pacman_output=$(pacman -Ss "$package")
+        if [[ -n "$pacman_output" ]]; then
+            :
+        else
+            echo "Error: package '$package' not found."
+            exit
+        fi
+    done
+fi
 
 # Install base system
 echo "Installing base system..."
