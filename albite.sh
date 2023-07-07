@@ -21,7 +21,7 @@ fi
 if [ -e "config.conf" ]; then
     output=$(bash -n "$cwd"/config.conf 2>&1)
     if [[ -n $output ]]; then
-        echo "Syntax errors found in the configuration file"
+        echo "Syntax errors found in the configuration file."
         exit
     else
         source "$cwd"/config.conf
@@ -74,9 +74,12 @@ cups_installation="yes"
 # Swapfile settings
 create_swapfile="yes"
 swapfile_size_gb="4"
+
+# Custom packages (separated by spaces)
+custom_packages="firefox git"
 EOF
 
-echo "config.conf was generated successfully. Edit it to customize the installation"
+echo "config.conf was generated successfully. Edit it to customize the installation."
 exit
 fi
 
@@ -84,30 +87,61 @@ fi
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     :
 else
-    echo "Invalid value for the kernel variant. Check the manual for possible values."
+    echo "Error: invalid value for the kernel variant. Check the manual for possible values."
     exit
 fi
 
 if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
     :
 else
-    echo "Invalid value for the audio server. Check the manual for possible values."
+    echo "Error: invalid value for the audio server. Check the manual for possible values."
     exit
 fi
 
 if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
     :
 else
-    echo "Invalid value for the GPU driver. Check the manual for possible values."
+    echo "Error: invalid value for the GPU driver. Check the manual for possible values."
     exit
 fi
 
 if [[ $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     :
 else
-    echo "Invalid value for the DE. Check the manual for possible values."
+    echo "Error: invalid value for the DE. Check the manual for possible values."
     exit
 fi
+
+if [[ $cups_installation == "yes" || $cups_installation == "no" ]]; then
+    :
+else
+    echo "Error: invalid value for the cups installation question. Possible values are 'yes', or 'no'."
+    exit
+fi
+
+if [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
+    :
+else
+    echo "Error: invalid value for the swapfile creation question. Possible values are 'yes', or 'no'."
+    exit
+fi
+
+if [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
+    :
+else
+    echo "Error: invalid value for the swapfile size: the value isn't numeric."
+fi
+
+pacman -Sy >/dev/null 2>&1
+
+for package in $custom_packages; do
+    if pacman -Qs "$package" >/dev/null 2>&1; then
+        :
+    else
+        echo "Error: package '$package', given as a custom package to install, doesn't exist."
+    fi
+done
+
 
 # Install base system
 echo "Installing base system..."
