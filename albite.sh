@@ -133,7 +133,7 @@ else
 fi
 
 # Check if any custom packages were defined
-if [ -z $custom_packages ]; then
+if [[ -z $custom_packages ]]; then
     :
 else
     pacman -Sy >/dev/null 2>&1
