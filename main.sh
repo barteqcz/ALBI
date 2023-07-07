@@ -172,6 +172,7 @@ elif [[ $create_swapfile == "no" ]]; then
 fi
 
 # Install packages defined in custom_packages variable
+echo "Installing custom packages..."
 pacman -S $custom_packages --noconfirm >/dev/null 2>&1
 
 # Disable onboard PC speaker
