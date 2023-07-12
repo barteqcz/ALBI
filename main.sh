@@ -25,7 +25,7 @@ done
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion nano grub ntfs-3g sshfs networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
+pacman -Sy base-devel bash-completion nano git grub ntfs-3g sshfs networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
@@ -155,19 +155,12 @@ if [[ $cups_installation == "yes" ]]; then
     systemctl enable avahi-daemon.service >/dev/null 2>&1
     systemctl enable avahi-daemon.socket >/dev/null 2>&1
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
+    #pacman -S hplip --noconfirm >/dev/null 2>&1
+    #git clone https://aur.archlinux.org/hplip-plugin
+    #cd hplip-plugin
+    #sudo -u nobody makepkg -si
+    #cd
 elif [[ $cups_installation == "no" ]]; then
-    :
-fi
-
-# Install HPLIP
-if [[ $full_hp_support == "yes" ]]; then
-    echo "Installing HPLIP..."
-    pacman -S hplip --noconfirm >/dev/null 2>&1
-    git clone https://aur.archlinux.org/hplip-plugin
-    cd hplip-plugin
-    sudo -u nobody makepkg -si
-    cd
-elif [[ $full_hp_support == "no" ]]; then
     :
 fi
 
