@@ -71,6 +71,9 @@ de="plasma"
 # CUPS installation
 cups_installation="yes"
 
+# Full HP support installation (HPLIP)
+full_hp_support="yes"
+
 # Swapfile settings
 create_swapfile="yes"
 swapfile_size_gb="4"
