@@ -159,6 +159,14 @@ elif [[ $cups_installation == "no" ]]; then
     :
 fi
 
+# Install HPLIP
+if [[ $full_hp_support == "yes" ]]; then
+    echo "Installing HPLIP..."
+    pacman -S hplip --noconfirm >/dev/null 2>&1
+elif [[ $full_hp_support == "no" ]]; then
+    :
+fi
+
 # Set-up swapfile
 if [[ $create_swapfile == "yes" ]]; then
     echo "Creating swapfile..."
