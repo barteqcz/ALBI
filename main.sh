@@ -167,9 +167,6 @@ if [[ $full_hp_support == "yes" ]]; then
     cd hplip-plugin
     sudo -u nobody makepkg -si
     cd
-    cd yay
-    git clone https://aur.archlinux.org/yay
-    sudo -u nobody makepkg -si
 elif [[ $full_hp_support == "no" ]]; then
     :
 fi
