@@ -163,6 +163,13 @@ fi
 if [[ $full_hp_support == "yes" ]]; then
     echo "Installing HPLIP..."
     pacman -S hplip --noconfirm >/dev/null 2>&1
+    git clone https://aur.archlinux.org/hplip-plugin
+    cd hplip-plugin
+    sudo -u nobody makepkg -si
+    cd
+    cd yay
+    git clone https://aur.archlinux.org/yay
+    sudo -u nobody makepkg -si
 elif [[ $full_hp_support == "no" ]]; then
     :
 fi
