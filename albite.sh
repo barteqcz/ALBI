@@ -71,8 +71,8 @@ de="plasma"
 # CUPS installation
 cups_installation="yes"
 
-# Full HP support installation (HPLIP)
-full_hp_support="yes"
+# Full HP support installation (HPLIP) + CUPS plugin for HPLIP from AUR (UNTESTED)
+full_hp_support="no"
 
 # Swapfile settings
 create_swapfile="yes"
