@@ -2,7 +2,7 @@
 It's actually an Arch Linux installer, where everyrthing is set in a config file and you just adjust it to your needs
 
 ### Capabilities
-- speed - the script does its work very fast, but overall speed will vary based on your internet connection speed and mirrors capabilities, but also on your disk (SSDs will be much faster than HDDs).
+- speed* - the script does its work very fast, but overall speed will vary based on your internet connection speed and mirrors capabilities, but also on your disk (SSDs will be much faster than HDDs).
 - full CUPS implementation support - driverless printing and network printers will work by default.
 - low-resource requirements - the installer is text-only, the code is written in Bash - it's very straight and simple, so it will run even on weak hardware.
 - automatization & flexibility - you set all the settings in a config file before the installation, so that then the installation is 'hands-free' - you don't have to do anything during the installation. Additionally, you can even copy that config file and use on other machines. ALBITE also handles custom packages installation - there is a special variable, in which you can write down all the custom packages that you wanna install in the system.
