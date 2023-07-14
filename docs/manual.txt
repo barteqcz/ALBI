@@ -56,6 +56,7 @@ de - This allows you to pick what desktop environment should be installed (if an
 
 Possible values:
 
+cinnamon - Installs Cinnamon desktop environment.
 gnome - Installs GNOME desktop environment.
 plasma - Installs KDE Plasma desktop environment.
 xfce - Installs XFCE desktop environment.
