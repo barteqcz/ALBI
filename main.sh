@@ -148,7 +148,7 @@ systemctl enable NetworkManager >/dev/null 2>&1
 # Install CUPS
 if [[ $cups_installation == "yes" ]]; then
     echo "Installing CUPS..."
-    pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint nss-mdns system-config-printer --noconfirm >/dev/null 2>&1
+    pacman -S cups cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm >/dev/null 2>&1
     systemctl enable cups.service >/dev/null 2>&1
     systemctl enable cups.socket >/dev/null 2>&1
     systemctl enable cups-browsed.service >/dev/null 2>&1
