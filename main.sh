@@ -159,6 +159,8 @@ if [[ $cups_installation == "yes" ]]; then
     systemctl enable avahi-daemon.service >/dev/null 2>&1
     systemctl enable avahi-daemon.socket >/dev/null 2>&1
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
+    mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.old
+    mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.old
 elif [[ $cups_installation == "no" ]]; then
     :
 fi
