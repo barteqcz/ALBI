@@ -34,9 +34,6 @@ else
 # Kernel variant
 kernel_variant="normal"
 
-# Mirror servers country (enter english name of the country, or leave auto to let Reflector pick best servers)
-reflector_country="auto"
-
 # Timezone setting
 timezone="Europe/Prague"
 
