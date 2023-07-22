@@ -10,11 +10,6 @@ trap interrupt_handler SIGINT
 # Source variables from config file
 source /config.conf
 
-# Install reflector and set best mirrors
-echo "Selecting the best mirror servers (for the installed system)..."
-pacman -Sy reflector --noconfirm >/dev/null 2>&1
-reflector --protocol https --sort rate --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
-
 # Set timezone
 ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 hwclock --systohc
@@ -27,6 +22,11 @@ while ! pacman -Sy --noconfirm >/dev/null 2>&1; do
     pacman-key --populate >/dev/null 2>&1
     pacman -Sy archlinux-keyring --noconfirm >/dev/null 2>&1
 done
+
+# Install reflector and set best mirrors
+echo "Selecting the best mirror servers (for the installed system)..."
+pacman -Sy reflector --noconfirm >/dev/null 2>&1
+reflector --protocol https --sort rate --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
 
 # Install basic packages
 echo "Installing basic packages..."
