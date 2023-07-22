@@ -165,9 +165,6 @@ fi
 echo "Generating /etc/fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# Copy second part of the script to /
-cp main.sh /mnt/
-
 # Copy config file to /
 cp config.conf /mnt/
 
