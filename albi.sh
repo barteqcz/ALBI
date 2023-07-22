@@ -165,9 +165,6 @@ fi
 echo "Generating /etc/fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# Copy the config file to /
-cp config.conf /mnt/
-
 cat <<EOS > tmpscript.sh
 #!/bin/bash
 
@@ -341,6 +338,8 @@ fi
 # Install yay
 echo "Installing yay and needed AUR packages..."
 cat <<EOF > tmpscript2.sh
+#!/bin/bash
+
 source /config.conf
 cd
 git clone --depth 1 https://aur.archlinux.org/yay.git >/dev/null 2>&1
@@ -399,5 +398,6 @@ exit
 EOS
 
 # Enter arch-chroot and run second part of the script
+cp config.conf /mnt/
 mv tmpscript.sh /mnt/
 arch-chroot /mnt bash tmpscript.sh
