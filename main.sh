@@ -85,7 +85,7 @@ yay -Sy
 yay -S hplip-plugin --noconfirm
 EOF
 chown "$username":"$username" "$tmpscript"
-echo  "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
+echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
 sudo -u "$username" bash "$tmpscript"
 rm /etc/sudoers.d/tmp
 
