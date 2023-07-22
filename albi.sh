@@ -272,7 +272,9 @@ fi
 if [[ $gpu_driver == "nvidia" ]]; then
     echo "Installing NVIDIA GPU driver..."
     pacman -S nvidia nvidia-utils nvidia-settings --noconfirm >/dev/null 2>&1
-elif [[ $gpu_drvier == "amd" ]]; then
+    sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+elif [[ $gpu_driver == "amd" ]]; then
     echo "Installing AMD GPU driver..."
     pacman -S mesa xf86-video-amdgpu xf86-video-ati libva-mesa-driver vulkan-radeon --noconfirm >/dev/null 2>&1
 elif [[ $gpu_driver == "intel" ]]; then
@@ -307,12 +309,6 @@ elif [[ $de == "cinnamon" ]]; then
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "none" ]]; then
     :
-fi
-
-# Enable Nvidia driver KMS if it's needed
-if [[ $de != "none" && $gpu_driver == "nvidia" ]]; then
-    sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia_drm.modeset=1"/' /etc/default/grub
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
 # Enable Network Manager
