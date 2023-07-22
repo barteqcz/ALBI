@@ -151,6 +151,11 @@ else
     done
 fi
 
+# Install reflector and set best mirrors
+echo "Selecting the best mirror..."
+pacman -Sy reflector --noconfirm >/dev/null 2>&1
+reflector --protocol https --sort rate --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+
 # Install base system
 echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
