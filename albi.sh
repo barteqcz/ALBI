@@ -396,4 +396,5 @@ exit
 EOS
 
 # Enter arch-chroot and run second part of the script
+mv tmpscript.sh /mnt/
 arch-chroot /mnt bash tmpscript.sh
