@@ -168,13 +168,19 @@ fi
 echo "Installing yay and needed AUR packages..."
 tmpscript=$(mktemp)
 cat > $tmpscript <<EOF
+source /config.conf
 cd
 git clone --depth 1 https://aur.archlinux.org/yay.git >/dev/null 2>&1
 cd yay
 makepkg -si --noconfirm >/dev/null 2>&1
 cd ..
 rm -rf yay
-yay -Sy hplip-plugin --noconfirm >/dev/null 2>&1
+yay -Sy
+if [[ $cups_installation == "yes" ]]; then
+    yay -S hplip-plugin --noconfirm >/dev/null 2>&1
+elif [[ $cups_installation == "no" ]]; then
+    :
+fi
 EOF
 chown "$username":"$username" "$tmpscript"
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
