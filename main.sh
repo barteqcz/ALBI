@@ -73,6 +73,20 @@ echo "$username:$password" | chpasswd
 usermod -aG wheel $username
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
+# Install paru
+tmpscript=$(mktemp)
+cat > $tmpscript <<EOF
+cd
+git clone --depth 1 https://aur.archlinux.org/paru-bin.git
+cd paru-bin
+makepkg -si --noconfirm
+cd ..
+rm -rf paru-bin
+paru -S hplip-plugin --noconfirm
+EOF
+chown "$username":"$username" "$tmpscript"
+sudo -u "$username" bash "$tmpscript"
+
 # Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
