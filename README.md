@@ -1,4 +1,4 @@
-# Arch Linux Bash Installer Text Edition
+# Arch Linux Bash Installer
 It's actually an Arch Linux installer, where everything is set in a config file and you just adjust it to your needs.
 
 ### Capabilities
@@ -14,7 +14,7 @@ You'll need to download this repo.
 
 You can do it using `git`:
 
-`git clone https://github.com/barteqcz/albite`
+`git clone https://github.com/barteqcz/albi`
 
 But also manually, for example from some other PC, then put it on an USB drive, and mount so that it will be available in Arch installation media.
 
@@ -22,6 +22,6 @@ But also manually, for example from some other PC, then put it on an USB drive, 
 Before running the script, mount all the partitions you wanna use. Otherwise the script won't be able to run. I haven't implemented any partitioning helper, because I don't know how to solve the biggest problem - differences in configurations - someone will wanna use '/' as the only partition (as I do), but someone will wanna use /home, /boot or /var separately - I don't know what partitions will be used by various users.
 
 ### Configuration and running
-To get into the script directory, you can run `cd albite`. To run the program, run `sh albite.sh`. On the first run, the script will create a configuration file depending on the boot mode (UEFI or BIOS), and its name will be `config.conf`. You can use nano or vim, etc. to edit it and adjust to your needs.
+To get into the script directory, you can run `cd albi`. To run the program, run `sh albi.sh`. On the first run, the script will create a configuration file depending on the boot mode (UEFI or BIOS), and its name will be `config.conf`. You can use nano or vim, etc. to edit it and adjust to your needs.
 
-Manual is available [here](https://github.com/barteqcz/albite/blob/main/docs/manual.txt).
+Manual is available [here](https://github.com/barteqcz/albi/blob/main/docs/manual.txt).
