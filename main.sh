@@ -89,9 +89,6 @@ echo  "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
 sudo -u "$username" bash "$tmpscript"
 rm /etc/sudoers.d/tmp
 
-# Add sudo privileges for the user
-sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
-
 # Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
