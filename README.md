@@ -5,9 +5,9 @@ It's actually an Arch Linux installer, where everything is set in a config file 
 - speed* - the script does its work very fast, but overall speed will vary based on your internet connection speed and mirrors capabilities, but also on your disk (SSDs will be much faster than HDDs).
 - full CUPS implementation support - driverless printing and network printers will work by default and HPLIP is installed with its CUPS plugin.
 - low-resource requirements - the installer is text-only, the code is written in Bash - it's very straight and simple, so it will run even on weak hardware.
-- automatization & flexibility - you set all the settings in a config file before the installation, so that then the installation is 'hands-free' - you don't have to do anything during the installation. Additionally, you can even copy that config file and use on other machines. ALBITE also handles custom packages installation - there is a special variable, in which you can write down all the custom packages that you wanna install in the system.
+- automatization & flexibility - you set all the settings in a config file before the installation, so that then the installation is 'hands-free' - you don't have to do anything during the installation. Additionally, you can even copy that config file and use on other machines. ALBI also handles custom packages installation - there is a special variable, in which you can write down all the custom packages that you wanna install in the system.
 - config error checker - checks the configuration file for mistakes in the values and syntax errors.
-- useful tweaks - ALBITE applies some useful tweaks by default - visible '*' characters when inputting passwords, colored Pacman prompt, animated Pacman prompt, nano languages detection, customized /etc/nsswitch.conf file to automatically detect network, driverless printers, etc.
+- useful tweaks - ALBI applies some useful tweaks by default - visible '*' characters when inputting passwords, colored Pacman prompt, animated Pacman prompt, nano languages detection, customized /etc/nsswitch.conf file to automatically detect network, driverless printers, etc.
 
 ### Downloading
 You'll need to download this repo. 
