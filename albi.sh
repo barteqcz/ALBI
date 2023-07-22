@@ -337,7 +337,7 @@ fi
 # Install yay
 echo "Installing yay and needed AUR packages..."
 tmpscript=$(mktemp)
-cat > $tmpscript <<EOF
+cat <<'EOF' > $tmpscript
 source /config.conf
 cd
 git clone --depth 1 https://aur.archlinux.org/yay.git >/dev/null 2>&1
