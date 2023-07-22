@@ -155,7 +155,7 @@ else
 fi
 
 # Install reflector and set best mirrors
-echo "Selecting the best mirror..."
+echo "Selecting the best mirror servers..."
 pacman -Sy reflector --noconfirm >/dev/null 2>&1
 reflector --protocol https --sort rate --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
 
