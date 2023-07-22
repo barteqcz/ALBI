@@ -71,21 +71,27 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 useradd -m $username >/dev/null 2>&1
 echo "$username:$password" | chpasswd
 usermod -aG wheel $username
-sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
+echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
 
-# Install paru
+# Install yay
 tmpscript=$(mktemp)
 cat > $tmpscript <<EOF
 cd
-git clone --depth 1 https://aur.archlinux.org/paru-bin.git
-cd paru-bin
+git clone --depth 1 https://aur.archlinux.org/yay.git
+cd yay
 makepkg -si --noconfirm
 cd ..
-rm -rf paru-bin
-paru -S hplip-plugin --noconfirm
+rm -rf yay
+yay -Sy
+yay -S hplip-plugin --noconfirm
 EOF
 chown "$username":"$username" "$tmpscript"
+echo  "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
 sudo -u "$username" bash "$tmpscript"
+rm /etc/sudoers.d/tmp
+
+# Add sudo privileges for the user
+sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 # Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
