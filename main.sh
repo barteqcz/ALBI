@@ -23,11 +23,6 @@ while ! pacman -Sy --noconfirm >/dev/null 2>&1; do
     pacman -Sy archlinux-keyring --noconfirm >/dev/null 2>&1
 done
 
-# Install reflector and set best mirrors
-echo "Selecting the best mirror servers (for the installed system)..."
-pacman -Sy reflector --noconfirm >/dev/null 2>&1
-reflector --protocol https --sort rate --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
-
 # Install basic packages
 echo "Installing basic packages..."
 pacman -Sy base-devel bash-completion nano git grub ntfs-3g sshfs networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
@@ -71,26 +66,6 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 useradd -m $username >/dev/null 2>&1
 echo "$username:$password" | chpasswd
 usermod -aG wheel $username
-
-# Install yay
-tmpscript=$(mktemp)
-cat > $tmpscript <<EOF
-cd
-git clone --depth 1 https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si --noconfirm
-cd ..
-rm -rf yay
-yay -Sy
-yay -S hplip-plugin --noconfirm
-EOF
-chown "$username":"$username" "$tmpscript"
-echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
-sudo -u "$username" bash "$tmpscript"
-rm /etc/sudoers.d/tmp
-
-# Add sudo privileges for the user
-sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 # Apply useful tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
@@ -188,6 +163,26 @@ if [[ $cups_installation == "yes" ]]; then
 elif [[ $cups_installation == "no" ]]; then
     :
 fi
+
+# Install yay
+echo "Installing yay and needed AUR packages..."
+tmpscript=$(mktemp)
+cat > $tmpscript <<EOF
+cd
+git clone --depth 1 https://aur.archlinux.org/yay.git >/dev/null 2>&1
+cd yay
+makepkg -si --noconfirm >/dev/null 2>&1
+cd ..
+rm -rf yay
+yay -Sy hplip-plugin --noconfirm >/dev/null 2>&1
+EOF
+chown "$username":"$username" "$tmpscript"
+echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
+sudo -u "$username" bash "$tmpscript"
+rm -f /etc/sudoers.d/tmp
+
+# Add sudo privileges for the user
+sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 # Set-up swapfile
 if [[ $create_swapfile == "yes" ]]; then
