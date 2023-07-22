@@ -10,7 +10,10 @@ It's actually an Arch Linux installer, where everything is set in a config file 
 - useful tweaks - ALBI applies some useful tweaks by default - visible '*' characters when inputting passwords, colored Pacman prompt, animated Pacman prompt, nano languages detection, customized /etc/nsswitch.conf file to automatically detect network, driverless printers, etc.
 
 ### Downloading
-You'll need to download this repo. 
+You'll need to download this repo, or if you don't wanna download the documentation, you can download only the `albi.sh` file, with `curl`, `wget`, etc.
+
+`wget https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
+`curl -0 -L https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
 
 You can do it using `git`:
 
