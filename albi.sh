@@ -167,7 +167,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 # Create a second, temporary file
 touch main.sh
-cat <<EOFile > main.sh
+cat <<'EOFile' > main.sh
 #!/bin/bash
 
 # Interruption handler
