@@ -71,7 +71,6 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 useradd -m $username >/dev/null 2>&1
 echo "$username:$password" | chpasswd
 usermod -aG wheel $username
-echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
 
 # Install yay
 tmpscript=$(mktemp)
