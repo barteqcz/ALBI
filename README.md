@@ -12,10 +12,13 @@ It's actually an Arch Linux installer, where everything is set in a config file 
 ### Downloading
 You'll need to download this repo, or if you don't wanna download the documentation, you can download only the `albi.sh` file, with `curl`, `wget`, etc.
 
-`wget https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
-`curl -0 -L https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
+That's how you can download only the source code file, using either `wget` or `curl`:
 
-You can do it using `git`:
+`wget https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
+
+`curl -O -L https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
+
+If you wanna download the whole repository (source file + documentation), you can reach it using `git` (remember to install it first):
 
 `git clone https://github.com/barteqcz/albi`
 
