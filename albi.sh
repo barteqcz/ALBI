@@ -165,17 +165,9 @@ fi
 echo "Generating /etc/fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-# Copy second part of the script to /
-cp main.sh /mnt/
-
-# Copy config file to /
-cp config.conf /mnt/
-
-# Enter arch-chroot and run second part of the script
-arch-chroot /mnt bash main.sh
-
-##################################################################
-
+# Create a second, temporary file
+touch main.sh
+cat <<EOFile > main.sh
 #!/bin/bash
 
 # Interruption handler
@@ -400,3 +392,13 @@ yes | pacman -Scc >/dev/null 2>&1
 rm -rf /config.conf
 rm -rf /main.sh
 exit
+EOFile
+
+# Copy second part of the script to /
+cp main.sh /mnt/
+
+# Copy config file to /
+cp config.conf /mnt/
+
+# Enter arch-chroot and run second part of the script
+arch-chroot /mnt bash main.sh
