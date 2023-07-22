@@ -22,7 +22,7 @@ If you wanna download the whole repository (source file + documentation), you ca
 
 `git clone https://github.com/barteqcz/albi`
 
-But also manually, for example from some other PC, then put it on an USB drive, and mount so that it will be available in Arch installation media.
+But you can also download the files you want manually. For example, you can download the files on some other PC and then put them on an USB drive, which can be mounted inside the Arch installation media.
 
 ### Preparation
 Before running the script, mount all the partitions you wanna use. Otherwise the script won't be able to run. I haven't implemented any partitioning helper, because I don't know how to solve the biggest problem - differences in configurations - someone will wanna use '/' as the only partition (as I do), but someone will wanna use /home, /boot or /var separately - I don't know what partitions will be used by various users.
