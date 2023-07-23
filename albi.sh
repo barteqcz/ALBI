@@ -130,6 +130,7 @@ if [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
     :
 else
     echo "Error: invalid value for the swapfile size: the value isn't numeric."
+    exit
 fi
 
 # Check if any custom packages were defined
