@@ -184,15 +184,6 @@ source /config.conf
 ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 hwclock --systohc
 
-# Fix potential archlinux-keyring problem
-while ! pacman -Sy --noconfirm >/dev/null 2>&1; do
-    killall gpg-agent >/dev/null 2>&1
-    rm -rf /etc/pacman.d/gnupg/ >/dev/null 2>&1
-    pacman-key --init >/dev/null 2>&1
-    pacman-key --populate >/dev/null 2>&1
-    pacman -Sy archlinux-keyring --noconfirm >/dev/null 2>&1
-done
-
 # Install basic packages
 echo "Installing basic packages..."
 pacman -Sy base-devel bash-completion nano git grub ntfs-3g sshfs networkmanager wget exfat-utils xdg-utils xdg-user-dirs unzip unrar --noconfirm >/dev/null 2>&1
