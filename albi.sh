@@ -341,7 +341,7 @@ cd yay
 makepkg -si --noconfirm >/dev/null 2>&1
 cd ..
 rm -rf yay
-yay -Sy
+yay -Sy --noconfirm >/dev/null 2>&1
 if [[ $cups_installation == "yes" ]]; then
     yay -S hplip-plugin --noconfirm >/dev/null 2>&1
 elif [[ $cups_installation == "no" ]]; then
