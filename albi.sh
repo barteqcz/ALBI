@@ -205,6 +205,9 @@ if [[ $vendor == "GenuineIntel" ]]; then
 elif [[ $vendor == "AuthenticAMD" ]]; then
     echo "Installing AMD microcode package..."
     pacman -Sy amd-ucode --noconfirm >/dev/null 2>&1
+else
+    echo "Unknown CPU vendor - skipping microcode installation..."
+    :
 fi
 
 # Configure locales and hostname
