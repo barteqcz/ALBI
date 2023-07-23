@@ -292,11 +292,11 @@ elif [[ $de == "plasma" ]]; then
     systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
+    pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
-    pacman -S xorg cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S xorg cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "none" ]]; then
     :
@@ -376,15 +376,14 @@ while pacman -Qtdq >/dev/null 2>&1; do
     pacman -R $(pacman -Qtdq) --noconfirm >/dev/null 2>&1
 done
 yes | pacman -Scc >/dev/null 2>&1
+yes | yay -Scc >/dev/null 2>&1
 rm -rf /config.conf
 rm -rf /main.sh
 exit
 EOFile
 
-# Copy second part of the script to /
+# Copy config file and the second part of the script to /
 cp main.sh /mnt/
-
-# Copy config file to /
 cp config.conf /mnt/
 
 # Enter arch-chroot and run second part of the script
