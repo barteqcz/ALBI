@@ -76,7 +76,7 @@ create_swapfile="yes"
 swapfile_size_gb="4"
 
 # Custom packages (separated by spaces)
-custom_packages="firefox htop neofetch papirus-icon-theme"
+custom_packages="firefox git htop neofetch papirus-icon-theme"
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
@@ -187,7 +187,7 @@ hwclock --systohc
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
+pacman -Sy base-devel bash-completion bluez bluez-utils nano grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
