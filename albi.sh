@@ -17,7 +17,7 @@ else
     boot_mode="BIOS"
 fi
 
-# Create configuration file based on the boot mode
+# Create configuration file or check the existing one for errors
 if [ -e "config.conf" ]; then
     output=$(bash -n "$cwd"/config.conf 2>&1)
     if [[ -n $output ]]; then
@@ -32,7 +32,7 @@ else
 # Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder.
 
 # Kernel variant
-kernel_variant="normal"
+kernel_variant="normal"  # Possible values: normal, lts, zen.
 
 # Timezone setting
 timezone="Europe/Prague"
@@ -60,19 +60,19 @@ fi
 cat <<EOF >> config.conf
 
 # Audio server setting
-audio_server="pipewire"
+audio_server="pipewire"  # Possible values: pulseaudio, pipewire, none.
 
 # GPU driver
-gpu_driver="nvidia"
+gpu_driver="nvidia"  # Possible values: amd, intel, nvidia, nouveau, vm, none.
 
 # DE settings
-de="plasma"
+de="plasma"  # Possible values: gnome, plasma, xfce, mate, cinnamon, none.
 
 # CUPS installation
-cups_installation="yes"
+cups_installation="yes"  # Possible values: yes, no.
 
 # Swapfile settings
-create_swapfile="yes"
+create_swapfile="yes"  # Possible values: yes, no.
 swapfile_size_gb="4"
 
 # Custom packages (separated by spaces)
@@ -84,6 +84,7 @@ exit
 fi
 
 # Check the config file values
+echo "Verifying the config file..."
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     :
 else
