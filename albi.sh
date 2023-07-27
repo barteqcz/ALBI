@@ -38,15 +38,15 @@ kernel_variant="normal"
 timezone="Europe/Prague"
 
 # User configuration
-username="exampleusername"
-password="examplepasswd"
+username="changeme"
+password="changeme"
 
 # Locales settings
 language="en_US.UTF-8"
 console_keyboard_layout="us"
 
 # Hostname
-hostname="examplehostname"
+hostname="changeme"
 
 # GRUB settings
 EOF
