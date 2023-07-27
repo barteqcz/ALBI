@@ -4,7 +4,6 @@ This is a list of available options that can be applied in the config file. Thos
 kernel_variant - This allows you to select which kernel variant do you wanna install.
 
 Possible values:
-
 normal - Installs normal kernel.
 lts - Installs LTS kernel.
 zen - Installs ZEN kernel.
@@ -34,7 +33,6 @@ efi_partition - This allows you to select the EFI partition for GRUB (UEFI) inst
 audio_server - This allows you to install selected audio server.
 
 Possible values:
-
 pipewire - Installs pipewire.
 pulseaudio - Installs pulseaudio.
 none - Doesn't install any audio server.
@@ -43,7 +41,6 @@ none - Doesn't install any audio server.
 gpu_driver - This allows you to pick what GPU driver should be installed (if any).
 
 Possible values:
-
 nvidia - Installs NVIDIA GPU driver.
 amd - Installs AMD GPU driver.
 intel - Installs Intel GPU driver.
@@ -55,7 +52,6 @@ none - Doesn't install any GPU driver.
 de - This allows you to pick what desktop environment should be installed (if any).
 
 Possible values:
-
 cinnamon - Installs Cinnamon desktop environment.
 gnome - Installs GNOME desktop environment.
 mate - Installs MATE desktop environment.
