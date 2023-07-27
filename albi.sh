@@ -187,7 +187,7 @@ hwclock --systohc
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
+pacman -Sy base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
 
 # Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
@@ -296,7 +296,7 @@ elif [[ $de == "plasma" ]]; then
     systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
+    pacman -S xorg xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
