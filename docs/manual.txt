@@ -13,7 +13,7 @@ timezone - This is a definition of the timezone, that should be used in the syst
 
 # User configuration
 username - It can be anything that fits a Linux username rules. It can't begin with a number.
-password - It can be anything. I recommend setting a strong password.
+password - It can be anything. Setting a strong password is highly recommended.
 
 # Locales settings
 language - Sets selected language systemwide. The full list of available languages is available in docs/language_list.txt.
