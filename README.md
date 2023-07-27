@@ -1,6 +1,9 @@
 # Arch Linux Bash Installer
 An Arch Linux Bash Installer, with an easily customizable installation process using a config file.
 
+### To-do list
+- Disk encryption feature.
+
 ### Capabilities
 - High-Speed Performance: The script operates with remarkable speed, leveraging the efficiency of your internet connection and mirror capabilities. For optimum results, utilizing SSDs is recommended due to their significantly faster processing speed compared to HDDs.
 
