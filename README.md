@@ -4,7 +4,7 @@ An Arch Linux Bash Installer, with an easily customizable installation process u
 ### Capabilities
 - High-Speed Performance: The script operates with remarkable speed, leveraging the efficiency of your internet connection and mirror capabilities. For optimum results, utilizing SSDs is recommended due to their significantly faster processing speed compared to HDDs.
 
-- Seamless Printing Experience: Enjoy full CUPS implementation support, which includes hassle-free driverless printing and seamless network printer compatibility. Additionally, the installation includes the essential HPLIP with its CUPS plugin for enhanced functionality.
+- Seamless Printing Experience: Enjoy full CUPS implementation support, which includes hassle-free driverless printing and seamless network printer compatibility. Additionally, the installation includes the essential HPLIP with its CUPS plugin for enhanced functionality and full support for HP printers.
 
 - Efficient Resource Utilization: Our installer is designed with a text-only interface, utilizing the simplicity and speed of Bash scripting. As a result, ALBI runs effortlessly even on low-powered hardware, ensuring smooth performance without resource strain.
 
