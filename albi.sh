@@ -105,7 +105,7 @@ else
     exit
 fi
 
-if [[ $de == "cinnamon" || $de == "gnome" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
+if [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     :
 else
     echo "Error: invalid value for the DE. Check the manual for possible values."
