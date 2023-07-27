@@ -330,8 +330,8 @@ fi
 
 # Install yay
 echo "Installing yay and needed AUR packages..."
-tmpscript=$(mktemp)
-cat <<'EOF' > $tmpscript
+touch tmpscript.sh
+cat <<'EOF' > tmpscript2.sh
 source /config.conf
 cd
 git clone --depth 1 https://aur.archlinux.org/yay.git >/dev/null 2>&1
@@ -346,9 +346,9 @@ elif [[ $cups_installation == "no" ]]; then
     :
 fi
 EOF
-chown "$username":"$username" "$tmpscript"
+chown "$username":"$username" tmpscript.sh
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
-sudo -u "$username" bash "$tmpscript"
+sudo -u "$username" bash tmpscript.sh
 rm -f /etc/sudoers.d/tmp
 
 # Add sudo privileges for the user
@@ -384,8 +384,9 @@ while pacman -Qtdq >/dev/null 2>&1; do
 done
 yes | pacman -Scc >/dev/null 2>&1
 yes | yay -Scc >/dev/null 2>&1
-rm -rf /config.conf
-rm -rf /main.sh
+rm -f /config.conf
+rm -f /main.sh
+rm -f /tmpscript.sh
 exit
 EOFile
 
