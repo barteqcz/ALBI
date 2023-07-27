@@ -15,7 +15,7 @@ An Arch Linux Bash Installer, with an easily customizable installation process u
 - Enhanced User Experience: ALBI enhances overall user experience by implementing useful tweaks by default. These include visible '*' characters when inputting passwords, a colorfully animated Pacman prompt, nano language detection for improved code editing, and a custom /etc/nsswitch.conf file that automatically detects network printers.
 
 ### Downloading
-You have the choice of downloading the entire repository using `git`, or if you prefer a more streamlined approach, you can opt to download only the albi.sh file using `curl`.
+You have the choice of downloading the entire repository using `git`, or if you prefer a more minimal approach, you can opt to download only the albi.sh file using `curl`.
 
 Here's how you can download just the source code file with `curl`:
 
