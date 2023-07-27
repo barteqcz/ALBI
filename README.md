@@ -19,7 +19,7 @@ You have the choice of downloading the entire repository using `git`, or if you 
 
 Here's how you can download just the source code file with `curl`:
 
-`curl -O -L https://raw.githubusercontent.com/barteqcz/albi/main/albi.sh`
+`curl -O -L https://barteqcz.github.io/albi/albi.sh`
 
 To download the entire repository, including both the source file and documentation, you can reach it using `git` (remember to install it first).
 
