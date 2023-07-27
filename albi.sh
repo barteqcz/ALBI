@@ -302,7 +302,7 @@ elif [[ $de == "xfce" ]]; then
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
-    pacman -S xorg cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S xorg blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "none" ]]; then
     :
