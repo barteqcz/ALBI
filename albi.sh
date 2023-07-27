@@ -290,7 +290,7 @@ fi
 # Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S xorg xorg-wayland wayland glfw-wayland gdm gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs --noconfirm >/dev/null 2>&1
+    pacman -S xorg xorg-wayland wayland glfw-wayland gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
