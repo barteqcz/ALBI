@@ -32,22 +32,22 @@ else
 # Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder and to the comments here.
 
 # Partitioning helper (if you need other mountpoints on separate partitions, mount them as you want manually before running the script.)
-root_part="/dev/sdX#"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
-separate_home_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
-separate_boot_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
-separate_var_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
-separate_usr_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
-separate_tmp_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+root_part="/dev/sdX#"
+separate_home_part="none"
+separate_boot_part="none"
+separate_var_part="none"
+separate_usr_part="none"
+separate_tmp_part="none"
 
-root_part_filesystem="ext4" # Possible values: btrfs, ext2, ext3, ext4, xfs.
-separate_home_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
-separate_boot_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
-separate_var_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
-separate_usr_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
-separate_tmp_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
+root_part_filesystem="ext4"
+separate_home_part_filesystem="none"
+separate_boot_part_filesystem="none"
+separate_var_part_filesystem="none"
+separate_usr_part_filesystem="none"
+separate_tmp_part_filesystem="none"
 
 # Kernel variant
-kernel_variant="normal"  # Possible values: normal, lts, zen.
+kernel_variant="normal"  # Valid values: normal, lts, zen.
 
 # Timezone setting
 timezone="Europe/Prague"
@@ -75,20 +75,20 @@ fi
 cat <<EOF >> config.conf
 
 # Audio server setting
-audio_server="pipewire"  # Possible values: pulseaudio, pipewire, none.
+audio_server="pipewire"  # Valid values: pulseaudio, pipewire, none.
 
 # GPU driver
-gpu_driver="nvidia"  # Possible values: amd, intel, nvidia, nouveau, vm, none.
+gpu_driver="nvidia"  # Valid values: amd, intel, nvidia, nouveau, vm, none.
 
 # DE settings
-de="plasma"  # Possible values: gnome, plasma, xfce, mate, cinnamon, none.
+de="plasma"  # Valid values: gnome, plasma, xfce, mate, cinnamon, none.
 
 # CUPS installation
-cups_installation="yes"  # Possible values: yes, no.
+cups_installation="yes"  # Valid values: yes, no.
 
 # Swapfile settings
-create_swapfile="yes"  # Possible values: yes, no.
-swapfile_size_gb="4"  # Possible values are only numbers.
+create_swapfile="yes"  # Valid values: yes, no.
+swapfile_size_gb="4"  # Valid values are only numbers.
 
 # Custom packages (separated by spaces)
 custom_packages="firefox htop neofetch papirus-icon-theme"
@@ -231,7 +231,7 @@ if [[ $var_part_exists == "true" ]]; then
         yes | mkfs.xfs "$var_part" >/dev/null 2>&1
         mount "$var_part" /mnt/var >/dev/null 2>&1
     else
-        echo "Error: Wrong filesystemfor the /var partition."
+        echo "Error: Wrong filesystem for the /var partition."
     fi
 else
     :
@@ -254,7 +254,7 @@ if [[ $usr_part_exists == "true" ]]; then
         yes | mkfs.xfs "$usr_part" >/dev/null 2>&1
         mount "$usr_part" /mnt/usr >/dev/null 2>&1
     else
-        echo "Error: Wrong filesystemfor the /usr partition."
+        echo "Error: Wrong filesystem for the /usr partition."
     fi
 else
     :
@@ -277,7 +277,7 @@ if [[ $tmp_part_exists == "true" ]]; then
         yes | mkfs.xfs "$tmp_part" >/dev/null 2>&1
         mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
     else
-        echo "Error: Wrong filesystemfor the /tmp partition."
+        echo "Error: Wrong filesystem for the /tmp partition."
     fi
 else
     :
@@ -315,14 +315,14 @@ fi
 if [[ $cups_installation == "yes" || $cups_installation == "no" ]]; then
     :
 else
-    echo "Error: invalid value for the cups installation question. Possible values are 'yes', or 'no'."
+    echo "Error: invalid value for the cups installation question. Valid values are 'yes', or 'no'."
     exit
 fi
 
 if [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
     :
 else
-    echo "Error: invalid value for the swapfile creation question. Possible values are 'yes', or 'no'."
+    echo "Error: invalid value for the swapfile creation question. Valid values are 'yes', or 'no'."
     exit
 fi
 
