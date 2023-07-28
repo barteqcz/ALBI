@@ -293,6 +293,7 @@ fi
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
     pacman -S xorg xorg-xwayland wayland glfw-wayland gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm --noconfirm >/dev/null 2>&1
+    pacman -Rc epiphany gnome-software --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
     if [[ $gpu_driver == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
