@@ -101,36 +101,30 @@ echo "Verifying the config file. This may take a while..."
 if [ -e "$root_part" ]; then
     root_part_exists="true"
 else
-    echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible. 
+    echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible."
 fi
 
-if [[ $separate_home_part == "none" ]]; then
-    :
-else
+if [ "$separate_home_part" != "none" ]; then
     if [ -e "$separate_home_part" ]; then
         home_part_exists="true"
     else
-        echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible. 
+        echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible."
     fi
 fi
 
-if [[ $separate_boot_part == "none" ]]; then
-    :
-else
+if [ "$separate_boot_part" != "none" ]; then
     if [ -e "$separate_boot_part" ]; then
         boot_part_exists="true"
     else
-        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible. 
+        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
     fi
 fi
 
-if [[ $separate_var_part == "none" ]]; then
-    :
-else
+if [ "$separate_var_part" != "none" ]; then
     if [ -e "$separate_var_part" ]; then
         var_part_exists="true"
     else
-        echo "Error: partition $separate_var_part isn't a valid path - it doesn't exist or isn't accessible. 
+        echo "Error: partition $separate_var_part isn't a valid path - it doesn't exist or isn't accessible."
     fi
 fi
 
