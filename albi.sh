@@ -32,15 +32,19 @@ else
 # Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder and to the comments here.
 
 # Partitioning helper (if you need other mountpoints on separate partitions, mount them as you want manually before running the script.)
-root_part="/dev/sdX#"  # Change this to the path of the partition you wish to use for the / mountpoint (for example /dev/sda1, dev/sda2, /dev/sdb1 etc.).
-separate_home_part="none"  # Please specify the path of the partition you wish to use for the /home mountpoint or set it to 'none' if you do not want to use a separate /home partition.
-separate_boot_part="none"  # Please specify the path of the partition you wish to use for the /boot mountpoint or set it to 'none' if you do not want to use a separate /boot partition.
-separate_var_part="none"  # Please specify the path of the partition you wish to use for the /var mountpoint or set it to 'none' if you do not want to use a separate /var partition.
+root_part="/dev/sdX#"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+separate_home_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+separate_boot_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+separate_var_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+separate_usr_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
+separate_tmp_part="none"  # Possible values are partition paths, for example: /dev/sda1, dev/sda2, /dev/sdb1 etc.
 
-root_part_filesystem="ext4" # Please specify desired filesystem of the / partition.
-separate_home_part_filesystem="none"  # Please specify desired filesystem of the separate /home partition or set it to 'none' if you aren't using separate /home partition.
-separate_boot_part_filesystem="none"  # Please specify desired filesystem of the separate /boot partition or set it to 'none' if you aren't using separate /boot partition.
-separate_var_part_filesystem="none"  # Please specify desired filesystem of the separate /var partition or set it to 'none' if you aren't using separate /var partition.
+root_part_filesystem="ext4" # Possible values: btrfs, ext2, ext3, ext4, xfs.
+separate_home_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
+separate_boot_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
+separate_var_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
+separate_usr_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
+separate_tmp_part_filesystem="none"  # Possible values: btrfs, ext2, ext3, ext4, xfs.
 
 # Kernel variant
 kernel_variant="normal"  # Possible values: normal, lts, zen.
@@ -84,7 +88,7 @@ cups_installation="yes"  # Possible values: yes, no.
 
 # Swapfile settings
 create_swapfile="yes"  # Possible values: yes, no.
-swapfile_size_gb="4"
+swapfile_size_gb="4"  # Possible values are only numbers.
 
 # Custom packages (separated by spaces)
 custom_packages="firefox htop neofetch papirus-icon-theme"
@@ -128,21 +132,37 @@ if [ "$separate_var_part" != "none" ]; then
     fi
 fi
 
+if [ "$separate_usr_part" != "none" ]; then
+    if [ -e "$separate_usr_part" ]; then
+        usr_part_exists="true"
+    else
+        echo "Error: partition $separate_usr_part isn't a valid path - it doesn't exist or isn't accessible."
+    fi
+fi
+
+if [ "$separate_tmp_part" != "none" ]; then
+    if [ -e "$separate_tmp_part" ]; then
+        tmp_part_exists="true"
+    else
+        echo "Error: partition $separate_tmp_part isn't a valid path - it doesn't exist or isn't accessible."
+    fi
+fi
+
 if [[ $root_part_filesystem == "ext4" ]]; then
-    mkfs.ext4 "$root_part"
-    mount "$root_part" /mnt
+    yes | mkfs.ext4 "$root_part" >/dev/null 2>&1
+    mount "$root_part" /mnt >/dev/null 2>&1
 elif [[ $root_part_filesystem == "ext3" ]]; then
-    mkfs.ext3 "$root_part"
-    mount "$root_part" /mnt
+    yes | mkfs.ext3 "$root_part" >/dev/null 2>&1
+    mount "$root_part" /mnt >/dev/null 2>&1
 elif [[ $root_part_filesystem == "ext2" ]]; then
-    mkfs.ext2 "$root_part"
-    mount "$root_part" /mnt
+    yes | mkfs.ext2 "$root_part" >/dev/null 2>&1
+    mount "$root_part" /mnt >/dev/null 2>&1
 elif [[ $root_part_filesystem == "btrfs" ]]; then
-    mkfs.btrfs "$root_part"
-    mount "$root_part" /mnt
+    yes | mkfs.btrfs "$root_part" >/dev/null 2>&1
+    mount "$root_part" /mnt >/dev/null 2>&1
 elif [[ $root_part_filesystem == "xfs" ]]; then
-    mkfs.xfs "$root_part"
-    mount "$root_part" /mnt
+    yes | mkfs.xfs "$root_part" >/dev/null 2>&1
+    mount "$root_part" /mnt >/dev/null 2>&1
 else
     echo "Error: Wrong filesystem for the / partition."
     exit
@@ -150,20 +170,20 @@ fi
 
 if [[ $home_part_exists == "true" ]]; then
     if [[ $home_part_filesystem == "ext4" ]]; then
-        mkfs.ext4 "$home_part"
-        mount "$home_part" /mnt/home
+        yes | mkfs.ext4 "$home_part" >/dev/null 2>&1
+        mount "$home_part" /mnt/home >/dev/null 2>&1
     elif [[ $home_part_filesystem == "ext3" ]]; then
-        mkfs.ext3 "$home_part"
-        mount "$home_part" /mnt/home
+        yes | mkfs.ext3 "$home_part" >/dev/null 2>&1
+        mount "$home_part" /mnt/home >/dev/null 2>&1
     elif [[ $home_part_filesystem == "ext2" ]]; then
-        mkfs.ext2 "$home_part"
-        mount "$home_part" /mnt/home
+        yes | mkfs.ext2 "$home_part" >/dev/null 2>&1
+        mount "$home_part" /mnt/home >/dev/null 2>&1
     elif [[ $home_part_filesystem == "btrfs" ]]; then
-        mkfs.btrfs "$home_part"
-        mount "$home_part" /mnt/home
+        yes | mkfs.btrfs "$home_part" >/dev/null 2>&1
+        mount "$home_part" /mnt/home >/dev/null 2>&1
     elif [[ $home_part_filesystem == "xfs" ]]; then
-        mkfs.xfs "$home_part"
-        mount "$home_part" /mnt/home
+        yes | mkfs.xfs "$home_part" >/dev/null 2>&1
+        mount "$home_part" /mnt/home >/dev/null 2>&1
     else
         echo "Error: Wrong filesystem for the /home partition."
     fi
@@ -173,20 +193,20 @@ fi
 
 if [[ $boot_part_exists == "true" ]]; then
     if [[ $boot_part_filesystem == "ext4" ]]; then
-        mkfs.ext4 "$boot_part"
-        mount "$boot_part" /mnt/boot
+        yes | mkfs.ext4 "$boot_part" >/dev/null 2>&1
+        mount "$boot_part" /mnt/boot >/dev/null 2>&1
     elif [[ $boot_part_filesystem == "ext3" ]]; then
-        mkfs.ext3 "$boot_part"
-        mount "$boot_part" /mnt/boot
+        yes | mkfs.ext3 "$boot_part" >/dev/null 2>&1
+        mount "$boot_part" /mnt/boot >/dev/null 2>&1
     elif [[ $boot_part_filesystem == "ext2" ]]; then
-        mkfs.ext2 "$boot_part"
-        mount "$boot_part" /mnt/boot
+        yes | mkfs.ext2 "$boot_part" >/dev/null 2>&1
+        mount "$boot_part" /mnt/boot >/dev/null 2>&1
     elif [[ $boot_part_filesystem == "btrfs" ]]; then
-        mkfs.btrfs "$boot_part"
-        mount "$boot_part" /mnt/boot
+        yes | mkfs.btrfs "$boot_part" >/dev/null 2>&1
+        mount "$boot_part" /mnt/boot >/dev/null 2>&1
     elif [[ $boot_part_filesystem == "xfs" ]]; then
-        mkfs.xfs "$boot_part"
-        mount "$boot_part" /mnt/boot
+        yes | mkfs.xfs "$boot_part" >/dev/null 2>&1
+        mount "$boot_part" /mnt/boot >/dev/null 2>&1
     else
         echo "Error: Wrong filesystem for the /boot partition."
     fi
@@ -196,22 +216,68 @@ fi
 
 if [[ $var_part_exists == "true" ]]; then
     if [[ $var_part_filesystem == "ext4" ]]; then
-        mkfs.ext4 "$var_part"
-        mount "$var_part" /mnt/var
+        yes | mkfs.ext4 "$var_part" >/dev/null 2>&1
+        mount "$var_part" /mnt/var >/dev/null 2>&1
     elif [[ $var_part_filesystem == "ext3" ]]; then
-        mkfs.ext3 "$var_part"
-        mount "$var_part" /mnt/var
+        yes | mkfs.ext3 "$var_part" >/dev/null 2>&1
+        mount "$var_part" /mnt/var >/dev/null 2>&1
     elif [[ $var_part_filesystem == "ext2" ]]; then
-        mkfs.ext2 "$var_part"
-        mount "$var_part" /mnt/var
+        yes | mkfs.ext2 "$var_part" >/dev/null 2>&1
+        mount "$var_part" /mnt/var >/dev/null 2>&1
     elif [[ $var_part_filesystem == "btrfs" ]]; then
-        mkfs.btrfs "$var_part"
-        mount "$var_part" /mnt/var
+        yes | mkfs.btrfs "$var_part" >/dev/null 2>&1
+        mount "$var_part" /mnt/var >/dev/null 2>&1
     elif [[ $var_part_filesystem == "xfs" ]]; then
-        mkfs.xfs "$var_part"
-        mount "$var_part" /mnt/var
+        yes | mkfs.xfs "$var_part" >/dev/null 2>&1
+        mount "$var_part" /mnt/var >/dev/null 2>&1
     else
         echo "Error: Wrong filesystemfor the /var partition."
+    fi
+else
+    :
+fi
+
+if [[ $usr_part_exists == "true" ]]; then
+    if [[ $usr_part_filesystem == "ext4" ]]; then
+        yes | mkfs.ext4 "$usr_part" >/dev/null 2>&1
+        mount "$usr_part" /mnt/usr >/dev/null 2>&1
+    elif [[ $usr_part_filesystem == "ext3" ]]; then
+        yes | mkfs.ext3 "$usr_part" >/dev/null 2>&1
+        mount "$usr_part" /mnt/usr >/dev/null 2>&1
+    elif [[ $usr_part_filesystem == "ext2" ]]; then
+        yes | mkfs.ext2 "$usr_part" >/dev/null 2>&1
+        mount "$usr_part" /mnt/usr >/dev/null 2>&1
+    elif [[ $usr_part_filesystem == "btrfs" ]]; then
+        yes | mkfs.btrfs "$usr_part" >/dev/null 2>&1
+        mount "$usr_part" /mnt/usr >/dev/null 2>&1
+    elif [[ $usr_part_filesystem == "xfs" ]]; then
+        yes | mkfs.xfs "$usr_part" >/dev/null 2>&1
+        mount "$usr_part" /mnt/usr >/dev/null 2>&1
+    else
+        echo "Error: Wrong filesystemfor the /usr partition."
+    fi
+else
+    :
+fi
+
+if [[ $tmp_part_exists == "true" ]]; then
+    if [[ $tmp_part_filesystem == "ext4" ]]; then
+        yes | mkfs.ext4 "$tmp_part" >/dev/null 2>&1
+        mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
+    elif [[ $tmp_part_filesystem == "ext3" ]]; then
+        yes | mkfs.ext3 "$tmp_part" >/dev/null 2>&1
+        mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
+    elif [[ $tmp_part_filesystem == "ext2" ]]; then
+        yes | mkfs.ext2 "$tmp_part" >/dev/null 2>&1
+        mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
+    elif [[ $tmp_part_filesystem == "btrfs" ]]; then
+        yes | mkfs.btrfs "$tmp_part" >/dev/null 2>&1
+        mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
+    elif [[ $tmp_part_filesystem == "xfs" ]]; then
+        yes | mkfs.xfs "$tmp_part" >/dev/null 2>&1
+        mount "$tmp_part" /mnt/tmp >/dev/null 2>&1
+    else
+        echo "Error: Wrong filesystemfor the /tmp partition."
     fi
 else
     :
@@ -221,28 +287,28 @@ fi
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     :
 else
-    echo "Error: invalid value for the kernel variant. Check the manual for possible values."
+    echo "Error: invalid value for the kernel variant"
     exit
 fi
 
 if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
     :
 else
-    echo "Error: invalid value for the audio server. Check the manual for possible values."
+    echo "Error: invalid value for the audio server"
     exit
 fi
 
 if [[ $gpu_driver == "nvidia" || $gpu_driver == "amd" || $gpu_driver == "intel" || $gpu_driver == "vm" || $gpu_driver == "nouveau" || $gpu_driver == "none" ]]; then
     :
 else
-    echo "Error: invalid value for the GPU driver. Check the manual for possible values."
+    echo "Error: invalid value for the GPU driver"
     exit
 fi
 
 if [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     :
 else
-    echo "Error: invalid value for the DE. Check the manual for possible values."
+    echo "Error: invalid value for the DE"
     exit
 fi
 
