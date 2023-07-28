@@ -168,7 +168,7 @@ if [[ $home_part_exists == "true" ]]; then
         echo "Error: Wrong filesystem for the /home partition."
     fi
 else
-    echo "Error: Partition does not exist."
+    :
 fi
 
 if [[ $boot_part_exists == "true" ]]; then
@@ -191,7 +191,7 @@ if [[ $boot_part_exists == "true" ]]; then
         echo "Error: Wrong filesystem for the /boot partition."
     fi
 else
-    echo "Error: Partition does not exist."
+    :
 fi
 
 if [[ $var_part_exists == "true" ]]; then
@@ -214,7 +214,7 @@ if [[ $var_part_exists == "true" ]]; then
         echo "Error: Wrong filesystemfor the /var partition."
     fi
 else
-    echo "Error: Partition does not exist."
+    :
 fi
 
 # Check variables values
