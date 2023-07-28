@@ -1,9 +1,31 @@
-This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of possible usage:
+This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of Valid usage:
+
+# Partitioning helper (if you need other mountpoints on separate partitions, mount them as you want manually before running the script.)
+root_part - Mountpoint for the / partition.
+
+Valid values are valid partition paths. Examples: /dev/sda1, /dev/sdb2, /dev/sdc3 etc.
+
+separate_home_part - Mountpoint for the /home partition.
+separate_boot_part - Mountpoint for the /boot partition.
+separate_var_part - Mountpoint for the /var partition.
+separate_usr_part - Mountpoint for the /usr partition.
+separate_tmp_part - Mountpoint for the /tmp partition.
+
+Valid values include specific partition paths or 'none' to disable specific separate partition.
+
+root_part_filesystem - Filesystem for the / partition.
+separate_home_part_filesystem - Filesystem for the /home partition.
+separate_boot_part_filesystem - Filesystem for the /boot partition.
+separate_var_part_filesystem - Filesystem for the /var partition.
+separate_usr_part_filesystem - Filesystem for the /usr partition.
+separate_tmp_part_filesystem - Filesystem for the /tmp partition.
+
+Valid values: ext4, ext3, ext2, btrfs, xfs
 
 # Kernel variant
 kernel_variant - This allows you to select which kernel variant do you wanna install.
 
-Possible values:
+Valid values:
 normal - Installs normal kernel.
 lts - Installs LTS kernel.
 zen - Installs ZEN kernel.
@@ -32,7 +54,7 @@ efi_partition - This allows you to select the EFI partition for GRUB (UEFI) inst
 # Audio server setting
 audio_server - This allows you to install selected audio server.
 
-Possible values:
+Valid values:
 pipewire - Installs pipewire.
 pulseaudio - Installs pulseaudio.
 none - Doesn't install any audio server.
@@ -40,7 +62,7 @@ none - Doesn't install any audio server.
 # GPU driver setting
 gpu_driver - This allows you to pick what GPU driver should be installed (if any).
 
-Possible values:
+Valid values:
 nvidia - Installs NVIDIA GPU driver.
 amd - Installs AMD GPU driver.
 intel - Installs Intel GPU driver.
@@ -51,7 +73,7 @@ none - Doesn't install any GPU driver.
 # Desktop environment setting
 de - This allows you to pick what desktop environment should be installed (if any).
 
-Possible values:
+Valid values:
 cinnamon - Installs Cinnamon desktop environment.
 gnome - Installs GNOME desktop environment.
 mate - Installs MATE desktop environment.
@@ -62,16 +84,16 @@ none - Doesn't install any DE.
 # CUPS installation setting
 cups_installation - This allows you to select whether CUPS should be installed or not.
 
-Possible values: yes and no.
+Valid values: yes and no.
 
 # Swapfile installation
 create_swapfile - Decide whether swapfile should be created or not.
 
-Possible values: yes and no.
+Valid values: yes and no.
 
 swapfile_size_gb - Select size for the swapfile (if it's gonna be created).
 
-Possible values are only numbers.
+Valid values are only numbers.
 
 # Custom packages
 custom_packages - This allows you to define custom packages, which you wanna install in the system. The packages should be separated by spaces.
