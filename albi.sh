@@ -130,14 +130,19 @@ fi
 
 if [[ $root_part_filesystem == "ext4" ]]; then
     mkfs.ext4 "$root_part"
+    mount "$root_part" /mnt
 elif [[ $root_part_filesystem == "ext3" ]]; then
     mkfs.ext3 "$root_part"
+    mount "$root_part" /mnt
 elif [[ $root_part_filesystem == "ext2" ]]; then
     mkfs.ext2 "$root_part"
+    mount "$root_part" /mnt
 elif [[ $root_part_filesystem == "btrfs" ]]; then
     mkfs.btrfs "$root_part"
+    mount "$root_part" /mnt
 elif [[ $root_part_filesystem == "xfs" ]]; then
     mkfs.xfs "$root_part"
+    mount "$root_part" /mnt
 else
     echo "Error: Wrong filesystem for the / partition."
     exit
@@ -146,14 +151,19 @@ fi
 if [[ $home_part_exists == "true" ]]; then
     if [[ $home_part_filesystem == "ext4" ]]; then
         mkfs.ext4 "$home_part"
+        mount "$home_part" /mnt/home
     elif [[ $home_part_filesystem == "ext3" ]]; then
         mkfs.ext3 "$home_part"
+        mount "$home_part" /mnt/home
     elif [[ $home_part_filesystem == "ext2" ]]; then
         mkfs.ext2 "$home_part"
+        mount "$home_part" /mnt/home
     elif [[ $home_part_filesystem == "btrfs" ]]; then
         mkfs.btrfs "$home_part"
+        mount "$home_part" /mnt/home
     elif [[ $home_part_filesystem == "xfs" ]]; then
         mkfs.xfs "$home_part"
+        mount "$home_part" /mnt/home
     else
         echo "Error: Wrong filesystem for the /home partition."
     fi
@@ -164,14 +174,19 @@ fi
 if [[ $boot_part_exists == "true" ]]; then
     if [[ $boot_part_filesystem == "ext4" ]]; then
         mkfs.ext4 "$boot_part"
+        mount "$boot_part" /mnt/boot
     elif [[ $boot_part_filesystem == "ext3" ]]; then
         mkfs.ext3 "$boot_part"
+        mount "$boot_part" /mnt/boot
     elif [[ $boot_part_filesystem == "ext2" ]]; then
         mkfs.ext2 "$boot_part"
+        mount "$boot_part" /mnt/boot
     elif [[ $boot_part_filesystem == "btrfs" ]]; then
         mkfs.btrfs "$boot_part"
+        mount "$boot_part" /mnt/boot
     elif [[ $boot_part_filesystem == "xfs" ]]; then
         mkfs.xfs "$boot_part"
+        mount "$boot_part" /mnt/boot
     else
         echo "Error: Wrong filesystem for the /boot partition."
     fi
@@ -182,14 +197,19 @@ fi
 if [[ $var_part_exists == "true" ]]; then
     if [[ $var_part_filesystem == "ext4" ]]; then
         mkfs.ext4 "$var_part"
+        mount "$var_part" /mnt/var
     elif [[ $var_part_filesystem == "ext3" ]]; then
         mkfs.ext3 "$var_part"
+        mount "$var_part" /mnt/var
     elif [[ $var_part_filesystem == "ext2" ]]; then
         mkfs.ext2 "$var_part"
+        mount "$var_part" /mnt/var
     elif [[ $var_part_filesystem == "btrfs" ]]; then
         mkfs.btrfs "$var_part"
+        mount "$var_part" /mnt/var
     elif [[ $var_part_filesystem == "xfs" ]]; then
         mkfs.xfs "$var_part"
+        mount "$var_part" /mnt/var
     else
         echo "Error: Wrong filesystemfor the /var partition."
     fi
