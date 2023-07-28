@@ -32,10 +32,10 @@ else
 # Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder and to the comments here.
 
 # Partitioning helper (if you need other mountpoints on separate partitions, mount them as you want manually before running the script.)
-root_part="/dev/sdX#"  # Change this to the path of the partition you wanna use for the / mountpoint (for example /dev/sda1, dev/sda2, /dev/sdb1 etc.).
-separate_home_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /home partition.
-separate_boot_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /boot partition.
-separate_var_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /var partition.
+root_part="/dev/sdX#"  # Change this to the path of the partition you wish to use for the / mountpoint (for example /dev/sda1, dev/sda2, /dev/sdb1 etc.).
+separate_home_part="none"  # Please specify the path of the partition you wish to use for the /home mountpoint or set it to 'none' if you do not want to use a separate /home partition.
+separate_boot_part="none"  # Please specify the path of the partition you wish to use for the /boot mountpoint or set it to 'none' if you do not want to use a separate /boot partition.
+separate_var_part="none"  # Please specify the path of the partition you wish to use for the /var mountpoint or set it to 'none' if you do not want to use a separate /var partition.
 
 root_part_filesystem="ext4" # Please specify desired filesystem of the / partition.
 separate_home_part_filesystem="none"  # Please specify desired filesystem of the separate /home partition or set it to 'none' if you aren't using separate /home partition.
@@ -167,19 +167,19 @@ else
     echo "Error: Partition does not exist."
 fi
 
-if [[ $var_part_exists == "true" ]]; then
-    if [[ $var_part_filesystem == "ext4" ]]; then
-        mkfs.ext4 "$var_part"
-    elif [[ $var_part_filesystem == "ext3" ]]; then
-        mkfs.ext3 "$var_part"
-    elif [[ $var_part_filesystem == "ext2" ]]; then
-        mkfs.ext2 "$var_part"
-    elif [[ $var_part_filesystem == "btrfs" ]]; then
-        mkfs.btrfs "$var_part"
-    elif [[ $var_part_filesystem == "xfs" ]]; then
-        mkfs.xfs "$var_part"
+if [[ $boot_part_exists == "true" ]]; then
+    if [[ $boot_part_filesystem == "ext4" ]]; then
+        mkfs.ext4 "$boot_part"
+    elif [[ $boot_part_filesystem == "ext3" ]]; then
+        mkfs.ext3 "$boot_part"
+    elif [[ $boot_part_filesystem == "ext2" ]]; then
+        mkfs.ext2 "$boot_part"
+    elif [[ $boot_part_filesystem == "btrfs" ]]; then
+        mkfs.btrfs "$boot_part"
+    elif [[ $boot_part_filesystem == "xfs" ]]; then
+        mkfs.xfs "$boot_part"
     else
-        echo "Error: Wrong filesystem."
+        echo "Error: Wrong filesystem for the /boot partition."
     fi
 else
     echo "Error: Partition does not exist."
@@ -197,7 +197,7 @@ if [[ $var_part_exists == "true" ]]; then
     elif [[ $var_part_filesystem == "xfs" ]]; then
         mkfs.xfs "$var_part"
     else
-        echo "Error: Wrong filesystem."
+        echo "Error: Wrong filesystemfor the /var partition."
     fi
 else
     echo "Error: Partition does not exist."
