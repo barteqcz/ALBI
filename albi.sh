@@ -29,7 +29,18 @@ if [ -e "config.conf" ]; then
 else
     touch config.conf
     cat <<EOF > config.conf
-# Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder.
+# Here is the configuration for the installation. For any needed help, refer to the documentation in the docs folder and to the comments here.
+
+# Partitioning helper (if you need other mountpoints on separate partitions, mount them as you want manually before running the script.)
+root_part="/dev/sdX#"  # Change this to the path of the partition you wanna use for the / mountpoint (for example /dev/sda1, dev/sda2, /dev/sdb1 etc.).
+separate_home_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /home partition.
+separate_boot_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /boot partition.
+separate_var_part="none"  # Please specify the path of the partition you wish to use or set it to 'none' if you do not want to use a separate /var partition.
+
+root_part_filesystem="ext4" # Please specify desired filesystem of the / partition.
+separate_home_part_filesystem="none"  # Please specify desired filesystem of the separate /home partition or set it to 'none' if you aren't using separate /home partition.
+separate_boot_part_filesystem="none"  # Please specify desired filesystem of the separate /boot partition or set it to 'none' if you aren't using separate /boot partition.
+separate_var_part_filesystem="none"  # Please specify desired filesystem of the separate /var partition or set it to 'none' if you aren't using separate /var partition.
 
 # Kernel variant
 kernel_variant="normal"  # Possible values: normal, lts, zen.
@@ -84,7 +95,115 @@ exit
 fi
 
 # Check the config file values
-echo "Verifying the config file..."
+echo "Verifying the config file. This may take a while..."
+
+# Check if the given partitions exist
+if [ -e "$root_part" ]; then
+    root_part_exists="true"
+else
+    echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible. 
+fi
+
+if [[ $separate_home_part == "none" ]]; then
+    :
+else
+    if [ -e "$separate_home_part" ]; then
+        home_part_exists="true"
+    else
+        echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible. 
+    fi
+fi
+
+if [[ $separate_boot_part == "none" ]]; then
+    :
+else
+    if [ -e "$separate_boot_part" ]; then
+        boot_part_exists="true"
+    else
+        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible. 
+    fi
+fi
+
+if [[ $separate_var_part == "none" ]]; then
+    :
+else
+    if [ -e "$separate_var_part" ]; then
+        var_part_exists="true"
+    else
+        echo "Error: partition $separate_var_part isn't a valid path - it doesn't exist or isn't accessible. 
+    fi
+fi
+
+if [[ $root_part_filesystem == "ext4" ]]; then
+        mkfs.ext4 "$var_part"
+elif [[ $root_part_filesystem == "ext3" ]]; then
+        mkfs.ext3 "$var_part"
+elif [[ $root_part_filesystem == "ext2" ]]; then
+        mkfs.ext2 "$var_part"
+elif [[ $root_part_filesystem == "btrfs" ]]; then
+        mkfs.btrfs "$var_part"
+elif [[ $root_part_filesystem == "xfs" ]]; then
+        mkfs.xfs "$var_part"
+else
+    echo "Error: Wrong filesystem."
+    exit
+fi
+
+if [[ $home_part_exists == "true" ]]; then
+    if [[ $home_part_filesystem == "ext4" ]]; then
+        mkfs.ext4 "$home_part"
+    elif [[ $home_part_filesystem == "ext3" ]]; then
+        mkfs.ext3 "$home_part"
+    elif [[ $var_part_filesystem == "ext2" ]]; then
+        mkfs.ext2 "$home_part"
+    elif [[ $var_part_filesystem == "btrfs" ]]; then
+        mkfs.btrfs "$home_part"
+    elif [[ $var_part_filesystem == "xfs" ]]; then
+        mkfs.xfs "$home_part"
+    else
+        echo "Error: Wrong filesystem."
+    fi
+else
+    echo "Error: Partition does not exist."
+fi
+
+if [[ $var_part_exists == "true" ]]; then
+    if [[ $var_part_filesystem == "ext4" ]]; then
+        mkfs.ext4 "$var_part"
+    elif [[ $var_part_filesystem == "ext3" ]]; then
+        mkfs.ext3 "$var_part"
+    elif [[ $var_part_filesystem == "ext2" ]]; then
+        mkfs.ext2 "$var_part"
+    elif [[ $var_part_filesystem == "btrfs" ]]; then
+        mkfs.btrfs "$var_part"
+    elif [[ $var_part_filesystem == "xfs" ]]; then
+        mkfs.xfs "$var_part"
+    else
+        echo "Error: Wrong filesystem."
+    fi
+else
+    echo "Error: Partition does not exist."
+fi
+
+if [[ $var_part_exists == "true" ]]; then
+    if [[ $var_part_filesystem == "ext4" ]]; then
+        mkfs.ext4 "$var_part"
+    elif [[ $var_part_filesystem == "ext3" ]]; then
+        mkfs.ext3 "$var_part"
+    elif [[ $var_part_filesystem == "ext2" ]]; then
+        mkfs.ext2 "$var_part"
+    elif [[ $var_part_filesystem == "btrfs" ]]; then
+        mkfs.btrfs "$var_part"
+    elif [[ $var_part_filesystem == "xfs" ]]; then
+        mkfs.xfs "$var_part"
+    else
+        echo "Error: Wrong filesystem."
+    fi
+else
+    echo "Error: Partition does not exist."
+fi
+
+# Check variables values
 if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     :
 else
@@ -189,7 +308,7 @@ hwclock --systohc
 
 # Install basic packages
 echo "Installing basic packages..."
-pacman -Sy base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
+pacman -Sy btrfs-progs xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar os-prober --noconfirm >/dev/null 2>&1
 systemctl enable NetworkManager >/dev/null 2>&1
 systemctl enable bluetooth >/dev/null 2>&1
 
