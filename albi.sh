@@ -135,17 +135,17 @@ else
 fi
 
 if [[ $root_part_filesystem == "ext4" ]]; then
-        mkfs.ext4 "$var_part"
+    mkfs.ext4 "$root_part"
 elif [[ $root_part_filesystem == "ext3" ]]; then
-        mkfs.ext3 "$var_part"
+    mkfs.ext3 "$root_part"
 elif [[ $root_part_filesystem == "ext2" ]]; then
-        mkfs.ext2 "$var_part"
+    mkfs.ext2 "$root_part"
 elif [[ $root_part_filesystem == "btrfs" ]]; then
-        mkfs.btrfs "$var_part"
+    mkfs.btrfs "$root_part"
 elif [[ $root_part_filesystem == "xfs" ]]; then
-        mkfs.xfs "$var_part"
+    mkfs.xfs "$root_part"
 else
-    echo "Error: Wrong filesystem."
+    echo "Error: Wrong filesystem for the / partition."
     exit
 fi
 
@@ -154,14 +154,14 @@ if [[ $home_part_exists == "true" ]]; then
         mkfs.ext4 "$home_part"
     elif [[ $home_part_filesystem == "ext3" ]]; then
         mkfs.ext3 "$home_part"
-    elif [[ $var_part_filesystem == "ext2" ]]; then
+    elif [[ $home_part_filesystem == "ext2" ]]; then
         mkfs.ext2 "$home_part"
-    elif [[ $var_part_filesystem == "btrfs" ]]; then
+    elif [[ $home_part_filesystem == "btrfs" ]]; then
         mkfs.btrfs "$home_part"
-    elif [[ $var_part_filesystem == "xfs" ]]; then
+    elif [[ $home_part_filesystem == "xfs" ]]; then
         mkfs.xfs "$home_part"
     else
-        echo "Error: Wrong filesystem."
+        echo "Error: Wrong filesystem for the /home partition."
     fi
 else
     echo "Error: Partition does not exist."
