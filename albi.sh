@@ -388,8 +388,8 @@ echo "Cleaning up..."
 while pacman -Qtdq >/dev/null 2>&1; do
     pacman -R $(pacman -Qtdq) --noconfirm >/dev/null 2>&1
 done
-yes | pacman -Scc >/dev/null 2>&1
-yes | yay -Scc >/dev/null 2>&1
+yes | pacman -Sc >/dev/null 2>&1
+yes | yay -Sc >/dev/null 2>&1
 rm -f /config.conf
 rm -f /main.sh
 rm -f /tmpscript.sh
