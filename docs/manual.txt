@@ -1,0 +1,95 @@
+This is a list of available options that can be applied in the config file. Those variables are responsible for particular actions during the installation process. Here is the explanation of Valid usage:
+
+# Partitioning helper (if you need other mountpoints on separate partitions, or just don't want to use partitioning helper in ALBI, mount everything as you want manually before running the script and in ALBI, set their values to 'none'.)
+root_part - Mountpoint for the / partition.
+
+Valid values are valid partition paths. Examples: /dev/sda1, /dev/sdb2, /dev/sdc3 etc.
+
+separate_home_part - Mountpoint for the /home partition.
+separate_boot_part - Mountpoint for the /boot partition.
+separate_var_part - Mountpoint for the /var partition.
+separate_usr_part - Mountpoint for the /usr partition.
+separate_tmp_part - Mountpoint for the /tmp partition.
+
+Valid values include specific partition paths or 'none' to disable specific separate partition.
+
+root_part_filesystem - Filesystem for the / partition.
+separate_home_part_filesystem - Filesystem for the /home partition.
+separate_boot_part_filesystem - Filesystem for the /boot partition.
+separate_var_part_filesystem - Filesystem for the /var partition.
+separate_usr_part_filesystem - Filesystem for the /usr partition.
+separate_tmp_part_filesystem - Filesystem for the /tmp partition.
+
+Valid values: ext4, ext3, ext2, btrfs, xfs
+
+# Kernel variant
+kernel_variant - This allows you to select which kernel variant do you wanna install.
+
+Valid values:
+normal - Installs normal kernel.
+lts - Installs LTS kernel.
+zen - Installs ZEN kernel.
+
+# Timezone
+timezone - This is a definition of the timezone, that should be used in the system. The full list of available timezones is available in docs/timezone_list.txt.
+
+# User configuration
+username - It can be anything that fits a Linux username rules. It can't begin with a number.
+password - It can be anything. Setting a strong password is highly recommended.
+
+# Locales settings
+language - Sets selected language systemwide. The full list of available languages is available in docs/language_list.txt.
+console_keyboard_layout - This keyboard layout will be used systemwide as a console keyboard layout. But take into account, that it won't be used in graphical environment. Full list is available in docs/keymap_list.txt.
+
+# Hostname
+hostname - This is the hostname of the machine.
+
+# GRUB settings
+# BIOS
+grub_disk - This allows you to select the drive where GRUB (BIOS) is to be installed.
+
+# UEFI
+efi_partition - This allows you to select the EFI partition for GRUB (UEFI) installation.
+
+# Audio server setting
+audio_server - This allows you to install selected audio server.
+
+Valid values:
+pipewire - Installs pipewire.
+pulseaudio - Installs pulseaudio.
+none - Doesn't install any audio server.
+
+# GPU driver setting
+nvidia_proprietary - If you want to install the proprietary NVIDIA driver, select yes. If you use other GPU (AMD, Intel), you want to use nouveau driver, or you don't need a gpu driver at all - select no.
+
+Valid values: yes and no.
+
+# Desktop environment setting
+de - This allows you to pick what desktop environment should be installed (if any).
+
+Valid values:
+cinnamon - Installs Cinnamon desktop environment.
+gnome - Installs GNOME desktop environment.
+mate - Installs MATE desktop environment.
+plasma - Installs KDE Plasma desktop environment.
+xfce - Installs XFCE desktop environment.
+none - Doesn't install any DE.
+
+Valid values: yes and no.
+
+# Swapfile installation
+create_swapfile - Decide whether swapfile should be created or not.
+
+Valid values: yes and no.
+
+swapfile_size_gb - Select size for the swapfile (if it's gonna be created).
+
+Valid values are only numbers.
+
+# PC speaker setting
+pcspkr_disable - Decide whether the pcspkr will be enabled or disabled inside the system.
+
+Valid values: yes and no.
+
+# Custom packages
+custom_packages - This allows you to define custom packages, which you wanna install in the system. The packages should be separated by spaces.
