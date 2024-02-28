@@ -30,7 +30,7 @@ if [ -e "config.conf" ]; then
 else
     touch config.conf
     cat <<EOF > config.conf
-## Here is the configuration for the installation. For any needed help, PLEASE REFER to docs/manual.txt.
+## Here is the configuration for the installation.
 
 ## Partitioning helper
 # If you don't want to use the partitioning helper, set none to all the partitions.
