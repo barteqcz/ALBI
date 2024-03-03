@@ -481,7 +481,7 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Configure the user
-useradd -m $username >/dev/null 2>&1
+useradd -m --badname $username >/dev/null 2>&1
 passwd $username << EOP >/dev/null 2>&1
 $password
 $password
@@ -536,7 +536,7 @@ fi
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm --noconfirm >/dev/null 2>&1
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
     if [[ $nvidia_proprietary == "yes" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
