@@ -13,6 +13,7 @@ if [[ "$#" -gt 0 ]]; then
     case $1 in
         -h|--help)
             echo "ALBI - Arch Linux Bash Installer"
+            echo "version 21.04.24"
             echo ""
             echo "-h --help - show this help and exit."
             echo ""
