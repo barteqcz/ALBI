@@ -209,15 +209,15 @@ fi
 
 if [[ $boot_part_exists == "true" ]]; then
     if [[ $separate_boot_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$boot_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_boot_part" >/dev/null 2>&1
     elif [[ $separate_boot_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$boot_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_boot_part" >/dev/null 2>&1
     elif [[ $separate_boot_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$boot_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_boot_part" >/dev/null 2>&1
     elif [[ $separate_boot_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$boot_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_boot_part" >/dev/null 2>&1
     elif [[ $separate_boot_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$boot_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_boot_part" >/dev/null 2>&1
     else
         echo "Error: wrong filesystem for the /boot partition."
     fi
