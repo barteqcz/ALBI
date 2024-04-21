@@ -439,7 +439,7 @@ hwclock --systohc
 
 ## Install basic packages
 echo "Installing basic packages..."
-pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar p7zip os-prober --noconfirm >/dev/null 2>&1
+pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar p7zip os-prober plymouth --noconfirm >/dev/null 2>&1
 systemctl enable NetworkManager >/dev/null 2>&1
 systemctl enable bluetooth >/dev/null 2>&1
 
@@ -501,6 +501,7 @@ sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
+sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
@@ -528,7 +529,7 @@ fi
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm >/dev/null 2>&1
-    sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="nvidia-drm.modeset=1"/' /etc/default/grub
+    sed -i 's/^\(GRUB_CMDLINE_LINUX=".*\)"/\1 nvidia-drm.modeset=1"/' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
