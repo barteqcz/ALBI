@@ -33,7 +33,7 @@ else
 ## Here is the configuration for the installation.
 
 ## Partitioning helper
-# If you don't want to use the partitioning helper, set none to all the partitions.
+# If you don't want to use the partitioning helper, set none to all the partitions. But remember to partition and mount them manually.
 # Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4)
 root_part="/dev/sdX#"
 separate_home_part="none"
@@ -55,8 +55,8 @@ separate_tmp_part_filesystem="none"
 EOF
 
 if [[ $boot_mode == "UEFI" ]]; then
-    echo 'efi_part="/dev/sdX#"  # Enter path to the EFI partition' >> config.conf
-    echo 'efi_part_mountpoint="/boot/efi"  # Enter mountpoint of the EFI partition.' >> config.conf
+    echo 'efi_part="/dev/sdX#"  # Enter path to the EFI partition. This is needed even if you don't use the partitioning helper above.' >> config.conf
+    echo 'efi_part_mountpoint="/boot/efi"  # Enter mountpoint of the EFI partition. This is also needed' >> config.conf
 else
     echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
 fi
@@ -291,8 +291,14 @@ if [[ $boot_mode == "UEFI" ]]; then
         mkdir -p /mnt"$efi_part_mountpoint"
         mount $efi_part /mnt"$efi_part_mountpoint"
     else
-        mkdir -p /mnt"$efi_part_mountpoint"
-        mount $efi_part /mnt"$efi_part_mountpoint"
+        if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
+            mkdir -p /mnt"$efi_part_mountpoint"
+            mount $efi_part /mnt"$efi_part_mountpoint"
+        else
+            umount $efi_part_mountpoint
+            mkdir -p /mnt"$efi_part_mountpoint"
+            mount $efi_part $efi_part_mountpoint
+        fi
     fi
 elif [[ $boot_mode == "BIOS" ]]; then
     if [ -b "$grub_disk" ]; then
