@@ -42,17 +42,6 @@ separate_var_part="none"
 separate_usr_part="none"
 separate_tmp_part="none"
 
-EOF
-
-if [[ $boot_mode == "UEFI" ]]; then
-    echo 'efi_part="/dev/sdX#"  # Enter path to the EFI partition' >> config.conf
-    echo 'efi_part_mountpoint="/boot/efi"  # Enter mountpoint of the EFI partition.' >> config.conf
-else
-    echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
-fi
-
-cat <<EOF >> config.conf
-
 ## Formatting helper
 # If you don't want to use the formatting helper, set none to all the partitions.
 # Possible values: btrfs, ext4, ext3, ext2, xfs.
@@ -63,6 +52,16 @@ separate_var_part_filesystem="none"
 separate_usr_part_filesystem="none"
 separate_tmp_part_filesystem="none"
 
+EOF
+
+if [[ $boot_mode == "UEFI" ]]; then
+    echo 'efi_part="/dev/sdX#"  # Enter path to the EFI partition' >> config.conf
+    echo 'efi_part_mountpoint="/boot/efi"  # Enter mountpoint of the EFI partition.' >> config.conf
+else
+    echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
+fi
+
+cat <<EOF >> config.conf
 ## Kernel variant
 kernel_variant="normal"  # Lets you to choose the kernel variant. Valid values: normal, lts, zen.
 
@@ -91,10 +90,10 @@ custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (s
 ## System settings
 create_swapfile="yes"  # Creates swapfile. Valid values: yes, no.
 swapfile_size_gb="4"  # Defines size of the swapfile. Valid values are only numbers.
-pcspkr_disable="yes"  # Disables onboard pc beeper. Valid values: yes, no.
+pcspkr_disable="yes"  # Disables the beeper. Valid values: yes, no.
 
 ## Script settings
-keep_config="yes"  # Lets you to choose whether you want to keep a copy of this file in /home/<your_username> after the installation. Valid values: yes, no.
+keep_config="no"  # Lets you to choose whether you want to keep a copy of this file in /home/<your_username> after the installation. Valid values: yes, no.
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
