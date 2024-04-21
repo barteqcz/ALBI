@@ -687,6 +687,7 @@ EOFile
 ## Copy config file and the second part of the script to /
 cp main.sh /mnt/
 cp config.conf /mnt/
+cp albi.sh /mnt/
 
 ## Enter arch-chroot and run second part of the script
 arch-chroot /mnt bash main.sh
