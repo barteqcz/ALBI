@@ -463,6 +463,7 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
+source /albi.sh
 
 ## Set timezone
 echo "Setting the timezone..."
