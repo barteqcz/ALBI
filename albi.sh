@@ -408,7 +408,7 @@ fi
 if [[ -z $custom_packages ]]; then
     :
 else
-    pacman -Sy
+    verbosity_control pacman -Sy
     
     IFS=" " read -ra packages <<< "$custom_packages"
     
