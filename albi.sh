@@ -55,9 +55,11 @@ separate_tmp_part_filesystem="none"
 EOF
 
 if [[ $boot_mode == "UEFI" ]]; then
+    echo "## EFI partition settings" >> config.conf
     echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition. This is needed even if you don't use the partitioning helper above." >> config.conf
     echo "efi_part_mountpoint=\"/boot/efi\"  # Enter mountpoint of the EFI partition. This is also needed" >> config.conf
 else
+    echo "## GRUB installation disk selection" >> config.conf
     echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
 fi
 
