@@ -138,9 +138,7 @@ if [ "$root_part" != "none" ]; then
         fi
     fi
 elif [[ "$root_part" == "none" ]]; then
-    if [ -n "$mnt_partition" ]; then
-        :
-    else
+    if ! [ -n "$mnt_partition" ]; then
         echo "Error: no partition is mounted to / and you didn't define any in the config file."
         exit
     fi
@@ -207,8 +205,6 @@ if [[ $home_part_exists == "true" ]]; then
     fi
     mkdir -p /mnt/home
     mount "$separate_home_part" /mnt/home >/dev/null 2>&1
-else
-    :
 fi
 
 if [[ $boot_part_exists == "true" ]]; then
@@ -225,9 +221,8 @@ if [[ $boot_part_exists == "true" ]]; then
     else
         echo "Error: wrong filesystem for the /boot partition."
     fi
+    mkdir -p /mnt/boot
     mount "$separate_boot_part" /mnt/boot >/dev/null 2>&1
-else
-    :
 fi
 
 if [[ $var_part_exists == "true" ]]; then
@@ -244,9 +239,8 @@ if [[ $var_part_exists == "true" ]]; then
     else
         echo "Error: wrong filesystem for the /var partition."
     fi
+    mkdir -p /mnt/var
     mount "$separate_var_part" /mnt/var >/dev/null 2>&1
-else
-    :
 fi
 
 if [[ $separate_usr_part_exists == "true" ]]; then
@@ -263,9 +257,8 @@ if [[ $separate_usr_part_exists == "true" ]]; then
     else
         echo "Error: wrong filesystem for the /usr partition."
     fi
+    mkdir -p /mnt/usr
     mount "$separate_usr_part" /mnt/usr >/dev/null 2>&1
-else
-    :
 fi
 
 if [[ $tmp_part_exists == "true" ]]; then
@@ -282,9 +275,8 @@ if [[ $tmp_part_exists == "true" ]]; then
     else
         echo "Error: wrong filesystem for the /tmp partition."
     fi
+    mkdir -p /mnt/tmp
     mount "$separate_tmp_part" /mnt/tmp >/dev/null 2>&1
-else
-    :
 fi
 
 if [[ $boot_mode == "UEFI" ]]; then
@@ -304,18 +296,14 @@ if [[ $boot_mode == "UEFI" ]]; then
         fi
     fi
 elif [[ $boot_mode == "BIOS" ]]; then
-    if [ -b "$grub_disk" ]; then
-        :
-    else
+    if ! [ -b "$grub_disk" ]; then
         echo "Error: disk path $grub_disk is not accessible or does not exist."
         exit
     fi
 fi
 
 ## Check variables values
-if [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
-    :
-else
+if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     echo "Error: invalid value for the kernel variant."
     exit
 fi
@@ -331,68 +319,50 @@ if [[ $username_length == 0 ]]; then
     exit
 fi
 
-if [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
-    :
-else
+if ! [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
     echo "Error: invalid value for the audio server."
     exit
 fi
 
-if [[ $install_cups == "yes" || $install_cups == "no" ]]; then
-    :
-else
+if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
     echo "Error: invalid value for the CUPS installation setting."
     exit
 fi
 
-if [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
-    :
-else
+if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
     echo "Error: invalid value for the GPU driver."
     exit
 fi
 
-if [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
-    :
-else
+if ! [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
     echo "Error: invalid value for the desktop environment."
     exit
 fi
 
-if [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
-    :
-else
+if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
     echo "Error: invalid value for the swapfile creation question."
     exit
 fi
 
-if [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
-    :
-else
+if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
     echo "Error: invalid value for the swapfile size - the value isn't numeric."
     exit
 fi
 
-if [[ $pcspkr_disable == "yes" || $pcspkr_disable == "no" ]]; then
-    :
-else
+if ! [[ $pcspkr_disable == "yes" || $pcspkr_disable == "no" ]]; then
     echo "Error: invalid value for the onboard PC speaker setting."
     exit
 fi
 
 ## Check if any custom packages were defined
-if [[ -z $custom_packages ]]; then
-    :
-else
+if ! [[ -z $custom_packages ]]; then
     pacman -Sy >/dev/null 2>&1
     
     IFS=" " read -ra packages <<< "$custom_packages"
     
     for package in "${packages[@]}"; do
         pacman_output=$(pacman -Ss "$package")
-        if [[ -n "$pacman_output" ]]; then
-            :
-        else
+        if ! [[ -n "$pacman_output" ]]; then
             echo "Error: package '$package' not found."
             exit
         fi
