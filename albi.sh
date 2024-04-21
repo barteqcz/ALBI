@@ -62,6 +62,7 @@ else
 fi
 
 cat <<EOF >> config.conf
+
 ## Kernel variant
 kernel_variant="normal"  # Lets you to choose the kernel variant. Valid values: normal, lts, zen.
 
