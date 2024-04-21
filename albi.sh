@@ -43,7 +43,7 @@ separate_usr_part="none"
 separate_tmp_part="none"
 
 ## Formatting helper
-# If you don't want to use the formatting helper, set none to all the partitions But remember to format them manually.
+# If you don't want to use the formatting helper, set none to all the partitions. But remember to format them manually.
 # Possible values: btrfs, ext4, ext3, ext2, xfs.
 root_part_filesystem="ext4"
 separate_home_part_filesystem="none"
