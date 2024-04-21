@@ -8,30 +8,16 @@ interrupt_handler() {
 
 trap interrupt_handler SIGINT
 
-verbose=false
-
-## Function to display verbose output
-verbosity_control() {
-    if [ "$verbose" = true ]; then
-        "$@"
-    else
-        "$@" >/dev/null 2>&1
-    fi
-}
-
 ## Check options
 if [[ "$#" -gt 0 ]]; then
     case $1 in
         -h|--help)
             echo "ALBI - Arch Linux Bash Installer"
+            echo "version 21.04.24"
             echo ""
             echo "-h --help - show this help and exit."
-            echo "-v --verbose - enable verbose mode."
             echo ""
             exit 0
-            ;;
-        -v|--verbose)
-            verbose=true
             ;;
         *)
             echo "Error: Unknown option '$1'"
@@ -148,20 +134,20 @@ if [ "$root_part" != "none" ]; then
         if [ -e "$root_part" ]; then
             echo "Formatting and mounting specified partitions..."
             if [[ $root_part_filesystem == "ext4" ]]; then
-                yes | verbosity_control mkfs.ext4 "$root_part"
+                yes | mkfs.ext4 "$root_part"
             elif [[ $root_part_filesystem == "ext3" ]]; then
-                yes | verbosity_control mkfs.ext3 "$root_part"
+                yes | mkfs.ext3 "$root_part"
             elif [[ $root_part_filesystem == "ext2" ]]; then
-                yes | verbosity_control mkfs.ext2 "$root_part"
+                yes | mkfs.ext2 "$root_part"
             elif [[ $root_part_filesystem == "btrfs" ]]; then
-                yes | verbosity_control mkfs.btrfs "$root_part"
+                yes | mkfs.btrfs "$root_part"
             elif [[ $root_part_filesystem == "xfs" ]]; then
-                yes | verbosity_control mkfs.xfs "$root_part"
+                yes | mkfs.xfs "$root_part"
             else
                 echo "Error: wrong filesystem for the / partition."
                 exit
             fi
-            verbosity_control mount "$root_part" /mnt
+            mount "$root_part" /mnt
         else
             echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible."
             exit
@@ -223,96 +209,96 @@ fi
 
 if [[ $home_part_exists == "true" ]]; then
     if [[ $separate_home_part_filesystem == "ext4" ]]; then
-        yes | verbosity_control mkfs.ext4 "$separate_home_part"
+        yes | mkfs.ext4 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "ext3" ]]; then
-        yes | verbosity_control mkfs.ext3 "$separate_home_part"
+        yes | mkfs.ext3 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "ext2" ]]; then
-        yes | verbosity_control mkfs.ext2 "$separate_home_part"
+        yes | mkfs.ext2 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "btrfs" ]]; then
-        yes | verbosity_control mkfs.btrfs "$separate_home_part"
+        yes | mkfs.btrfs "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "xfs" ]]; then
-        yes | verbosity_control mkfs.xfs "$separate_home_part"
+        yes | mkfs.xfs "$separate_home_part"
     else
         echo "Error: wrong filesystem for the /home partition."
     fi
     mkdir -p /mnt/home
-    verbosity_control mount "$separate_home_part" /mnt/home
+    mount "$separate_home_part" /mnt/home
 else
     :
 fi
 
 if [[ $boot_part_exists == "true" ]]; then
     if [[ $separate_boot_part_filesystem == "ext4" ]]; then
-        yes | verbosity_control mkfs.ext4 "$boot_part"
+        yes | mkfs.ext4 "$boot_part"
     elif [[ $separate_boot_part_filesystem == "ext3" ]]; then
-        yes | verbosity_control mkfs.ext3 "$boot_part"
+        yes | mkfs.ext3 "$boot_part"
     elif [[ $separate_boot_part_filesystem == "ext2" ]]; then
-        yes | verbosity_control mkfs.ext2 "$boot_part"
+        yes | mkfs.ext2 "$boot_part"
     elif [[ $separate_boot_part_filesystem == "btrfs" ]]; then
-        yes | verbosity_control mkfs.btrfs "$boot_part"
+        yes | mkfs.btrfs "$boot_part"
     elif [[ $separate_boot_part_filesystem == "xfs" ]]; then
-        yes | verbosity_control mkfs.xfs "$boot_part"
+        yes | mkfs.xfs "$boot_part"
     else
         echo "Error: wrong filesystem for the /boot partition."
     fi
-    verbosity_control mount "$separate_boot_part" /mnt/boot
+    mount "$separate_boot_part" /mnt/boot
 else
     :
 fi
 
 if [[ $var_part_exists == "true" ]]; then
     if [[ $separate_var_part_filesystem == "ext4" ]]; then
-        yes | verbosity_control mkfs.ext4 "$separate_var_part"
+        yes | mkfs.ext4 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "ext3" ]]; then
-        yes | verbosity_control mkfs.ext3 "$separate_var_part"
+        yes | mkfs.ext3 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "ext2" ]]; then
-        yes | verbosity_control mkfs.ext2 "$separate_var_part"
+        yes | mkfs.ext2 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "btrfs" ]]; then
-        yes | verbosity_control mkfs.btrfs "$separate_var_part"
+        yes | mkfs.btrfs "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "xfs" ]]; then
-        yes | verbosity_control mkfs.xfs "$separate_var_part"
+        yes | mkfs.xfs "$separate_var_part"
     else
         echo "Error: wrong filesystem for the /var partition."
     fi
-    verbosity_control mount "$separate_var_part" /mnt/var
+    mount "$separate_var_part" /mnt/var
 else
     :
 fi
 
 if [[ $separate_usr_part_exists == "true" ]]; then
     if [[ $separate_usr_part_filesystem == "ext4" ]]; then
-        yes | verbosity_control mkfs.ext4 "$separate_usr_part"
+        yes | mkfs.ext4 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "ext3" ]]; then
-        yes | verbosity_control mkfs.ext3 "$separate_usr_part"
+        yes | mkfs.ext3 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "ext2" ]]; then
-        yes | verbosity_control mkfs.ext2 "$separate_usr_part"
+        yes | mkfs.ext2 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "btrfs" ]]; then
-        yes | verbosity_control mkfs.btrfs "$separate_usr_part"
+        yes | mkfs.btrfs "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "xfs" ]]; then
-        yes | verbosity_control mkfs.xfs "$separate_usr_part"
+        yes | mkfs.xfs "$separate_usr_part"
     else
         echo "Error: wrong filesystem for the /usr partition."
     fi
-    verbosity_control mount "$separate_usr_part" /mnt/usr
+    mount "$separate_usr_part" /mnt/usr
 else
     :
 fi
 
 if [[ $tmp_part_exists == "true" ]]; then
     if [[ $separate_tmp_part_filesystem == "ext4" ]]; then
-        yes | verbosity_control mkfs.ext4 "$separate_tmp_part"
+        yes | mkfs.ext4 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "ext3" ]]; then
-        yes | verbosity_control mkfs.ext3 "$separate_tmp_part"
+        yes | mkfs.ext3 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "ext2" ]]; then
-        yes | verbosity_control mkfs.ext2 "$separate_tmp_part"
+        yes | mkfs.ext2 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "btrfs" ]]; then
-        yes | verbosity_control mkfs.btrfs "$separate_tmp_part"
+        yes | mkfs.btrfs "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "xfs" ]]; then
-        yes | verbosity_control mkfs.xfs "$separate_tmp_part"
+        yes | mkfs.xfs "$separate_tmp_part"
     else
         echo "Error: wrong filesystem for the /tmp partition."
     fi
-    verbosity_control mount "$separate_tmp_part" /mnt/tmp
+    mount "$separate_tmp_part" /mnt/tmp
 else
     :
 fi
@@ -320,7 +306,7 @@ fi
 if [[ $boot_mode == "UEFI" ]]; then
     efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
     if [[ $efi_part_filesystem != "vfat" ]]; then
-        yes | verbosity_control mkfs.fat -F32 "$efi_part"
+        yes | mkfs.fat -F32 "$efi_part"
         mkdir -p /mnt"$efi_part_mountpoint"
         mount $efi_part /mnt"$efi_part_mountpoint"
     else
@@ -408,7 +394,7 @@ fi
 if [[ -z $custom_packages ]]; then
     :
 else
-    verbosity_control pacman -Sy
+    pacman -Sy
     
     IFS=" " read -ra packages <<< "$custom_packages"
     
@@ -437,11 +423,11 @@ reflector --sort rate --protocol https --protocol rsync --country $mirror_locati
 ## Install base system
 echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
-    verbosity_control pacstrap -K /mnt base linux linux-firmware linux-headers
+    pacstrap -K /mnt base linux linux-firmware linux-headers
 elif [[ $kernel_variant == "lts" ]]; then
-    verbosity_control pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
+    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
 elif [[ $kernel_variant == "zen" ]]; then
-    verbosity_control pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
+    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
 fi
 
 ## Generate /etc/fstab
@@ -463,7 +449,6 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
-source /albi.sh
 
 ## Set timezone
 echo "Setting the timezone..."
@@ -472,14 +457,14 @@ hwclock --systohc
 
 ## Install basic packages
 echo "Installing basic packages..."
-verbosity_control pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar p7zip os-prober plymouth --noconfirm
-verbosity_control systemctl enable NetworkManager
-verbosity_control systemctl enable bluetooth
+pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar p7zip os-prober plymouth --noconfirm
+systemctl enable NetworkManager
+systemctl enable bluetooth
 
 ## Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
-    verbosity_control pacman -S efibootmgr --noconfirm
+    pacman -S efibootmgr --noconfirm
 else
     boot_mode="BIOS"
 fi
@@ -488,10 +473,10 @@ fi
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ $vendor == "GenuineIntel" ]]; then
     echo "Installing Intel microcode package..."
-    verbosity_control pacman -Sy intel-ucode --noconfirm
+    pacman -Sy intel-ucode --noconfirm
 elif [[ $vendor == "AuthenticAMD" ]]; then
     echo "Installing AMD microcode package..."
-    verbosity_control pacman -Sy amd-ucode --noconfirm
+    pacman -Sy amd-ucode --noconfirm
 else
     echo "Unknown CPU vendor - skipping microcode installation..."
 fi
@@ -501,7 +486,7 @@ echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
-verbosity_control locale-gen
+locale-gen
 echo "$hostname" > /etc/hostname
 
 ## Configure the /etc/hosts file
@@ -514,12 +499,12 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Configure the user
-verbosity_control useradd -m --badname $username
-verbosity_control passwd $username << EOP
+useradd -m --badname $username
+passwd $username << EOP
 $password
 $password
 EOP
-verbosity_control usermod -aG wheel $username
+usermod -aG wheel $username
 
 ## For additional security, erase the password in the /config.conf file if it's meant to be kept
 if [[ $keep_config == "yes" ]]; then
@@ -539,74 +524,74 @@ sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB (UEFI)..."
-    verbosity_control grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
-    verbosity_control grub-mkconfig -o /boot/grub/grub.cfg
+    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
+    grub-mkconfig -o /boot/grub/grub.cfg
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB (BIOS)..."
-    verbosity_control grub-install --target=i386-pc $grub_disk
-    verbosity_control grub-mkconfig -o /boot/grub/grub.cfg
+    grub-install --target=i386-pc $grub_disk
+    grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
 ## Install audio server
 if [[ $audio_server == "pipewire" ]]; then
     echo "Installing PipeWire..."
-    verbosity_control pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
-    verbosity_control systemctl enable --global pipewire pipewire-pulse
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
+    systemctl enable --global pipewire pipewire-pulse
 elif [[ $audio_server == "pulseaudio" ]]; then
     echo "Installing Pulseaudio..."
-    verbosity_control pacman -S pulseaudio pavucontrol --noconfirm
-    verbosity_control systemctl enable --global pulseaudio
+    pacman -S pulseaudio pavucontrol --noconfirm
+    systemctl enable --global pulseaudio
 fi
 
 ## Install GPU driver
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
-    verbosity_control pacman -S nvidia nvidia-settings --noconfirm
+    pacman -S nvidia nvidia-settings --noconfirm
     sed -i 's/^\(GRUB_CMDLINE_LINUX=".*\)"/\1 nvidia-drm.modeset=1"/' /etc/default/grub
-    verbosity_control grub-mkconfig -o /boot/grub/grub.cfg
+    grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
 ## Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    verbosity_control pacman -S xorg wayland --noconfirm
-    verbosity_control pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector pavucontrol --noconfirm
-    verbosity_control systemctl enable gdm
+    pacman -S xorg wayland --noconfirm
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector pavucontrol --noconfirm
+    systemctl enable gdm
     if [[ $nvidia_proprietary == "yes" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
-    verbosity_control pacman -S xorg wayland --noconfirm
-    verbosity_control pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
-    verbosity_control systemctl enable sddm
+    pacman -S xorg wayland --noconfirm
+    pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
+    systemctl enable sddm
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    verbosity_control pacman -S xorg wayland --noconfirm
-    verbosity_control pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet pavucontrol --noconfirm
-    verbosity_control systemctl enable lightdm
+    pacman -S xorg wayland --noconfirm
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet pavucontrol --noconfirm
+    systemctl enable lightdm
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
-    verbosity_control pacman -S xorg wayland --noconfirm
-    verbosity_control pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
-    verbosity_control systemctl enable lightdm
+    pacman -S xorg wayland --noconfirm
+    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
+    systemctl enable lightdm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ $de == "mate" ]]; then
     echo "Installing MATE desktop environment..."
-    verbosity_control pacman -S xorg wayland --noconfirm
-    verbosity_control pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
-    verbosity_control systemctl enable lightdm
+    pacman -S xorg wayland --noconfirm
+    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs pavucontrol --noconfirm
+    systemctl enable lightdm
 fi
 
 ##  Check if CUPS should be installed
 if [[ $install_cups == yes ]]; then
     echo "Installing CUPS..."
-    verbosity_control pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
-    verbosity_control systemctl enable cups.service
-    verbosity_control systemctl enable cups.socket
-    verbosity_control systemctl enable cups-browsed.service
-    verbosity_control systemctl enable avahi-daemon.service
-    verbosity_control systemctl enable avahi-daemon.socket
+    pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
+    systemctl enable cups.service
+    systemctl enable cups.socket
+    systemctl enable cups-browsed.service
+    systemctl enable avahi-daemon.service
+    systemctl enable avahi-daemon.socket
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
     rm -f /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.old
     rm -f /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.old
@@ -618,23 +603,23 @@ touch tmpscript.sh
 cat <<'EOY' > tmpscript.sh
 source /config.conf
 cd
-verbosity_control git clone https://aur.archlinux.org/yay
+git clone https://aur.archlinux.org/yay
 cd yay
-verbosity_control makepkg -si --noconfirm
+makepkg -si --noconfirm
 cd ..
 rm -rf yay
-verbosity_control yay -Sy --noconfirm
+yay -Sy --noconfirm
 if [[ $install_cups == "yes" ]]; then
     echo "Installing hplip-plugin for CUPS from AUR..."
-    verbosity_control yay -S hplip-plugin --noconfirm
+    yay -S hplip-plugin --noconfirm
 fi
 if [[ $de == "xfce" ]]; then
     echo "Installing mugshot from AUR..."
-    verbosity_control yay -S mugshot --noconfirm
+    yay -S mugshot --noconfirm
 fi
 if [[ $de == "cinnamon" ]]; then
     echo "Installing lightdm-settings from AUR..."
-    verbosity_control yay -S lightdm-settings --noconfirm
+    yay -S lightdm-settings --noconfirm
 fi
 EOY
 chown "$username":"$username" tmpscript.sh
@@ -650,14 +635,14 @@ if [[ $create_swapfile == "yes" ]]; then
     echo "Creating swapfile..."
     fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
-    verbosity_control mkswap /swapfile
+    mkswap /swapfile
     echo "# /swapfile" >> /etc/fstab
     echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
 fi
 
 ## Install packages defined in custom_packages variable
 echo "Installing custom packages..."
-verbosity_control pacman -S $custom_packages --noconfirm
+pacman -S $custom_packages --noconfirm
 
 ## Onboard PC speaker setting
 if [[ $pcspkr_disable == "yes" ]]; then
@@ -666,15 +651,15 @@ fi
 
 ## Re-generate initramfs
 echo "Regenerating initramfs image..."
-verbosity_control mkinitcpio -P
+mkinitcpio -P
 
 ## Clean up and exit
 echo "Cleaning up..."
 while pacman -Qtdq; do
-    verbosity_control pacman -R $(pacman -Qtdq) --noconfirm
+    pacman -R $(pacman -Qtdq) --noconfirm
 done
-yes | verbosity_control pacman -Scc
-yes | verbosity_control yay -Scc
+yes | pacman -Scc
+yes | yay -Scc
 if [[ $keep_config == "no" ]]; then
     rm -f /config.conf
 else
@@ -688,7 +673,6 @@ EOFile
 ## Copy config file and the second part of the script to /
 cp main.sh /mnt/
 cp config.conf /mnt/
-cp albi.sh /mnt/
 
 ## Enter arch-chroot and run second part of the script
 arch-chroot /mnt bash main.sh
