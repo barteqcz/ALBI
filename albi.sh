@@ -484,7 +484,7 @@ sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB (UEFI)..."
-    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="Arch Linux" >/dev/null 2>&1
+    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux" >/dev/null 2>&1
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB (BIOS)..."
