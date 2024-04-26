@@ -507,7 +507,7 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 if [[ $luks_encryption == "yes" ]]; then
-    cryptdevice_grub="$root_part_orig:$root_part_encrypted_name"
+    cryptdevice_grub="$root_part_orig":"$root_part_encrypted_name"
     sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
     sed -i "s/^\(GRUB_CMDLINE_LINUX=\".*\)\"/\1 cryptdevice=\$cryptdevice_grub\"/" /etc/default/grub
 fi
