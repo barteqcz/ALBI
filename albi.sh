@@ -424,6 +424,7 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
+source /variables.sh
 
 ## Set timezone
 echo "Setting the timezone..."
