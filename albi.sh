@@ -511,7 +511,7 @@ fi
 
 if [[ $luks_encryption == "yes" ]]; then
     sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
-    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig:$root_part_encrypted_name"\2/' /etc/default/grub
+    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig":"$root_part_encrypted_name"\2/' /etc/default/grub
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
