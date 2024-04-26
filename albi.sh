@@ -32,9 +32,18 @@ else
     cat <<EOF > config.conf
 ## Here is the configuration for the installation.
 
+## Formatting
+# If you pick 'none' for a partition, it's left without doing anything. Remember to format it yourself if you choose this option.
+# Possible values: btrfs, ext4, ext3, ext2, xfs, none.
+root_part_filesystem="ext4"  # This sets the filesystem for the / partition.
+separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition.
+separate_boot_part_filesystem="ext4"  # This sets the filesystem for the /boot partition.
+separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition.
+separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition.
+separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition.
 
-## Partitioning helper
-# If you choose 'none' for a partition, it's ignored and left unchanged.
+## Mounting
+# If you choose 'none' for a partition, it's ignored and left without doing anything. Remember to mount it yourself if you choose this option.
 # Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4).
 root_part="/dev/sdX#"  # This sets the path for the / partition.
 separate_home_part="none"  # This sets the path for the /home partition.
@@ -42,16 +51,6 @@ separate_boot_part="/dev/sdX#"  # This sets the path for the /boot partition.
 separate_var_part="none"  # This sets the path for the /var partition.
 separate_usr_part="none"  # This sets the path for the /usr partition.
 separate_tmp_part="none"  # This sets the path for the /tmp partition.
-
-## Formatting helper
-# If you pick 'none' for a partition, it's left without doing anything. Remember to format it yourself if you choose this option.
-# Possible values: btrfs, ext4, ext3, ext2, xfs.
-root_part_filesystem="ext4"  # This sets the filesystem for the / partition.
-separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition.
-separate_boot_part_filesystem="ext4"  # This sets the filesystem for the /boot partition.
-separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition.
-separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition.
-separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition.
 
 ## Encryption
 luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
