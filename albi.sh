@@ -499,22 +499,22 @@ dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
-if [[ $luks_encryption == "yes" ]]; then
-    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
-    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig:$root_part_encrypted_name"\2/' /etc/default/grub
-fi
-
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB (UEFI)..."
     grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux" >/dev/null 2>&1
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB (BIOS)..."
     grub-install --target=i386-pc $grub_disk >/dev/null 2>&1
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
+
+if [[ $luks_encryption == "yes" ]]; then
+    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
+    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig:$root_part_encrypted_name"\2/' /etc/default/grub
+fi
+
+grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 
 ## Install audio server
 if [[ $audio_server == "pipewire" ]]; then
