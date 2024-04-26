@@ -97,7 +97,6 @@ custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (s
 ## System settings
 create_swapfile="yes"  # Creates swapfile. Valid values: yes, no.
 swapfile_size_gb="4"  # Defines size of the swapfile. Valid values are only numbers.
-pcspkr_disable="yes"  # Disables the beeper. Valid values: yes, no.
 
 ## Script settings
 keep_config="no"  # Lets you to choose whether you want to keep a copy of this file in /home/<your_username> after the installation. Valid values: yes, no.
@@ -109,6 +108,75 @@ fi
 
 ## Check the config file values
 echo "Verifying the config file..."
+
+## Check variables values
+if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
+    echo "Error: invalid value for the kernel variant."
+    exit
+fi
+
+passwd_length=${#password}
+username_length=${#username}
+if [[ $passwd_length == 0 ]]; then
+    echo "Error: user password not set"
+    exit
+fi
+if [[ $username_length == 0 ]]; then
+    echo "Error: username not set"
+    exit
+fi
+
+if ! [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
+    echo "Error: invalid value for the audio server."
+    exit
+fi
+
+if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
+    echo "Error: invalid value for the CUPS installation setting."
+    exit
+fi
+
+if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
+    echo "Error: invalid value for the GPU driver."
+    exit
+fi
+
+if ! [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
+    echo "Error: invalid value for the desktop environment."
+    exit
+fi
+
+if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
+    echo "Error: invalid value for the swapfile creation question."
+    exit
+fi
+
+if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
+    echo "Error: invalid value for the swapfile size - the value isn't numeric."
+    exit
+fi
+
+## Check if any custom packages were defined
+if ! [[ -z $custom_packages ]]; then
+    pacman -Sy >/dev/null 2>&1
+
+    IFS=" " read -ra packages <<< "$custom_packages"
+
+    for package in "${packages[@]}"; do
+        pacman_output=$(pacman -Ss "$package")
+        if ! [[ -n "$pacman_output" ]]; then
+            echo "Error: package '$package' not found."
+            exit
+        fi
+    done
+fi
+
+## Check if reflector returns any errors
+reflector_output=$(reflector --country $mirror_location)
+if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
+    echo "Error: invalid country name for Reflector."
+    exit
+fi
 
 ## Check if the given partitions exist
 mount_output=$(df -h)
@@ -319,80 +387,6 @@ elif [[ $boot_mode == "BIOS" ]]; then
         echo "Error: disk path $grub_disk is not accessible or does not exist."
         exit
     fi
-fi
-
-## Check variables values
-if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
-    echo "Error: invalid value for the kernel variant."
-    exit
-fi
-
-passwd_length=${#password}
-username_length=${#username}
-if [[ $passwd_length == 0 ]]; then
-    echo "Error: user password not set"
-    exit
-fi
-if [[ $username_length == 0 ]]; then
-    echo "Error: username not set"
-    exit
-fi
-
-if ! [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
-    echo "Error: invalid value for the audio server."
-    exit
-fi
-
-if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
-    echo "Error: invalid value for the CUPS installation setting."
-    exit
-fi
-
-if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
-    echo "Error: invalid value for the GPU driver."
-    exit
-fi
-
-if ! [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
-    echo "Error: invalid value for the desktop environment."
-    exit
-fi
-
-if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
-    echo "Error: invalid value for the swapfile creation question."
-    exit
-fi
-
-if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
-    echo "Error: invalid value for the swapfile size - the value isn't numeric."
-    exit
-fi
-
-if ! [[ $pcspkr_disable == "yes" || $pcspkr_disable == "no" ]]; then
-    echo "Error: invalid value for the onboard PC speaker setting."
-    exit
-fi
-
-## Check if any custom packages were defined
-if ! [[ -z $custom_packages ]]; then
-    pacman -Sy >/dev/null 2>&1
-
-    IFS=" " read -ra packages <<< "$custom_packages"
-
-    for package in "${packages[@]}"; do
-        pacman_output=$(pacman -Ss "$package")
-        if ! [[ -n "$pacman_output" ]]; then
-            echo "Error: package '$package' not found."
-            exit
-        fi
-    done
-fi
-
-## Check if reflector returns any errors
-reflector_output=$(reflector --country $mirror_location)
-if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
-    echo "Error: invalid country name for Reflector."
-    exit
 fi
 
 ## Run Reflector
@@ -627,11 +621,6 @@ fi
 ## Install packages defined in custom_packages variable
 echo "Installing custom packages..."
 pacman -S $custom_packages --noconfirm >/dev/null 2>&1
-
-## Onboard PC speaker setting
-if [[ $pcspkr_disable == "yes" ]]; then
-    echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-fi
 
 ## Re-generate initramfs
 echo "Regenerating initramfs image..."
