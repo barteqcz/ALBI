@@ -32,34 +32,38 @@ else
     cat <<EOF > config.conf
 ## Here is the configuration for the installation.
 
-## Partitioning helper
-# If you don't want to use the partitioning helper, set none to all the partitions. But remember to partition and mount them manually.
-# Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4)
-root_part="/dev/sdX#"
-separate_home_part="none"
-separate_boot_part="none"
-separate_var_part="none"
-separate_usr_part="none"
-separate_tmp_part="none"
+## Formatting
+# If you pick 'none' for a partition, it's left without doing anything. Remember to format it yourself if you choose this option.
+# Possible values: btrfs, ext4, ext3, ext2, xfs, none.
+root_part_filesystem="ext4"  # This sets the filesystem for the / partition.
+separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition.
+separate_boot_part_filesystem="ext4"  # This sets the filesystem for the /boot partition.
+separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition.
+separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition.
+separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition.
 
-## Formatting helper
-# If you don't want to use the formatting helper, set none to all the partitions. But remember to format them manually.
-# Possible values: btrfs, ext4, ext3, ext2, xfs.
-root_part_filesystem="ext4"
-separate_home_part_filesystem="none"
-separate_boot_part_filesystem="none"
-separate_var_part_filesystem="none"
-separate_usr_part_filesystem="none"
-separate_tmp_part_filesystem="none"
+## Mounting
+# If you choose 'none' for a partition, it's ignored and left without doing anything. Remember to mount it yourself if you choose this option.
+# Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4).
+root_part="/dev/sdX#"  # This sets the path for the / partition.
+separate_home_part="none"  # This sets the path for the /home partition.
+separate_boot_part="/dev/sdX#"  # This sets the path for the /boot partition.
+separate_var_part="none"  # This sets the path for the /var partition.
+separate_usr_part="none"  # This sets the path for the /usr partition.
+separate_tmp_part="none"  # This sets the path for the /tmp partition.
+
+## Encryption
+luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
+luks_passphrase="4V3ryH@rdP4ssphr@s3!"  # Applies only when the encryption is set to yes.
 
 EOF
 
 if [[ $boot_mode == "UEFI" ]]; then
     echo "## EFI partition settings" >> config.conf
-    echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition. This is needed even if you don't use the partitioning helper above." >> config.conf
+    echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition." >> config.conf
     echo "efi_part_mountpoint=\"/boot/efi\"  # Enter mountpoint of the EFI partition. This is also needed" >> config.conf
 else
-    echo "## GRUB installation disk selection" >> config.conf
+    echo "## GRUB installation disk settings" >> config.conf
     echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
 fi
 
@@ -93,7 +97,6 @@ custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (s
 ## System settings
 create_swapfile="yes"  # Creates swapfile. Valid values: yes, no.
 swapfile_size_gb="4"  # Defines size of the swapfile. Valid values are only numbers.
-pcspkr_disable="yes"  # Disables the beeper. Valid values: yes, no.
 
 ## Script settings
 keep_config="no"  # Lets you to choose whether you want to keep a copy of this file in /home/<your_username> after the installation. Valid values: yes, no.
@@ -106,9 +109,87 @@ fi
 ## Check the config file values
 echo "Verifying the config file..."
 
+## Check variables values
+if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
+    echo "Error: invalid value for the kernel variant."
+    exit
+fi
+
+passwd_length=${#password}
+username_length=${#username}
+if [[ $passwd_length == 0 ]]; then
+    echo "Error: user password not set"
+    exit
+fi
+if [[ $username_length == 0 ]]; then
+    echo "Error: username not set"
+    exit
+fi
+
+if ! [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
+    echo "Error: invalid value for the audio server."
+    exit
+fi
+
+if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
+    echo "Error: invalid value for the CUPS installation setting."
+    exit
+fi
+
+if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
+    echo "Error: invalid value for the GPU driver."
+    exit
+fi
+
+if ! [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
+    echo "Error: invalid value for the desktop environment."
+    exit
+fi
+
+if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
+    echo "Error: invalid value for the swapfile creation question."
+    exit
+fi
+
+if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
+    echo "Error: invalid value for the swapfile size - the value isn't numeric."
+    exit
+fi
+
+## Check if any custom packages were defined
+if ! [[ -z $custom_packages ]]; then
+    pacman -Sy >/dev/null 2>&1
+
+    IFS=" " read -ra packages <<< "$custom_packages"
+
+    for package in "${packages[@]}"; do
+        pacman_output=$(pacman -Ss "$package")
+        if ! [[ -n "$pacman_output" ]]; then
+            echo "Error: package '$package' not found."
+            exit
+        fi
+    done
+fi
+
+## Check if reflector returns any errors
+reflector_output=$(reflector --country $mirror_location)
+if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
+    echo "Error: invalid country name for Reflector."
+    exit
+fi
+
 ## Check if the given partitions exist
 mount_output=$(df -h)
 mnt_partition=$(echo "$mount_output" | awk '$6=="/mnt" {print $1}')
+
+if [ "$separate_boot_part" != "none" ]; then
+    if [ -e "$separate_boot_part" ]; then
+        boot_part_exists="true"
+    else
+        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
+    fi
+fi
 
 if [ "$root_part" != "none" ]; then
     if [[ -n "$mnt_partition" ]]; then
@@ -116,6 +197,23 @@ if [ "$root_part" != "none" ]; then
         exit
     else
         if [ -e "$root_part" ]; then
+            if [ $luks_encryption == "yes" ]; then
+                if [ $boot_part_exists == "true" ]; then
+                    echo "Enabling encryption..."
+                    root_part_orig="$root_part"
+                    root_part_basename=$(basename "$root_part")
+                    root_part_encrypted_name="$root_part_basename"_crypt
+                    echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
+                    echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
+                    root_part=/dev/mapper/"$root_part_encrypted_name"
+                    echo "root_part_orig=\"$root_part_orig\"" > tmpscript1.sh
+                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpscript1.sh
+                else
+                    echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
+                    exit
+                fi
+            fi
+
             echo "Formatting and mounting specified partitions..."
             if [[ $root_part_filesystem == "ext4" ]]; then
                 yes | mkfs.ext4 "$root_part" >/dev/null 2>&1
@@ -149,15 +247,6 @@ if [ "$separate_home_part" != "none" ]; then
         home_part_exists="true"
     else
         echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible."
-        exit
-    fi
-fi
-
-if [ "$separate_boot_part" != "none" ]; then
-    if [ -e "$separate_boot_part" ]; then
-        boot_part_exists="true"
-    else
-        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
         exit
     fi
 fi
@@ -302,80 +391,6 @@ elif [[ $boot_mode == "BIOS" ]]; then
     fi
 fi
 
-## Check variables values
-if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
-    echo "Error: invalid value for the kernel variant."
-    exit
-fi
-
-passwd_length=${#password}
-username_length=${#username}
-if [[ $passwd_length == 0 ]]; then
-    echo "Error: user password not set"
-    exit
-fi
-if [[ $username_length == 0 ]]; then
-    echo "Error: username not set"
-    exit
-fi
-
-if ! [[ $audio_server == "pipewire" || $audio_server == "pulseaudio" || $audio_server == "none" ]]; then
-    echo "Error: invalid value for the audio server."
-    exit
-fi
-
-if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
-    echo "Error: invalid value for the CUPS installation setting."
-    exit
-fi
-
-if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
-    echo "Error: invalid value for the GPU driver."
-    exit
-fi
-
-if ! [[ $de == "cinnamon" || $de == "gnome" || $de == "mate" || $de == "plasma" || $de == "xfce" || $de == "none" ]]; then
-    echo "Error: invalid value for the desktop environment."
-    exit
-fi
-
-if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
-    echo "Error: invalid value for the swapfile creation question."
-    exit
-fi
-
-if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
-    echo "Error: invalid value for the swapfile size - the value isn't numeric."
-    exit
-fi
-
-if ! [[ $pcspkr_disable == "yes" || $pcspkr_disable == "no" ]]; then
-    echo "Error: invalid value for the onboard PC speaker setting."
-    exit
-fi
-
-## Check if any custom packages were defined
-if ! [[ -z $custom_packages ]]; then
-    pacman -Sy >/dev/null 2>&1
-    
-    IFS=" " read -ra packages <<< "$custom_packages"
-    
-    for package in "${packages[@]}"; do
-        pacman_output=$(pacman -Ss "$package")
-        if ! [[ -n "$pacman_output" ]]; then
-            echo "Error: package '$package' not found."
-            exit
-        fi
-    done
-fi
-
-## Check if reflector returns any errors
-reflector_output=$(reflector --country $mirror_location)
-if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
-    echo "Error: invalid country name for Reflector."
-    exit
-fi
-
 ## Run Reflector
 echo "Running Reflector..."
 reflector --sort rate --protocol https --protocol rsync --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
@@ -409,6 +424,7 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
+source /variables.sh
 
 ## Set timezone
 echo "Setting the timezone..."
@@ -471,7 +487,7 @@ if [[ $keep_config == "yes" ]]; then
     sed -i "s/^password=.*/password=\"\"/" config.conf
 fi
 
-## Apply useful tweaks
+## Apply useful/needed tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
 cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
@@ -485,12 +501,18 @@ sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB (UEFI)..."
     grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux" >/dev/null 2>&1
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB (BIOS)..."
     grub-install --target=i386-pc $grub_disk >/dev/null 2>&1
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
+
+if [[ $luks_encryption == "yes" ]]; then
+    cryptdevice_grub="$root_part_orig":"$root_part_encrypted_name"
+    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
+    sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+fi
+
+grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 
 ## Install audio server
 if [[ $audio_server == "pipewire" ]]; then
@@ -559,8 +581,8 @@ fi
 
 ## Install yay
 echo "Installing Yay..."
-touch tmpscript.sh
-cat <<'EOY' > tmpscript.sh
+touch tmpscript2.sh
+cat <<'EOY' > tmpscript2.sh
 source /config.conf
 cd
 git clone https://aur.archlinux.org/yay >/dev/null 2>&1
@@ -582,9 +604,9 @@ if [[ $de == "cinnamon" ]]; then
     yay -S lightdm-settings --noconfirm >/dev/null 2>&1
 fi
 EOY
-chown "$username":"$username" tmpscript.sh
+chown "$username":"$username" tmpscript2.sh
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
-sudo -u "$username" bash tmpscript.sh
+sudo -u "$username" bash tmpscript2.sh
 rm -f /etc/sudoers.d/tmp
 
 ## Add sudo privileges for the user
@@ -604,19 +626,14 @@ fi
 echo "Installing custom packages..."
 pacman -S $custom_packages --noconfirm >/dev/null 2>&1
 
-## Onboard PC speaker setting
-if [[ $pcspkr_disable == "yes" ]]; then
-    echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-fi
-
 ## Re-generate initramfs
 echo "Regenerating initramfs image..."
 mkinitcpio -P >/dev/null 2>&1
 
 ## Clean up and exit
 echo "Cleaning up..."
-while pacman -Qtdq >/dev/null 2>&1; do
-    pacman -R $(pacman -Qtdq) --noconfirm >/dev/null 2>&1
+while pacman -Qdtq >/dev/null 2>&1; do
+    pacman -R $(pacman -Qdtq) --noconfirm >/dev/null 2>&1
 done
 yes | pacman -Scc >/dev/null 2>&1
 yes | yay -Scc >/dev/null 2>&1
@@ -626,11 +643,13 @@ else
     mv /config.conf /home/$username/
 fi
 rm -f /main.sh
-rm -f /tmpscript.sh
+rm -f /tmpscript1.sh
+rm -f /tmpscript2.sh
 exit
 EOFile
 
 ## Copy config file and the second part of the script to /
+cp tmpscript1.sh /mnt/
 cp main.sh /mnt/
 cp config.conf /mnt/
 
