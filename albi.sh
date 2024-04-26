@@ -206,8 +206,8 @@ if [ "$root_part" != "none" ]; then
                     echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
                     echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
                     root_part=/dev/mapper/"$root_part_encrypted_name"
-                    echo root_part_orig="$root_part_orig" > variables.sh
-                    echo root_part_encrypted_name="\"$root_part_encrypted_name"\" >> variables.sh
+                    echo "root_part_orig=\"$root_part_orig\"" > variables.sh
+                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> variables.sh
                 else
                     echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
                     exit
