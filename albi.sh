@@ -94,7 +94,7 @@ de="gnome"  # Lets you to select the desktop environment. Valid values: gnome, p
 install_cups="yes"  # Lets you to decide whether CUPS should be installed, or not. Valid values: yes, no.
 custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (separated by spaces). If you don't need any, leave the list empty.
 
-## System settings
+## Swapfile settings
 create_swapfile="yes"  # Creates swapfile. Valid values: yes, no.
 swapfile_size_gb="4"  # Defines size of the swapfile. Valid values are only numbers.
 
