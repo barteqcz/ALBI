@@ -422,7 +422,6 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
-source /albi.sh
 
 ## Set timezone
 echo "Setting the timezone..."
@@ -642,13 +641,11 @@ else
 fi
 rm -f /main.sh
 rm -f /tmpscript.sh
-rm -f /albi.sh
 exit
 EOFile
 
 ## Copy config file and the second part of the script to /
 cp main.sh /mnt/
-cp albi.sh /mnt/
 cp config.conf /mnt/
 
 ## Enter arch-chroot and run second part of the script
