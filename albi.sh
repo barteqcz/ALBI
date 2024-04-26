@@ -132,6 +132,7 @@ if [ "$root_part" != "none" ]; then
             if [ $luks_encryption == "yes" ]; then
                 if [ $boot_part_exists == "true" ]; then
                     echo "Enabling encryption..."
+                    root_part_orig="$root_part"
                     root_part_basename=$(basename "$root_part")
                     root_part_encrypted_name="$root_part_basename"_crypt
                     echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
@@ -489,7 +490,7 @@ if [[ $keep_config == "yes" ]]; then
     sed -i "s/^password=.*/password=\"\"/" config.conf
 fi
 
-## Apply useful tweaks
+## Apply useful/needed tweaks
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
 cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
@@ -498,6 +499,11 @@ dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
+if [[ $luks_encryption == "yes" ]]; then
+    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
+    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig:$root_part_encrypted_name"\2/' /etc/default/grub
+fi
+
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
@@ -525,7 +531,7 @@ fi
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm >/dev/null 2>&1
-    sed -i 's/^\(GRUB_CMDLINE_LINUX=".*\)"/\1 nvidia-drm.modeset=1"/' /etc/default/grub
+    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1nvidia-drm.modeset=1\2/' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
