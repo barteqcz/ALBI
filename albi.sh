@@ -32,38 +32,39 @@ else
     cat <<EOF > config.conf
 ## Here is the configuration for the installation.
 
-## Encryption
-luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
-luks_passphrase="changeme"  # Applies only when the encryption is set to yes.
 
 ## Partitioning helper
-# If you don't want to use the partitioning helper, set none to all the partitions. But remember to partition and mount them manually.
-# Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4)
-root_part="/dev/sdX#"  # This sets the path for the / partition
-separate_home_part="none"  # This sets the path for the /home partition
-separate_boot_part="none"  # This sets the path for the /boot partition
-separate_var_part="none"  # This sets the path for the /var partition
-separate_usr_part="none"  # This sets the path for the /usr partition
-separate_tmp_part="none"  # This sets the path for the /tmp partition
+# If you choose 'none' for a partition, it's ignored and left unchanged.
+# Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4).
+root_part="/dev/sdX#"  # This sets the path for the / partition.
+separate_home_part="none"  # This sets the path for the /home partition.
+separate_boot_part="/dev/sdX#"  # This sets the path for the /boot partition.
+separate_var_part="none"  # This sets the path for the /var partition.
+separate_usr_part="none"  # This sets the path for the /usr partition.
+separate_tmp_part="none"  # This sets the path for the /tmp partition.
 
 ## Formatting helper
-# If you don't want to use the formatting helper, set none to all the partitions. But remember to format them manually.
+# If you pick 'none' for a partition, it's left without doing anything. Remember to format it yourself if you choose this option.
 # Possible values: btrfs, ext4, ext3, ext2, xfs.
-root_part_filesystem="ext4"  # This sets the filesystem for the / partition
-separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition
-separate_boot_part_filesystem="none"  # This sets the filesystem for the /boot partition
-separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition
-separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition
-separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition
+root_part_filesystem="ext4"  # This sets the filesystem for the / partition.
+separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition.
+separate_boot_part_filesystem="ext4"  # This sets the filesystem for the /boot partition.
+separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition.
+separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition.
+separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition.
+
+## Encryption
+luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
+luks_passphrase="4V3ryH@rdP4ssphr@s3!"  # Applies only when the encryption is set to yes.
 
 EOF
 
 if [[ $boot_mode == "UEFI" ]]; then
     echo "## EFI partition settings" >> config.conf
-    echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition. This is needed even if you don't use the partitioning helper above." >> config.conf
+    echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition." >> config.conf
     echo "efi_part_mountpoint=\"/boot/efi\"  # Enter mountpoint of the EFI partition. This is also needed" >> config.conf
 else
-    echo "## GRUB installation disk selection" >> config.conf
+    echo "## GRUB installation disk settings" >> config.conf
     echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
 fi
 
@@ -375,9 +376,9 @@ fi
 ## Check if any custom packages were defined
 if ! [[ -z $custom_packages ]]; then
     pacman -Sy >/dev/null 2>&1
-    
+
     IFS=" " read -ra packages <<< "$custom_packages"
-    
+
     for package in "${packages[@]}"; do
         pacman_output=$(pacman -Ss "$package")
         if ! [[ -n "$pacman_output" ]]; then
