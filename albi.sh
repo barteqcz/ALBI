@@ -504,8 +504,9 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 if [[ $luks_encryption == "yes" ]]; then
+    cryptdevice_grub="$root_part_orig:$root_part_encrypted_name"
     sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
-    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1cryptdevice="$root_part_orig":"$root_part_encrypted_name"\2/' /etc/default/grub
+    sed -i "s/^\(GRUB_CMDLINE_LINUX=\".*\)\"/\1 cryptdevice=$cryptdevice_grub\"/" /etc/default/grub
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
@@ -525,7 +526,7 @@ fi
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm >/dev/null 2>&1
-    sed -i 's/^\(GRUB_CMDLINE_LINUX="\).*\(".*\)/\1nvidia-drm.modeset=1\2/' /etc/default/grub
+    sed -i 's/^\(GRUB_CMDLINE_LINUX=".*\)"/\1 nvidia-drm.modeset=1"/' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
