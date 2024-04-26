@@ -206,8 +206,8 @@ if [ "$root_part" != "none" ]; then
                     echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
                     echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
                     root_part=/dev/mapper/"$root_part_encrypted_name"
-                    echo "root_part_orig=\"$root_part_orig\"" > tmpscript1.sh
-                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpscript1.sh
+                    echo "root_part_orig=\"$root_part_orig\"" > tmpfile.sh
+                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpfile.sh
                 else
                     echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
                     exit
@@ -509,7 +509,11 @@ fi
 if [[ $luks_encryption == "yes" ]]; then
     cryptdevice_grub="$root_part_orig":"$root_part_encrypted_name"
     sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
-    sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+    else
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+    fi
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
@@ -529,7 +533,11 @@ fi
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm >/dev/null 2>&1
-    sed -i 's/^\(GRUB_CMDLINE_LINUX=".*\)"/\1 nvidia-drm.modeset=1"/' /etc/default/grub
+    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1\"|" /etc/default/grub
+    else
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1\"|" /etc/default/grub
+    fi
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 fi
 
@@ -581,8 +589,8 @@ fi
 
 ## Install yay
 echo "Installing Yay..."
-touch tmpscript2.sh
-cat <<'EOY' > tmpscript2.sh
+touch tmpscript.sh
+cat <<'EOY' > tmpscript.sh
 source /config.conf
 cd
 git clone https://aur.archlinux.org/yay >/dev/null 2>&1
@@ -604,9 +612,9 @@ if [[ $de == "cinnamon" ]]; then
     yay -S lightdm-settings --noconfirm >/dev/null 2>&1
 fi
 EOY
-chown "$username":"$username" tmpscript2.sh
+chown "$username":"$username" tmpscript.sh
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
-sudo -u "$username" bash tmpscript2.sh
+sudo -u "$username" bash tmpscript.sh
 rm -f /etc/sudoers.d/tmp
 
 ## Add sudo privileges for the user
@@ -643,13 +651,13 @@ else
     mv /config.conf /home/$username/
 fi
 rm -f /main.sh
-rm -f /tmpscript1.sh
-rm -f /tmpscript2.sh
+rm -f /tmpfile.sh
+rm -f /tmpscript.sh
 exit
 EOFile
 
 ## Copy config file and the second part of the script to /
-cp tmpscript1.sh /mnt/
+cp tmpfile.sh /mnt/
 cp main.sh /mnt/
 cp config.conf /mnt/
 
