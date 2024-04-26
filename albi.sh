@@ -32,25 +32,29 @@ else
     cat <<EOF > config.conf
 ## Here is the configuration for the installation.
 
+## Encryption
+luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
+luks_passphrase="changeme"  # Applies only when the encryption is set to yes.
+
 ## Partitioning helper
 # If you don't want to use the partitioning helper, set none to all the partitions. But remember to partition and mount them manually.
 # Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4)
-root_part="/dev/sdX#"
-separate_home_part="none"
-separate_boot_part="none"
-separate_var_part="none"
-separate_usr_part="none"
-separate_tmp_part="none"
+root_part="/dev/sdX#"  # This sets the path for the / partition
+separate_home_part="none"  # This sets the path for the /home partition
+separate_boot_part="none"  # This sets the path for the /boot partition
+separate_var_part="none"  # This sets the path for the /var partition
+separate_usr_part="none"  # This sets the path for the /usr partition
+separate_tmp_part="none"  # This sets the path for the /tmp partition
 
 ## Formatting helper
 # If you don't want to use the formatting helper, set none to all the partitions. But remember to format them manually.
 # Possible values: btrfs, ext4, ext3, ext2, xfs.
-root_part_filesystem="ext4"
-separate_home_part_filesystem="none"
-separate_boot_part_filesystem="none"
-separate_var_part_filesystem="none"
-separate_usr_part_filesystem="none"
-separate_tmp_part_filesystem="none"
+root_part_filesystem="ext4"  # This sets the filesystem for the / partition
+separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition
+separate_boot_part_filesystem="none"  # This sets the filesystem for the /boot partition
+separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition
+separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition
+separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition
 
 EOF
 
@@ -110,12 +114,35 @@ echo "Verifying the config file..."
 mount_output=$(df -h)
 mnt_partition=$(echo "$mount_output" | awk '$6=="/mnt" {print $1}')
 
+if [ "$separate_boot_part" != "none" ]; then
+    if [ -e "$separate_boot_part" ]; then
+        boot_part_exists="true"
+    else
+        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
+    fi
+fi
+
 if [ "$root_part" != "none" ]; then
     if [[ -n "$mnt_partition" ]]; then
         echo "Error: /mnt is already mounted, however you specified another partition to mount it on."
         exit
     else
         if [ -e "$root_part" ]; then
+            if [ $luks_encryption == "yes" ]; then
+                if [ $boot_part_exists == "true" ]; then
+                    echo "Enabling encryption..."
+                    root_part_basename=$(basename "$root_part")
+                    root_part_encrypted_name="$root_part_basename"_crypt
+                    echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
+                    cryptsetup -q open "$root_part" "$root_part_encrypted_name"
+                    root_part=/dev/mapper/"$root_part_encrypted_name"
+                else
+                    echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
+                    exit
+                fi
+            fi
+
             echo "Formatting and mounting specified partitions..."
             if [[ $root_part_filesystem == "ext4" ]]; then
                 yes | mkfs.ext4 "$root_part" >/dev/null 2>&1
@@ -149,15 +176,6 @@ if [ "$separate_home_part" != "none" ]; then
         home_part_exists="true"
     else
         echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible."
-        exit
-    fi
-fi
-
-if [ "$separate_boot_part" != "none" ]; then
-    if [ -e "$separate_boot_part" ]; then
-        boot_part_exists="true"
-    else
-        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
         exit
     fi
 fi
