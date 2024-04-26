@@ -206,8 +206,8 @@ if [ "$root_part" != "none" ]; then
                     echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
                     echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
                     root_part=/dev/mapper/"$root_part_encrypted_name"
-                    echo "root_part_orig=\"$root_part_orig\"" > variables.sh
-                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> variables.sh
+                    echo "root_part_orig=\"$root_part_orig\"" > tmpscript1.sh
+                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpscript1.sh
                 else
                     echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
                     exit
@@ -581,8 +581,8 @@ fi
 
 ## Install yay
 echo "Installing Yay..."
-touch tmpscript.sh
-cat <<'EOY' > tmpscript.sh
+touch tmpscript2.sh
+cat <<'EOY' > tmpscript2.sh
 source /config.conf
 cd
 git clone https://aur.archlinux.org/yay >/dev/null 2>&1
@@ -604,9 +604,9 @@ if [[ $de == "cinnamon" ]]; then
     yay -S lightdm-settings --noconfirm >/dev/null 2>&1
 fi
 EOY
-chown "$username":"$username" tmpscript.sh
+chown "$username":"$username" tmpscript2.sh
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
-sudo -u "$username" bash tmpscript.sh
+sudo -u "$username" bash tmpscript2.sh
 rm -f /etc/sudoers.d/tmp
 
 ## Add sudo privileges for the user
@@ -632,8 +632,8 @@ mkinitcpio -P >/dev/null 2>&1
 
 ## Clean up and exit
 echo "Cleaning up..."
-while pacman -Qtdq >/dev/null 2>&1; do
-    pacman -R $(pacman -Qtdq) --noconfirm >/dev/null 2>&1
+while pacman -Qdtq >/dev/null 2>&1; do
+    pacman -R $(pacman -Qdtq) --noconfirm >/dev/null 2>&1
 done
 yes | pacman -Scc >/dev/null 2>&1
 yes | yay -Scc >/dev/null 2>&1
@@ -643,15 +643,15 @@ else
     mv /config.conf /home/$username/
 fi
 rm -f /main.sh
-rm -f /tmpscript.sh
-rm -f /variables.sh
+rm -f /tmpscript1.sh
+rm -f /tmpscript2.sh
 exit
 EOFile
 
 ## Copy config file and the second part of the script to /
+cp tmpscript1.sh /mnt/
 cp main.sh /mnt/
 cp config.conf /mnt/
-cp variables.sh /mnt/
 
 ## Enter arch-chroot and run second part of the script
 arch-chroot /mnt bash main.sh
