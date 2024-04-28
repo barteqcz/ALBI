@@ -658,6 +658,7 @@ EOFile
 
 ## Copy config file and the second part of the script to /
 cp tmpfile.sh /mnt/
+cp tmpscript.sh /mnt/
 cp main.sh /mnt/
 cp config.conf /mnt/
 
