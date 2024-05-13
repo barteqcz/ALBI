@@ -545,7 +545,7 @@ fi
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector --noconfirm >/dev/null 2>&1
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
     if [[ $nvidia_proprietary == "yes" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
