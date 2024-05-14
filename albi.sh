@@ -201,13 +201,7 @@ if [ "$root_part" != "none" ]; then
                 if [ $boot_part_exists == "true" ]; then
                     echo "Enabling encryption..."
                     root_part_orig="$root_part"
-                    root_part_basename=$(basename "$root_part")
-                    root_part_encrypted_name="$root_part_basename"_crypt
-                    echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
-                    echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
-                    root_part=/dev/mapper/"$root_part_encrypted_name"
                     echo "root_part_orig=\"$root_part_orig\"" > tmpfile.sh
-                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpfile.sh
                 else
                     echo "Error: you haven't defined a proper separate boot partition. It is needed in order to encrypt the / partition."
                     exit
@@ -495,7 +489,6 @@ sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
-sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
@@ -507,12 +500,12 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 if [[ $luks_encryption == "yes" ]]; then
-    cryptdevice_grub="$root_part_orig":"$root_part_encrypted_name"
-    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
+    cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
+    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     else
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     fi
 fi
 
