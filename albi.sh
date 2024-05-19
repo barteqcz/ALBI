@@ -393,7 +393,7 @@ fi
 
 ## Run Reflector
 echo "Running Reflector..."
-reflector --sort rate --protocol https --protocol rsync --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+reflector --sort rate --protocol https --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
 
 ## Install base system
 echo "Installing base system..."
