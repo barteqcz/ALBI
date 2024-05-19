@@ -557,18 +557,18 @@ elif [[ $de == "plasma" ]]; then
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ $de == "mate" ]]; then
     echo "Installing MATE desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 fi
 
