@@ -172,7 +172,7 @@ if ! [[ -z $custom_packages ]]; then
 fi
 
 ## Check if reflector returns any errors
-if [[ $mirror_country != "none" ]]; then
+if [[ $mirror_location != "none" ]]; then
     reflector_output=$(reflector --country $mirror_location)
     if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
         echo "Error: invalid country name for Reflector."
@@ -394,7 +394,7 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 ## Run Reflector
-if [[ $mirror_country != "none" ]]; then
+if [[ $mirror_location != "none" ]]; then
     echo "Running Reflector..."
     reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
 fi
