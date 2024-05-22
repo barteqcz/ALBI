@@ -73,7 +73,7 @@ cat <<EOF >> config.conf
 kernel_variant="normal"  # Lets you to choose the kernel variant. Valid values: normal, lts, zen.
 
 ## Mirror servers location
-mirror_location="Czechia"  # Lets you to choose country for mirror servers in your system. Valid values are english country names. You can select multiple countries - separate them with comma.
+mirror_location="none"  # Lets you to choose country for mirror servers in your system. Valid values are english country names. You can select multiple countries - separate them with comma, if you don't want to use mirror server - enter none.
 
 ## Timezone setting
 timezone="Europe/Prague"  # Defines the timezone for your system. Full list can be cound in the docs folder.
@@ -172,10 +172,12 @@ if ! [[ -z $custom_packages ]]; then
 fi
 
 ## Check if reflector returns any errors
-reflector_output=$(reflector --country $mirror_location)
-if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
-    echo "Error: invalid country name for Reflector."
-    exit
+if [[ $mirror_country != "none" ]]; then
+    reflector_output=$(reflector --country $mirror_location)
+    if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
+        echo "Error: invalid country name for Reflector."
+        exit
+    fi
 fi
 
 ## Check if the given partitions exist
@@ -392,8 +394,10 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 ## Run Reflector
-echo "Running Reflector..."
-reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+if [[ $mirror_country != "none" ]]; then
+    echo "Running Reflector..."
+    reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+fi
 
 ## Install base system
 echo "Installing base system..."
