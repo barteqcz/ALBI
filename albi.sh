@@ -73,7 +73,7 @@ cat <<EOF >> config.conf
 kernel_variant="normal"  # Lets you to choose the kernel variant. Valid values: normal, lts, zen.
 
 ## Mirror servers location
-mirror_location="Czechia"  # Lets you to choose country for mirror servers in your system. Valid values are english country names. You can select multiple countries - separate them with comma.
+mirror_location="none"  # Lets you to choose country for mirror servers in your system. Valid values are english country names. You can select multiple countries - separate them with comma, if you don't want to use mirror server - enter none.
 
 ## Timezone setting
 timezone="Europe/Prague"  # Defines the timezone for your system. Full list can be cound in the docs folder.
@@ -172,10 +172,12 @@ if ! [[ -z $custom_packages ]]; then
 fi
 
 ## Check if reflector returns any errors
-reflector_output=$(reflector --country $mirror_location)
-if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
-    echo "Error: invalid country name for Reflector."
-    exit
+if [[ $mirror_location != "none" ]]; then
+    reflector_output=$(reflector --country $mirror_location)
+    if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
+        echo "Error: invalid country name for Reflector."
+        exit
+    fi
 fi
 
 ## Check if the given partitions exist
@@ -392,8 +394,10 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 ## Run Reflector
-echo "Running Reflector..."
-reflector --sort rate --protocol https --protocol rsync --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+if [[ $mirror_location != "none" ]]; then
+    echo "Running Reflector..."
+    reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+fi
 
 ## Install base system
 echo "Installing base system..."
@@ -424,7 +428,9 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
-source /tmpfile.sh
+if [ $luks_encryption == "yes" ]; then
+    source /tmpfile.sh
+fi
 
 ## Set timezone
 echo "Setting the timezone..."
@@ -495,7 +501,6 @@ sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
-sed -i 's/\(HOOKS=([^)]*\))/\1 plymouth)/' /etc/mkinitcpio.conf
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
@@ -507,12 +512,12 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 if [[ $luks_encryption == "yes" ]]; then
-    cryptdevice_grub="$root_part_orig":"$root_part_encrypted_name"
-    sed -i 's/\(HOOKS=([^)]*\))/\1 encrypt)/' /etc/mkinitcpio.conf
+    cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
+    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     else
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 cryptdevice=$cryptdevice_grub\"|" /etc/default/grub
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     fi
 fi
 
@@ -545,7 +550,7 @@ fi
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector --noconfirm >/dev/null 2>&1
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable gdm >/dev/null 2>&1
     if [[ $nvidia_proprietary == "yes" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
@@ -553,23 +558,23 @@ if [[ $de == "gnome" ]]; then
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable sddm >/dev/null 2>&1
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet --noconfirm >/dev/null 2>&1
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ $de == "mate" ]]; then
     echo "Installing MATE desktop environment..."
     pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs --noconfirm >/dev/null 2>&1
+    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
     systemctl enable lightdm >/dev/null 2>&1
 fi
 
@@ -657,7 +662,9 @@ exit
 EOFile
 
 ## Copy config file and the second part of the script to /
-cp tmpfile.sh /mnt/
+if [ $luks_encryption == "yes" ]; then
+    cp tmpfile.sh /mnt/
+fi
 cp main.sh /mnt/
 cp config.conf /mnt/
 
