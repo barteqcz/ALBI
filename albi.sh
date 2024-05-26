@@ -428,7 +428,9 @@ trap interrupt_handler SIGINT
 
 ## Source variables from config file
 source /config.conf
-source /tmpfile.sh
+if [ $luks_encryption == "yes" ]; then
+    source /tmpfile.sh
+fi
 
 ## Set timezone
 echo "Setting the timezone..."
@@ -660,7 +662,9 @@ exit
 EOFile
 
 ## Copy config file and the second part of the script to /
-cp tmpfile.sh /mnt/
+if [ $luks_encryption == "yes" ]; then
+    cp tmpfile.sh /mnt/
+fi
 cp main.sh /mnt/
 cp config.conf /mnt/
 
