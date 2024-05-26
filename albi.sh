@@ -439,7 +439,7 @@ hwclock --systohc
 
 ## Install basic packages
 echo "Installing basic packages..."
-pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar p7zip os-prober plymouth --noconfirm >/dev/null 2>&1
+pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm >/dev/null 2>&1
 systemctl enable NetworkManager >/dev/null 2>&1
 systemctl enable bluetooth >/dev/null 2>&1
 
