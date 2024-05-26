@@ -616,6 +616,8 @@ if [[ $de == "cinnamon" ]]; then
     echo "Installing lightdm-settings from AUR..."
     yay -S lightdm-settings --noconfirm
 fi
+yes | yay -Sc
+yes | yay -Scc
 EOY
 chown "$username":"$username" tmpscript.sh
 echo "%wheel ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp
@@ -648,8 +650,8 @@ echo "Cleaning up..."
 while pacman -Qdtq; do
     pacman -R $(pacman -Qdtq) --noconfirm
 done
+yes | pacman -Sc
 yes | pacman -Scc
-yes | yay -Scc
 if [[ $keep_config == "no" ]]; then
     rm -f /config.conf
 else
