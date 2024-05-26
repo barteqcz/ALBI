@@ -158,7 +158,7 @@ fi
 
 ## Check if any custom packages were defined
 if ! [[ -z $custom_packages ]]; then
-    pacman -Sy >/dev/null 2>&1
+    pacman -Sy
 
     IFS=" " read -ra packages <<< "$custom_packages"
 
@@ -218,20 +218,20 @@ if [ "$root_part" != "none" ]; then
 
             echo "Formatting and mounting specified partitions..."
             if [[ $root_part_filesystem == "ext4" ]]; then
-                yes | mkfs.ext4 "$root_part" >/dev/null 2>&1
+                yes | mkfs.ext4 "$root_part"
             elif [[ $root_part_filesystem == "ext3" ]]; then
-                yes | mkfs.ext3 "$root_part" >/dev/null 2>&1
+                yes | mkfs.ext3 "$root_part"
             elif [[ $root_part_filesystem == "ext2" ]]; then
-                yes | mkfs.ext2 "$root_part" >/dev/null 2>&1
+                yes | mkfs.ext2 "$root_part"
             elif [[ $root_part_filesystem == "btrfs" ]]; then
-                yes | mkfs.btrfs "$root_part" >/dev/null 2>&1
+                yes | mkfs.btrfs "$root_part"
             elif [[ $root_part_filesystem == "xfs" ]]; then
-                yes | mkfs.xfs "$root_part" >/dev/null 2>&1
+                yes | mkfs.xfs "$root_part"
             else
                 echo "Error: wrong filesystem for the / partition."
                 exit
             fi
-            mount "$root_part" /mnt >/dev/null 2>&1
+            mount "$root_part" /mnt
         else
             echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible."
             exit
@@ -282,98 +282,98 @@ fi
 
 if [[ $home_part_exists == "true" ]]; then
     if [[ $separate_home_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$separate_home_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$separate_home_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$separate_home_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$separate_home_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_home_part"
     elif [[ $separate_home_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$separate_home_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_home_part"
     else
         echo "Error: wrong filesystem for the /home partition."
     fi
     mkdir -p /mnt/home
-    mount "$separate_home_part" /mnt/home >/dev/null 2>&1
+    mount "$separate_home_part" /mnt/home
 fi
 
 if [[ $boot_part_exists == "true" ]]; then
     if [[ $separate_boot_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$separate_boot_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_boot_part"
     elif [[ $separate_boot_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$separate_boot_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_boot_part"
     elif [[ $separate_boot_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$separate_boot_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_boot_part"
     elif [[ $separate_boot_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$separate_boot_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_boot_part"
     elif [[ $separate_boot_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$separate_boot_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_boot_part"
     else
         echo "Error: wrong filesystem for the /boot partition."
     fi
     mkdir -p /mnt/boot
-    mount "$separate_boot_part" /mnt/boot >/dev/null 2>&1
+    mount "$separate_boot_part" /mnt/boot
 fi
 
 if [[ $var_part_exists == "true" ]]; then
     if [[ $separate_var_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$separate_var_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$separate_var_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$separate_var_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$separate_var_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_var_part"
     elif [[ $separate_var_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$separate_var_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_var_part"
     else
         echo "Error: wrong filesystem for the /var partition."
     fi
     mkdir -p /mnt/var
-    mount "$separate_var_part" /mnt/var >/dev/null 2>&1
+    mount "$separate_var_part" /mnt/var
 fi
 
 if [[ $separate_usr_part_exists == "true" ]]; then
     if [[ $separate_usr_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$separate_usr_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$separate_usr_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$separate_usr_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$separate_usr_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_usr_part"
     elif [[ $separate_usr_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$separate_usr_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_usr_part"
     else
         echo "Error: wrong filesystem for the /usr partition."
     fi
     mkdir -p /mnt/usr
-    mount "$separate_usr_part" /mnt/usr >/dev/null 2>&1
+    mount "$separate_usr_part" /mnt/usr
 fi
 
 if [[ $tmp_part_exists == "true" ]]; then
     if [[ $separate_tmp_part_filesystem == "ext4" ]]; then
-        yes | mkfs.ext4 "$separate_tmp_part" >/dev/null 2>&1
+        yes | mkfs.ext4 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "ext3" ]]; then
-        yes | mkfs.ext3 "$separate_tmp_part" >/dev/null 2>&1
+        yes | mkfs.ext3 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "ext2" ]]; then
-        yes | mkfs.ext2 "$separate_tmp_part" >/dev/null 2>&1
+        yes | mkfs.ext2 "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "btrfs" ]]; then
-        yes | mkfs.btrfs "$separate_tmp_part" >/dev/null 2>&1
+        yes | mkfs.btrfs "$separate_tmp_part"
     elif [[ $separate_tmp_part_filesystem == "xfs" ]]; then
-        yes | mkfs.xfs "$separate_tmp_part" >/dev/null 2>&1
+        yes | mkfs.xfs "$separate_tmp_part"
     else
         echo "Error: wrong filesystem for the /tmp partition."
     fi
     mkdir -p /mnt/tmp
-    mount "$separate_tmp_part" /mnt/tmp >/dev/null 2>&1
+    mount "$separate_tmp_part" /mnt/tmp
 fi
 
 if [[ $boot_mode == "UEFI" ]]; then
     efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
     if [[ $efi_part_filesystem != "vfat" ]]; then
-        mkfs.fat -F32 "$efi_part" >/dev/null 2>&1
+        mkfs.fat -F32 "$efi_part"
         mkdir -p /mnt"$efi_part_mountpoint"
         mount $efi_part /mnt"$efi_part_mountpoint"
     else
@@ -396,17 +396,17 @@ fi
 ## Run Reflector
 if [[ $mirror_location != "none" ]]; then
     echo "Running Reflector..."
-    reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist >/dev/null 2>&1
+    reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist
 fi
 
 ## Install base system
 echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
-    pacstrap -K /mnt base linux linux-firmware linux-headers >/dev/null 2>&1
+    pacstrap -K /mnt base linux linux-firmware linux-headers
 elif [[ $kernel_variant == "lts" ]]; then
-    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers >/dev/null 2>&1
+    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
 elif [[ $kernel_variant == "zen" ]]; then
-    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers >/dev/null 2>&1
+    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
 fi
 
 ## Generate /etc/fstab
@@ -439,14 +439,14 @@ hwclock --systohc
 
 ## Install basic packages
 echo "Installing basic packages..."
-pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm >/dev/null 2>&1
-systemctl enable NetworkManager >/dev/null 2>&1
-systemctl enable bluetooth >/dev/null 2>&1
+pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm
+systemctl enable NetworkManager
+systemctl enable bluetooth
 
 ## Detect the system boot mode
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
-    pacman -S efibootmgr --noconfirm >/dev/null 2>&1
+    pacman -S efibootmgr --noconfirm
 else
     boot_mode="BIOS"
 fi
@@ -455,10 +455,10 @@ fi
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ $vendor == "GenuineIntel" ]]; then
     echo "Installing Intel microcode package..."
-    pacman -Sy intel-ucode --noconfirm >/dev/null 2>&1
+    pacman -Sy intel-ucode --noconfirm
 elif [[ $vendor == "AuthenticAMD" ]]; then
     echo "Installing AMD microcode package..."
-    pacman -Sy amd-ucode --noconfirm >/dev/null 2>&1
+    pacman -Sy amd-ucode --noconfirm
 else
     echo "Unknown CPU vendor - skipping microcode installation..."
 fi
@@ -468,7 +468,7 @@ echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
-locale-gen >/dev/null 2>&1
+locale-gen
 echo "$hostname" > /etc/hostname
 
 ## Configure the /etc/hosts file
@@ -481,8 +481,8 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Configure the user
-useradd -m --badname $username >/dev/null 2>&1
-passwd $username << EOP >/dev/null 2>&1
+useradd -m --badname $username
+passwd $username << EOP
 $password
 $password
 EOP
@@ -505,10 +505,10 @@ sed -i "${dln}s/$/\n##/" /etc/sudoers
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
     echo "Installing GRUB (UEFI)..."
-    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux" >/dev/null 2>&1
+    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
 elif [[ $boot_mode == "BIOS" ]]; then
     echo "Installing GRUB (BIOS)..."
-    grub-install --target=i386-pc $grub_disk >/dev/null 2>&1
+    grub-install --target=i386-pc $grub_disk
 fi
 
 if [[ $luks_encryption == "yes" ]]; then
@@ -521,72 +521,72 @@ if [[ $luks_encryption == "yes" ]]; then
     fi
 fi
 
-grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+grub-mkconfig -o /boot/grub/grub.cfg
 
 ## Install audio server
 if [[ $audio_server == "pipewire" ]]; then
     echo "Installing PipeWire..."
-    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm >/dev/null 2>&1
-    systemctl enable --global pipewire pipewire-pulse >/dev/null 2>&1
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm
+    systemctl enable --global pipewire pipewire-pulse
 elif [[ $audio_server == "pulseaudio" ]]; then
     echo "Installing Pulseaudio..."
-    pacman -S pulseaudio pavucontrol --noconfirm >/dev/null 2>&1
-    systemctl enable --global pulseaudio >/dev/null 2>&1
+    pacman -S pulseaudio pavucontrol --noconfirm
+    systemctl enable --global pulseaudio
 fi
 
 ## Install GPU driver
 if [[ $nvidia_proprietary == "yes" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
-    pacman -S nvidia nvidia-settings --noconfirm >/dev/null 2>&1
+    pacman -S nvidia nvidia-settings --noconfirm
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1\"|" /etc/default/grub
     else
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1\"|" /etc/default/grub
     fi
-    grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+    grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
 ## Install DE
 if [[ $de == "gnome" ]]; then
     echo "Installing GNOME desktop environment..."
-    pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm >/dev/null 2>&1
-    systemctl enable gdm >/dev/null 2>&1
+    pacman -S xorg wayland --noconfirm
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm
+    systemctl enable gdm
     if [[ $nvidia_proprietary == "yes" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ $de == "plasma" ]]; then
     echo "Installing KDE Plasma desktop environment..."
-    pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
-    systemctl enable sddm >/dev/null 2>&1
+    pacman -S xorg wayland --noconfirm
+    pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
+    systemctl enable sddm
 elif [[ $de == "xfce" ]]; then
     echo "Installing XFCE desktop environment..."
-    pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm >/dev/null 2>&1
-    systemctl enable lightdm >/dev/null 2>&1
+    pacman -S xorg wayland --noconfirm
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
+    systemctl enable lightdm
 elif [[ $de == "cinnamon" ]]; then
     echo "Installing Cinnamon desktop environment..."
-    pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
-    systemctl enable lightdm >/dev/null 2>&1
+    pacman -S xorg wayland --noconfirm
+    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
+    systemctl enable lightdm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ $de == "mate" ]]; then
     echo "Installing MATE desktop environment..."
-    pacman -S xorg wayland --noconfirm >/dev/null 2>&1
-    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm >/dev/null 2>&1
-    systemctl enable lightdm >/dev/null 2>&1
+    pacman -S xorg wayland --noconfirm
+    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
+    systemctl enable lightdm
 fi
 
 ##  Check if CUPS should be installed
 if [[ $install_cups == yes ]]; then
     echo "Installing CUPS..."
-    pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm >/dev/null 2>&1
-    systemctl enable cups.service >/dev/null 2>&1
-    systemctl enable cups.socket >/dev/null 2>&1
-    systemctl enable cups-browsed.service >/dev/null 2>&1
-    systemctl enable avahi-daemon.service >/dev/null 2>&1
-    systemctl enable avahi-daemon.socket >/dev/null 2>&1
+    pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
+    systemctl enable cups.service
+    systemctl enable cups.socket
+    systemctl enable cups-browsed.service
+    systemctl enable avahi-daemon.service
+    systemctl enable avahi-daemon.socket
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
     mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.old
     mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.old
@@ -598,23 +598,23 @@ touch tmpscript.sh
 cat <<'EOY' > tmpscript.sh
 source /config.conf
 cd
-git clone https://aur.archlinux.org/yay >/dev/null 2>&1
+git clone https://aur.archlinux.org/yay
 cd yay
-makepkg -si --noconfirm >/dev/null 2>&1
+makepkg -si --noconfirm
 cd ..
 rm -rf yay
-yay -Sy --noconfirm >/dev/null 2>&1
+yay -Sy --noconfirm
 if [[ $install_cups == "yes" ]]; then
     echo "Installing hplip-plugin for CUPS from AUR..."
-    yay -S hplip-plugin --noconfirm >/dev/null 2>&1
+    yay -S hplip-plugin --noconfirm
 fi
 if [[ $de == "xfce" ]]; then
     echo "Installing mugshot from AUR..."
-    yay -S mugshot --noconfirm >/dev/null 2>&1
+    yay -S mugshot --noconfirm
 fi
 if [[ $de == "cinnamon" ]]; then
     echo "Installing lightdm-settings from AUR..."
-    yay -S lightdm-settings --noconfirm >/dev/null 2>&1
+    yay -S lightdm-settings --noconfirm
 fi
 EOY
 chown "$username":"$username" tmpscript.sh
@@ -630,26 +630,26 @@ if [[ $create_swapfile == "yes" ]]; then
     echo "Creating swapfile..."
     fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
-    mkswap /swapfile >/dev/null 2>&1
+    mkswap /swapfile
     echo "# /swapfile" >> /etc/fstab
     echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
 fi
 
 ## Install packages defined in custom_packages variable
 echo "Installing custom packages..."
-pacman -S $custom_packages --noconfirm >/dev/null 2>&1
+pacman -S $custom_packages --noconfirm
 
 ## Re-generate initramfs
 echo "Regenerating initramfs image..."
-mkinitcpio -P >/dev/null 2>&1
+mkinitcpio -P
 
 ## Clean up and exit
 echo "Cleaning up..."
-while pacman -Qdtq >/dev/null 2>&1; do
-    pacman -R $(pacman -Qdtq) --noconfirm >/dev/null 2>&1
+while pacman -Qdtq; do
+    pacman -R $(pacman -Qdtq) --noconfirm
 done
-yes | pacman -Scc >/dev/null 2>&1
-yes | yay -Scc >/dev/null 2>&1
+yes | pacman -Scc
+yes | yay -Scc
 if [[ $keep_config == "no" ]]; then
     rm -f /config.conf
 else
