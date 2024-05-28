@@ -468,8 +468,8 @@ echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
-locale-gen
 echo "$hostname" > /etc/hostname
+locale-gen
 
 ## Configure the /etc/hosts file
 echo "127.0.0.1       localhost" >> /etc/hosts
