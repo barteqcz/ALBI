@@ -89,7 +89,7 @@ console_keyboard_layout="us"  # Lets you to select the keyboard layout for the T
 
 ## Software selection
 audio_server="pipewire"  # Lets you to select the audio server. Valid values: pulseaudio, pipewire, none.
-nvidia_proprietary="no"  # Defines whether you want to use properietary Nvidia driver. Valid values: yes, no.
+gpu="amd"  # Defines whether you want to use properietary Nvidia driver. Valid values: yes, no.
 de="gnome"  # Lets you to select the desktop environment. Valid values: gnome, plasma, xfce, mate, cinnamon, none.
 install_cups="yes"  # Lets you to decide whether CUPS should be installed, or not. Valid values: yes, no.
 custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (separated by spaces). If you don't need any, leave the list empty.
@@ -136,7 +136,7 @@ if ! [[ $install_cups == "yes" || $install_cups == "no" ]]; then
     exit
 fi
 
-if ! [[ $nvidia_proprietary == "yes" || $nvidia_proprietary == "no" ]]; then
+if ! [[ $gpu == "amd" || $gpu == "intel" || $gpu == "nvidia" ]]; then
     echo "Error: invalid value for the GPU driver."
     exit
 fi
@@ -535,7 +535,13 @@ elif [[ $audio_server == "pulseaudio" ]]; then
 fi
 
 ## Install GPU driver
-if [[ $nvidia_proprietary == "yes" ]]; then
+if [[ $gpu == "amd" ]]; then
+    echo "Installing AMD GPU driver..."
+    pacman -S mesa vulkan-radeon libva-mesa-driver
+elif [[ $gpu == "intel" ]]; then
+    echo "Installing Intel GPU driver..."
+    pacman -S mesa vulkan-intel intel-media-driver
+elif [[ $gpu == "nvidia" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
