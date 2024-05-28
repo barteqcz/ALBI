@@ -537,10 +537,10 @@ fi
 ## Install GPU driver
 if [[ $gpu == "amd" ]]; then
     echo "Installing AMD GPU driver..."
-    pacman -S mesa vulkan-radeon libva-mesa-driver
+    pacman -S mesa vulkan-radeon libva-mesa-driver --noconfirm
 elif [[ $gpu == "intel" ]]; then
     echo "Installing Intel GPU driver..."
-    pacman -S mesa vulkan-intel intel-media-driver
+    pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 elif [[ $gpu == "nvidia" ]]; then
     echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm
