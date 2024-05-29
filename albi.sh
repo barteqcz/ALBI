@@ -497,7 +497,7 @@ elif [[ "$boot_mode" == "BIOS" ]]; then
     grub-install --target=i386-pc "$grub_disk"
 fi
 
-## Configure GRUB for encrypted root if specified
+## Configure mkinitcpio and GRUB
 if [[ "$luks_encryption" == "yes" ]]; then
     cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
     sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
@@ -506,6 +506,8 @@ if [[ "$luks_encryption" == "yes" ]]; then
     else
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     fi
+else
+    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth filesystems fsck)/' /etc/mkinitcpio.conf
 fi
 
 grub-mkconfig -o /boot/grub/grub.cfg
