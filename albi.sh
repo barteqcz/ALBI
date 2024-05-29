@@ -85,7 +85,7 @@ console_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
 audio_server="pipewire"  #### Audio server (pulseaudio/pipewire/none)
-gpu="amd"  #### GPU driver (amd/intel/nvidia)
+gpu="amd"  #### GPU driver (amd/intel/nvidia/other)
 de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
 custom_packages="firefox htop papirus-icon-theme"  #### Custom packages (space-separated list)
@@ -141,7 +141,7 @@ if ! [[ "$install_cups" == "yes" || "$install_cups" == "no" ]]; then
     exit
 fi
 
-if ! [[ "$gpu" == "amd" || "$gpu" == "intel" || "$gpu" == "nvidia" ]]; then
+if ! [[ "$gpu" == "amd" || "$gpu" == "intel" || "$gpu" == "nvidia" || "$gpu" == "other" ]]; then
     echo "Error: invalid value for the GPU driver."
     exit
 fi
