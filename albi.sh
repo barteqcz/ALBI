@@ -470,10 +470,7 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Create an user
 useradd -m "$username"
-passwd "$username" << EOP
-"$password"
-"$password"
-EOP
+echo "$password" | passwd "$username" --stdin
 usermod -aG wheel "$username"
 
 ## Remove the password from the configuration file if it's going to be kept
