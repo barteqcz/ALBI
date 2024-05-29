@@ -95,7 +95,7 @@ create_swapfile='yes'  #### Create swapfile (yes/no)
 
 EOF
 total_ram_gb=$(free | awk '/^Mem:/ {print $2 / 1024 / 1024}')
-echo "swapfile_size_gb='""$total_ram_gb""'  #### Swapfile size in GB"
+echo "swapfile_size_gb='""$total_ram_gb""'  #### Swapfile size in GB" >> config.conf
 
 cat <<EOF >> config.conf
 
