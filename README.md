@@ -24,7 +24,7 @@ To download the entire repository, including both the source file and documentat
 
 `git clone https://github.com/barteqcz/albi`
 
-If you prefer a more 'hands-on' approach, you have the option to manually download the desired files. With this method, you can also create and maintain a single adjusted configuration file that can be easily transferred between different PCs using a USB drive. This way, you can streamline the installation process across multiple machines, saving time and effort during the installation process.
+If you prefer a more 'hands-on' approach, you have the option to manually download the desired files. With this method, you can also create and maintain a single adjusted configuration file that can be easily transferred between different PCs using a USB drive, or using a network server (what is more convenient than using an USB drive). This way, you can streamline the installation process across multiple machines, saving time and effort during the installation process.
 
 ### Preparation
 Before running the script, ensure that you have created all the partitions you intend to use. Then, you have to specify their paths in the configuration file. The script will then proceed to create a filesystem on each partition and automatically mount them as specified.
