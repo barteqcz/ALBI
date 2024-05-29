@@ -110,17 +110,19 @@ fi
 echo "Verifying the config file..."
 
 ## Check variables values
+passwd_length=${#password}
+username_length=${#username}
+
 if ! [[ $kernel_variant == "normal" || $kernel_variant == "lts" || $kernel_variant == "zen" ]]; then
     echo "Error: invalid value for the kernel variant."
     exit
 fi
 
-passwd_length=${#password}
-username_length=${#username}
 if [[ $passwd_length == 0 ]]; then
     echo "Error: user password not set"
     exit
 fi
+
 if [[ $username_length == 0 ]]; then
     echo "Error: username not set"
     exit
@@ -481,7 +483,7 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Configure the user
-useradd -m --badname $username
+useradd -m $username
 passwd $username << EOP
 $password
 $password
