@@ -17,7 +17,7 @@ An Arch Linux Bash Installer, with an easily customizable installation process u
 
 - Enhanced User Experience: ALBI enhances overall user experience by implementing useful tweaks by default. These include visible '*' characters when inputting passwords, a colorfully animated Pacman prompt, nano language detection for improved code editing, and a custom /etc/nsswitch.conf file that automatically detects network printers.
 
-- Security matters: ALBI is able to fully encrypt your system, using the efficient LUKS encryption method.
+- Security matters: ALBI is able to fully encrypt your system, using the efficient LUKS encryption method. Additionally, firewall is being installed by default to protect your system.
 
 ### Downloading
 To download the entire repository, including both the source file and documentation, you can reach it using `git` (remember to install it first).
