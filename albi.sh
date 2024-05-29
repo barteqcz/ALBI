@@ -107,9 +107,7 @@ exit
 fi
 
 ## Check the config file values
-echo "Verifying the config file..."
 
-## Check variables values
 passwd_length=${#password}
 username_length=${#username}
 
@@ -218,7 +216,6 @@ if [ "$root_part" != "none" ]; then
                 fi
             fi
 
-            echo "Formatting and mounting specified partitions..."
             if [[ $root_part_filesystem == "ext4" ]]; then
                 yes | mkfs.ext4 "$root_part"
             elif [[ $root_part_filesystem == "ext3" ]]; then
@@ -397,12 +394,10 @@ fi
 
 ## Run Reflector
 if [[ $mirror_location != "none" ]]; then
-    echo "Running Reflector..."
     reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist
 fi
 
 ## Install base system
-echo "Installing base system..."
 if [[ $kernel_variant == "normal" ]]; then
     pacstrap -K /mnt base linux linux-firmware linux-headers
 elif [[ $kernel_variant == "lts" ]]; then
@@ -412,7 +407,6 @@ elif [[ $kernel_variant == "zen" ]]; then
 fi
 
 ## Generate /etc/fstab
-echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 ## Create a second, temporary file
@@ -435,12 +429,10 @@ if [ $luks_encryption == "yes" ]; then
 fi
 
 ## Set timezone
-echo "Setting the timezone..."
 ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 hwclock --systohc
 
 ## Install basic packages
-echo "Installing basic packages..."
 pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm
 systemctl enable NetworkManager
 systemctl enable bluetooth
@@ -456,17 +448,14 @@ fi
 ## Detect CPU vendor and install appropiate ucode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ $vendor == "GenuineIntel" ]]; then
-    echo "Installing Intel microcode package..."
     pacman -Sy intel-ucode --noconfirm
 elif [[ $vendor == "AuthenticAMD" ]]; then
-    echo "Installing AMD microcode package..."
     pacman -Sy amd-ucode --noconfirm
 else
     echo "Unknown CPU vendor - skipping microcode installation..."
 fi
 
 ## Configure locales and hostname
-echo "Configuring locales and hostname..."
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
 echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
@@ -496,20 +485,18 @@ if [[ $keep_config == "yes" ]]; then
 fi
 
 ## Apply useful/needed tweaks
+cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
+dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i 's/^# include "\/usr\/share\/nano\/\*\.nanorc"/include "\/usr\/share\/nano\/\*\.nanorc"/' /etc/nanorc
 sed -i '/Color/s/^#//g' /etc/pacman.conf
-cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
 sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
-dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 
 ## Install GRUB
 if [[ $boot_mode == "UEFI" ]]; then
-    echo "Installing GRUB (UEFI)..."
     grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
 elif [[ $boot_mode == "BIOS" ]]; then
-    echo "Installing GRUB (BIOS)..."
     grub-install --target=i386-pc $grub_disk
 fi
 
@@ -527,24 +514,19 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 ## Install audio server
 if [[ $audio_server == "pipewire" ]]; then
-    echo "Installing PipeWire..."
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm
     systemctl enable --global pipewire pipewire-pulse
 elif [[ $audio_server == "pulseaudio" ]]; then
-    echo "Installing Pulseaudio..."
     pacman -S pulseaudio pavucontrol --noconfirm
     systemctl enable --global pulseaudio
 fi
 
 ## Install GPU driver
 if [[ $gpu == "amd" ]]; then
-    echo "Installing AMD GPU driver..."
     pacman -S mesa vulkan-radeon libva-mesa-driver --noconfirm
 elif [[ $gpu == "intel" ]]; then
-    echo "Installing Intel GPU driver..."
     pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 elif [[ $gpu == "nvidia" ]]; then
-    echo "Installing proprietary NVIDIA GPU driver..."
     pacman -S nvidia nvidia-settings --noconfirm
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1\"|" /etc/default/grub
@@ -556,7 +538,6 @@ fi
 
 ## Install DE
 if [[ $de == "gnome" ]]; then
-    echo "Installing GNOME desktop environment..."
     pacman -S xorg wayland --noconfirm
     pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
@@ -564,23 +545,19 @@ if [[ $de == "gnome" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ $de == "plasma" ]]; then
-    echo "Installing KDE Plasma desktop environment..."
     pacman -S xorg wayland --noconfirm
     pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable sddm
 elif [[ $de == "xfce" ]]; then
-    echo "Installing XFCE desktop environment..."
     pacman -S xorg wayland --noconfirm
     pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
     systemctl enable lightdm
 elif [[ $de == "cinnamon" ]]; then
-    echo "Installing Cinnamon desktop environment..."
     pacman -S xorg wayland --noconfirm
     pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ $de == "mate" ]]; then
-    echo "Installing MATE desktop environment..."
     pacman -S xorg wayland --noconfirm
     pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
@@ -588,7 +565,6 @@ fi
 
 ##  Check if CUPS should be installed
 if [[ $install_cups == yes ]]; then
-    echo "Installing CUPS..."
     pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
     systemctl enable cups.service
     systemctl enable cups.socket
@@ -601,7 +577,6 @@ if [[ $install_cups == yes ]]; then
 fi
 
 ## Install yay
-echo "Installing Yay..."
 touch tmpscript.sh
 cat <<'EOY' > tmpscript.sh
 source /config.conf
@@ -613,15 +588,12 @@ cd ..
 rm -rf yay
 yay -Sy --noconfirm
 if [[ $install_cups == "yes" ]]; then
-    echo "Installing hplip-plugin for CUPS from AUR..."
     yay -S hplip-plugin --noconfirm
 fi
 if [[ $de == "xfce" ]]; then
-    echo "Installing mugshot from AUR..."
     yay -S mugshot --noconfirm
 fi
 if [[ $de == "cinnamon" ]]; then
-    echo "Installing lightdm-settings from AUR..."
     yay -S lightdm-settings --noconfirm
 fi
 yes | yay -Sc
@@ -637,7 +609,6 @@ sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 ## Set-up swapfile
 if [[ $create_swapfile == "yes" ]]; then
-    echo "Creating swapfile..."
     fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
@@ -646,15 +617,12 @@ if [[ $create_swapfile == "yes" ]]; then
 fi
 
 ## Install packages defined in custom_packages variable
-echo "Installing custom packages..."
 pacman -S $custom_packages --noconfirm
 
 ## Re-generate initramfs
-echo "Regenerating initramfs image..."
 mkinitcpio -P
 
 ## Clean up and exit
-echo "Cleaning up..."
 while pacman -Qdtq; do
     pacman -R $(pacman -Qdtq) --noconfirm
 done
