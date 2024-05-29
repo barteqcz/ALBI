@@ -92,8 +92,8 @@ custom_packages="firefox htop papirus-icon-theme"  #### Custom packages (space-s
 
 ### Swapfile
 create_swapfile="yes"  #### Create swapfile (yes/no)
-
 EOF
+
 total_ram_gb=$(free | awk '/^Mem:/ {printf "%.1f\n", $2 / 1024 / 1024}')
 echo "swapfile_size_gb=\"$total_ram_gb\"  #### Swapfile size in GB" >> config.conf
 
