@@ -533,7 +533,7 @@ elif [[ "$gpu" == "nvidia" ]]; then
     fi
     grub-mkconfig -o /boot/grub/grub.cfg
 elif [[ "$gpu" == "other" ]]; then
-    pacman -S mesa --noconfirm
+    pacman -S mesa libva-mesa-driver --noconfirm
 fi
 
 ## Install the selected desktop environment along with related packages
