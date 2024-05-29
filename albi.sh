@@ -69,7 +69,7 @@ cat <<EOF >> config.conf
 kernel_variant="normal"  #### Kernel variant (normal/lts/zen)
 
 ### Mirror Servers Location
-mirror_location="none"  #### Country for mirror servers (comma-separated list or none)
+mirror_location="none"  #### Country for mirror servers (one country or comma-separated list of countries or none)
 
 ### Timezone
 timezone="Europe/Prague"  #### System time zone
