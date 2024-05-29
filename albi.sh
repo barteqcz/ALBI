@@ -432,9 +432,11 @@ ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 hwclock --systohc
 
 ## Install essential system packages and enable services
-pacman -Sy btrfs-progs dosfstools inetutils net-tools xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm
+pacman -Sy btrfs-progs dosfstools inetutils net-tools ufw xfsprogs base-devel bash-completion bluez bluez-utils nano git grub ntfs-3g sshfs networkmanager wget exfat-utils usbutils xdg-utils xdg-user-dirs unzip unrar zip p7zip os-prober plymouth --noconfirm
 systemctl enable NetworkManager
 systemctl enable bluetooth
+systemctl enable ufw
+sudo ufw enable
 
 ## Determine the system's boot mode (UEFI or BIOS)
 if [[ -d "/sys/firmware/efi/" ]]; then
