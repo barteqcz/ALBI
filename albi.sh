@@ -33,74 +33,74 @@ else
 ## Installation Configuration
 
 ### Formatting
-root_part_filesystem='ext4'  #### Filesystem for the / partition
-separate_home_part_filesystem='none'  #### Filesystem for the /home partition
-separate_boot_part_filesystem='ext4'  #### Filesystem for the /boot partition
-separate_var_part_filesystem='none'  #### Filesystem for the /var partition
-separate_usr_part_filesystem='none'  #### Filesystem for the /usr partition
-separate_tmp_part_filesystem='none'  #### Filesystem for the /tmp partition
+root_part_filesystem="ext4"  #### Filesystem for the / partition
+separate_home_part_filesystem="none"  #### Filesystem for the /home partition
+separate_boot_part_filesystem="ext4"  #### Filesystem for the /boot partition
+separate_var_part_filesystem="none"  #### Filesystem for the /var partition
+separate_usr_part_filesystem="none"  #### Filesystem for the /usr partition
+separate_tmp_part_filesystem="none"  #### Filesystem for the /tmp partition
 
 ### Mounting
-root_part='/dev/sdX#'  #### Path for the / partition
-separate_home_part='none'  #### Path for the /home partition
-separate_boot_part='/dev/sdX#'  #### Path for the /boot partition
-separate_var_part='none'  #### Path for the /var partition
-separate_usr_part='none'  #### Path for the /usr partition
-separate_tmp_part='none'  #### Path for the /tmp partition
+root_part="/dev/sdX#"  #### Path for the / partition
+separate_home_part="none"  #### Path for the /home partition
+separate_boot_part="/dev/sdX#"  #### Path for the /boot partition
+separate_var_part="none"  #### Path for the /var partition
+separate_usr_part="none"  #### Path for the /usr partition
+separate_tmp_part="none"  #### Path for the /tmp partition
 
 ### Encryption
-luks_encryption='yes'  #### Encrypt the system (yes/no)
-luks_passphrase='4V3ryH@rdP4ssphr@s3!'  #### Passphrase for encryption
+luks_encryption="yes"  #### Encrypt the system (yes/no)
+luks_passphrase="4V3ryH@rdP4ssphr@s3!"  #### Passphrase for encryption
 
 EOF
 
 if [[ "$boot_mode" == "UEFI" ]]; then
     echo "### EFI partition settings" >> config.conf
-    echo "efi_part='/dev/sdX#'  #### EFI partition path" >> config.conf
-    echo "efi_part_mountpoint='/boot/efi'  #### EFI partition mount point" >> config.conf
+    echo "efi_part=\"/dev/sdX#\"  #### EFI partition path" >> config.conf
+    echo "efi_part_mountpoint=\"/boot/efi\"  #### EFI partition mount point" >> config.conf
 else
     echo "### GRUB installation disk settings" >> config.conf
-    echo "grub_disk='/dev/sdX'  #### Disk for GRUB installation" >> config.conf
+    echo "grub_disk=\"/dev/sdX\"  #### Disk for GRUB installation" >> config.conf
 fi
 
 cat <<EOF >> config.conf
 
 ### Kernel Variant
-kernel_variant='normal'  #### Kernel variant (normal/lts/zen)
+kernel_variant="normal"  #### Kernel variant (normal/lts/zen)
 
 ### Mirror Servers Location
-mirror_location='none'  #### Country for mirror servers (comma-separated list or none)
+mirror_location="none"  #### Country for mirror servers (comma-separated list or none)
 
 ### Timezone
-timezone='Europe/Prague'  #### System time zone
+timezone="Europe/Prague"  #### System time zone
 
 ### Hostname and User
-hostname='changeme'  #### Machine name
-username='changeme'  #### User name
-password='changeme'  #### User password
+hostname="changeme"  #### Machine name
+username="changeme"  #### User name
+password="changeme"  #### User password
 
 ### Locales
-language='en_US.UTF-8'  #### System language
-console_keyboard_layout='us'  #### TTY keyboard layout
+language="en_US.UTF-8"  #### System language
+console_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
-audio_server='pipewire'  #### Audio server (pulseaudio/pipewire/none)
-gpu='amd'  #### GPU driver (amd/intel/nvidia)
-de='gnome'  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
-install_cups='yes'  #### Install CUPS (yes/no)
-custom_packages='firefox htop papirus-icon-theme'  #### Custom packages (space-separated list)
+audio_server="pipewire"  #### Audio server (pulseaudio/pipewire/none)
+gpu="amd"  #### GPU driver (amd/intel/nvidia)
+de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
+install_cups="yes"  #### Install CUPS (yes/no)
+custom_packages="firefox htop papirus-icon-theme"  #### Custom packages (space-separated list)
 
 ### Swapfile
-create_swapfile='yes'  #### Create swapfile (yes/no)
+create_swapfile="yes"  #### Create swapfile (yes/no)
 
 EOF
 total_ram_gb=$(free | awk '/^Mem:/ {print $2 / 1024 / 1024}')
-echo "swapfile_size_gb='""$total_ram_gb""'  #### Swapfile size in GB" >> config.conf
+echo "swapfile_size_gb=\"$total_ram_gb\"  #### Swapfile size in GB" >> config.conf
 
 cat <<EOF >> config.conf
 
 ### Script Settings
-keep_config='no'  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
+keep_config="no"  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
@@ -121,7 +121,7 @@ if [[ "$passwd_length" == 0 ]]; then
     exit
 fi
 
-if ! [[ "$username" =~ '^[a-z_][a-z0-9_-]{0,31}$' ]]; then
+if ! [[ "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
     echo "The username is incorrect. It can't begin with a number nor with an uppercase character"
     exit
 fi
@@ -151,18 +151,18 @@ if ! [[ "$de" == "cinnamon" || "$de" == "gnome" || "$de" == "mate" || "$de" == "
     exit
 fi
 
-if ! [[ $create_swapfile == "yes" || $create_swapfile == "no" ]]; then
+if ! [[ "$create_swapfile" == "yes" || "$create_swapfile" == "no" ]]; then
     echo "Error: invalid value for the swapfile creation question."
     exit
 fi
 
-if ! [[ $swapfile_size_gb =~ ^[0-9]+$ ]]; then
+if ! [[ "$swapfile_size_gb" =~ ^[0-9]+$ ]]; then
     echo "Error: invalid value for the swapfile size - the value isn't numeric."
     exit
 fi
 
 ## Determine if there are any custom packages specified for installation
-if ! [[ -z $custom_packages ]]; then
+if ! [[ -z "$custom_packages" ]]; then
     pacman -Sy
 
     IFS=" " read -ra packages <<< "$custom_packages"
@@ -170,16 +170,16 @@ if ! [[ -z $custom_packages ]]; then
     for package in "${packages[@]}"; do
         pacman_output=$(pacman -Ss "$package")
         if ! [[ -n "$pacman_output" ]]; then
-            echo "Error: package '$package' not found."
+            echo "Error: package $package not found."
             exit
         fi
     done
 fi
 
 ## Verify if the reflector command execution encounters any errors
-if [[ $mirror_location != "none" ]]; then
-    reflector_output=$(reflector --country $mirror_location)
-    if [[ $reflector_output == *"error"* || $reflector_output == *"no mirrors found"* ]]; then
+if [[ "$mirror_location" != "none" ]]; then
+    reflector_output=$(reflector --country "$mirror_location")
+    if [[ "$reflector_output" == *"error"* || "$reflector_output" == *"no mirrors found"* ]]; then
         echo "Error: invalid country name for Reflector."
         exit
     fi
@@ -204,14 +204,14 @@ if [[ "$root_part" != "none" ]]; then
         exit
     else
         if [[ -e "$root_part" ]]; then
-            if [[ $luks_encryption == "yes" ]]; then
-                if [[ $boot_part_exists == "true" ]]; then
+            if [[ "$luks_encryption" == "yes" ]]; then
+                if [[ "$boot_part_exists" == "true" ]]; then
                     root_part_orig="$root_part"
                     root_part_basename=$(basename "$root_part")
-                    root_part_encrypted_name="$root_part_basename"_crypt
+                    root_part_encrypted_name="${root_part_basename}_crypt"
                     echo "$luks_passphrase" | cryptsetup -q luksFormat "$root_part"
                     echo "$luks_passphrase" | cryptsetup -q open "$root_part" "$root_part_encrypted_name"
-                    root_part=/dev/mapper/"$root_part_encrypted_name"
+                    root_part="/dev/mapper/${root_part_encrypted_name}"
                     echo "root_part_orig=\"$root_part_orig\"" > tmpfile.sh
                     echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpfile.sh
                 else
@@ -220,15 +220,15 @@ if [[ "$root_part" != "none" ]]; then
                 fi
             fi
 
-            if [[ $root_part_filesystem == "ext4" ]]; then
+            if [[ "$root_part_filesystem" == "ext4" ]]; then
                 yes | mkfs.ext4 "$root_part"
-            elif [[ $root_part_filesystem == "ext3" ]]; then
+            elif [[ "$root_part_filesystem" == "ext3" ]]; then
                 yes | mkfs.ext3 "$root_part"
-            elif [[ $root_part_filesystem == "ext2" ]]; then
+            elif [[ "$root_part_filesystem" == "ext2" ]]; then
                 yes | mkfs.ext2 "$root_part"
-            elif [[ $root_part_filesystem == "btrfs" ]]; then
+            elif [[ "$root_part_filesystem" == "btrfs" ]]; then
                 yes | mkfs.btrfs "$root_part"
-            elif [[ $root_part_filesystem == "xfs" ]]; then
+            elif [[ "$root_part_filesystem" == "xfs" ]]; then
                 yes | mkfs.xfs "$root_part"
             else
                 echo "Error: wrong filesystem for the / partition."
@@ -283,16 +283,16 @@ if [[ "$separate_tmp_part" != "none" ]]; then
     fi
 fi
 
-if [[ $home_part_exists == "true" ]]; then
-    if [[ $separate_home_part_filesystem == "ext4" ]]; then
+if [[ "$home_part_exists" == "true" ]]; then
+    if [[ "$separate_home_part_filesystem" == "ext4" ]]; then
         yes | mkfs.ext4 "$separate_home_part"
-    elif [[ $separate_home_part_filesystem == "ext3" ]]; then
+    elif [[ "$separate_home_part_filesystem" == "ext3" ]]; then
         yes | mkfs.ext3 "$separate_home_part"
-    elif [[ $separate_home_part_filesystem == "ext2" ]]; then
+    elif [[ "$separate_home_part_filesystem" == "ext2" ]]; then
         yes | mkfs.ext2 "$separate_home_part"
-    elif [[ $separate_home_part_filesystem == "btrfs" ]]; then
+    elif [[ "$separate_home_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs "$separate_home_part"
-    elif [[ $separate_home_part_filesystem == "xfs" ]]; then
+    elif [[ "$separate_home_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_home_part"
     else
         echo "Error: wrong filesystem for the /home partition."
@@ -301,16 +301,16 @@ if [[ $home_part_exists == "true" ]]; then
     mount "$separate_home_part" /mnt/home
 fi
 
-if [[ $boot_part_exists == "true" ]]; then
-    if [[ $separate_boot_part_filesystem == "ext4" ]]; then
+if [[ "$boot_part_exists" == "true" ]]; then
+    if [[ "$separate_boot_part_filesystem" == "ext4" ]]; then
         yes | mkfs.ext4 "$separate_boot_part"
-    elif [[ $separate_boot_part_filesystem == "ext3" ]]; then
+    elif [[ "$separate_boot_part_filesystem" == "ext3" ]]; then
         yes | mkfs.ext3 "$separate_boot_part"
-    elif [[ $separate_boot_part_filesystem == "ext2" ]]; then
+    elif [[ "$separate_boot_part_filesystem" == "ext2" ]]; then
         yes | mkfs.ext2 "$separate_boot_part"
-    elif [[ $separate_boot_part_filesystem == "btrfs" ]]; then
+    elif [[ "$separate_boot_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs "$separate_boot_part"
-    elif [[ $separate_boot_part_filesystem == "xfs" ]]; then
+    elif [[ "$separate_boot_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_boot_part"
     else
         echo "Error: wrong filesystem for the /boot partition."
@@ -319,16 +319,16 @@ if [[ $boot_part_exists == "true" ]]; then
     mount "$separate_boot_part" /mnt/boot
 fi
 
-if [[ $var_part_exists == "true" ]]; then
-    if [[ $separate_var_part_filesystem == "ext4" ]]; then
+if [[ "$var_part_exists" == "true" ]]; then
+    if [[ "$separate_var_part_filesystem" == "ext4" ]]; then
         yes | mkfs.ext4 "$separate_var_part"
-    elif [[ $separate_var_part_filesystem == "ext3" ]]; then
+    elif [[ "$separate_var_part_filesystem" == "ext3" ]]; then
         yes | mkfs.ext3 "$separate_var_part"
-    elif [[ $separate_var_part_filesystem == "ext2" ]]; then
+    elif [[ "$separate_var_part_filesystem" == "ext2" ]]; then
         yes | mkfs.ext2 "$separate_var_part"
-    elif [[ $separate_var_part_filesystem == "btrfs" ]]; then
+    elif [[ "$separate_var_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs "$separate_var_part"
-    elif [[ $separate_var_part_filesystem == "xfs" ]]; then
+    elif [[ "$separate_var_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_var_part"
     else
         echo "Error: wrong filesystem for the /var partition."
@@ -337,16 +337,16 @@ if [[ $var_part_exists == "true" ]]; then
     mount "$separate_var_part" /mnt/var
 fi
 
-if [[ $separate_usr_part_exists == "true" ]]; then
-    if [[ $separate_usr_part_filesystem == "ext4" ]]; then
+if [[ "$separate_usr_part_exists" == "true" ]]; then
+    if [[ "$separate_usr_part_filesystem" == "ext4" ]]; then
         yes | mkfs.ext4 "$separate_usr_part"
-    elif [[ $separate_usr_part_filesystem == "ext3" ]]; then
+    elif [[ "$separate_usr_part_filesystem" == "ext3" ]]; then
         yes | mkfs.ext3 "$separate_usr_part"
-    elif [[ $separate_usr_part_filesystem == "ext2" ]]; then
+    elif [[ "$separate_usr_part_filesystem" == "ext2" ]]; then
         yes | mkfs.ext2 "$separate_usr_part"
-    elif [[ $separate_usr_part_filesystem == "btrfs" ]]; then
+    elif [[ "$separate_usr_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs "$separate_usr_part"
-    elif [[ $separate_usr_part_filesystem == "xfs" ]]; then
+    elif [[ "$separate_usr_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_usr_part"
     else
         echo "Error: wrong filesystem for the /usr partition."
@@ -356,15 +356,15 @@ if [[ $separate_usr_part_exists == "true" ]]; then
 fi
 
 if [[ $tmp_part_exists == "true" ]]; then
-    if [[ $separate_tmp_part_filesystem == "ext4" ]]; then
+    if [[ "$separate_tmp_part_filesystem" == "ext4" ]]; then
         yes | mkfs.ext4 "$separate_tmp_part"
-    elif [[ $separate_tmp_part_filesystem == "ext3" ]]; then
+    elif [[ "$separate_tmp_part_filesystem" == "ext3" ]]; then
         yes | mkfs.ext3 "$separate_tmp_part"
-    elif [[ $separate_tmp_part_filesystem == "ext2" ]]; then
+    elif [[ "$separate_tmp_part_filesystem" == "ext2" ]]; then
         yes | mkfs.ext2 "$separate_tmp_part"
-    elif [[ $separate_tmp_part_filesystem == "btrfs" ]]; then
+    elif [[ "$separate_tmp_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs "$separate_tmp_part"
-    elif [[ $separate_tmp_part_filesystem == "xfs" ]]; then
+    elif [[ "$separate_tmp_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_tmp_part"
     else
         echo "Error: wrong filesystem for the /tmp partition."
@@ -373,23 +373,23 @@ if [[ $tmp_part_exists == "true" ]]; then
     mount "$separate_tmp_part" /mnt/tmp
 fi
 
-if [[ $boot_mode == "UEFI" ]]; then
+if [[ "$boot_mode" == "UEFI" ]]; then
     efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
-    if [[ $efi_part_filesystem != "vfat" ]]; then
+    if [[ "$efi_part_filesystem" != "vfat" ]]; then
         mkfs.fat -F32 "$efi_part"
         mkdir -p /mnt"$efi_part_mountpoint"
-        mount $efi_part /mnt"$efi_part_mountpoint"
+        mount "$efi_part" /mnt"$efi_part_mountpoint"
     else
         if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
             mkdir -p /mnt"$efi_part_mountpoint"
-            mount $efi_part /mnt"$efi_part_mountpoint"
+            mount "$efi_part" /mnt"$efi_part_mountpoint"
         else
-            umount $efi_part_mountpoint
+            umount "$efi_part_mountpoint"
             mkdir -p /mnt"$efi_part_mountpoint"
-            mount $efi_part $efi_part_mountpoint
+            mount "$efi_part" "$efi_part_mountpoint"
         fi
     fi
-elif [[ $boot_mode == "BIOS" ]]; then
+elif [[ "$boot_mode" == "BIOS" ]]; then
     if ! [[ -b "$grub_disk" ]]; then
         echo "Error: disk path $grub_disk is not accessible or does not exist."
         exit
@@ -397,16 +397,16 @@ elif [[ $boot_mode == "BIOS" ]]; then
 fi
 
 ## If a mirror location is specified, run Reflector and update the mirrorlist accordingly
-if [[ $mirror_location != "none" ]]; then
-    reflector --sort rate --country $mirror_location --save /etc/pacman.d/mirrorlist
+if [[ "$mirror_location" != "none" ]]; then
+    reflector --sort rate --country "$mirror_location" --save /etc/pacman.d/mirrorlist
 fi
 
 ## Install the base system packages based on the selected kernel variant
-if [[ $kernel_variant == "normal" ]]; then
+if [[ "$kernel_variant" == "normal" ]]; then
     pacstrap -K /mnt base linux linux-firmware linux-headers
-elif [[ $kernel_variant == "lts" ]]; then
+elif [[ "$kernel_variant" == "lts" ]]; then
     pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
-elif [[ $kernel_variant == "zen" ]]; then
+elif [[ "$kernel_variant" == "zen" ]]; then
     pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
 fi
 
@@ -428,7 +428,7 @@ trap interrupt_handler SIGINT
 
 ## Source the configuration file
 source /config.conf
-if [[ $luks_encryption == "yes" ]]; then
+if [[ "$luks_encryption" == "yes" ]]; then
     source /tmpfile.sh
 fi
 
@@ -451,12 +451,10 @@ fi
 
 ## Identify the CPU vendor and install the corresponding microcode package
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
-if [[ $vendor == "GenuineIntel" ]]; then
+if [[ "$vendor" == "GenuineIntel" ]]; then
     pacman -Sy intel-ucode --noconfirm
-elif [[ $vendor == "AuthenticAMD" ]]; then
+elif [[ "$vendor" == "AuthenticAMD" ]]; then
     pacman -Sy amd-ucode --noconfirm
-else
-    echo "Unknown CPU vendor - skipping microcode installation..."
 fi
 
 ## Configure system locales, console keyboard layout, and hostname
@@ -476,15 +474,15 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Create an user
-useradd -m $username
-passwd $username << EOP
-$password
-$password
+useradd -m "$username"
+passwd "$username" << EOP
+"$password"
+"$password"
 EOP
-usermod -aG wheel $username
+usermod -aG wheel "$username"
 
 ## Remove the password from the configuration file if it's going to be kept
-if [[ $keep_config == "yes" ]]; then
+if [[ "$keep_config" == "yes" ]]; then
     sed -i "s/^password=.*/password=\"\"/" config.conf
 fi
 
@@ -498,14 +496,14 @@ sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 
 ## Install GRUB bootloader based on the detected boot mode
-if [[ $boot_mode == "UEFI" ]]; then
+if [[ "$boot_mode" == "UEFI" ]]; then
     grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
-elif [[ $boot_mode == "BIOS" ]]; then
-    grub-install --target=i386-pc $grub_disk
+elif [[ "$boot_mode" == "BIOS" ]]; then
+    grub-install --target=i386-pc "$grub_disk"
 fi
 
 ## Configure GRUB for encrypted root if specified
-if [[ $luks_encryption == "yes" ]]; then
+if [[ "$luks_encryption" == "yes" ]]; then
     cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
     sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
@@ -518,20 +516,20 @@ fi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 ## Install the selected audio server and enable related services
-if [[ $audio_server == "pipewire" ]]; then
+if [[ "$audio_server" == "pipewire" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol --noconfirm
     systemctl enable --global pipewire pipewire-pulse
-elif [[ $audio_server == "pulseaudio" ]]; then
+elif [[ "$audio_server" == "pulseaudio" ]]; then
     pacman -S pulseaudio pavucontrol --noconfirm
     systemctl enable --global pulseaudio
 fi
 
 ## Install the selected graphics driver (proceed with any additional configuration if needed)
-if [[ $gpu == "amd" ]]; then
+if [[ "$gpu" == "amd" ]]; then
     pacman -S mesa vulkan-radeon libva-mesa-driver --noconfirm
-elif [[ $gpu == "intel" ]]; then
+elif [[ "$gpu" == "intel" ]]; then
     pacman -S mesa vulkan-intel intel-media-driver --noconfirm
-elif [[ $gpu == "nvidia" ]]; then
+elif [[ "$gpu" == "nvidia" ]]; then
     pacman -S nvidia nvidia-settings --noconfirm
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1\"|" /etc/default/grub
@@ -539,37 +537,39 @@ elif [[ $gpu == "nvidia" ]]; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1\"|" /etc/default/grub
     fi
     grub-mkconfig -o /boot/grub/grub.cfg
+elif [[ "$gpu" == "other" ]]; then
+    pacman -S mesa --noconfirm
 fi
 
 ## Install the selected desktop environment along with related packages
-if [[ $de == "gnome" ]]; then
+if [[ "$de" == "gnome" ]]; then
     pacman -S xorg wayland --noconfirm
     pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
-    if [[ $nvidia_proprietary == "yes" ]]; then
+    if [[ "$gpu" == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
-elif [[ $de == "plasma" ]]; then
+elif [[ "$de" == "plasma" ]]; then
     pacman -S xorg wayland --noconfirm
     pacman -S sddm plasma kwalletmanager firewalld kate konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable sddm
-elif [[ $de == "xfce" ]]; then
+elif [[ "$de" == "xfce" ]]; then
     pacman -S xorg wayland --noconfirm
     pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
     systemctl enable lightdm
-elif [[ $de == "cinnamon" ]]; then
+elif [[ "$de" == "cinnamon" ]]; then
     pacman -S xorg wayland --noconfirm
     pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
-elif [[ $de == "mate" ]]; then
+elif [[ "$de" == "mate" ]]; then
     pacman -S xorg wayland --noconfirm
     pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
 fi
 
 ## If required, install CUPS and its related components
-if [[ $install_cups == yes ]]; then
+if [[ "$install_cups" == yes ]]; then
     pacman -S cups cups-browsed cups-filters cups-pk-helper bluez-cups foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
     systemctl enable cups.service
     systemctl enable cups.socket
@@ -577,8 +577,8 @@ if [[ $install_cups == yes ]]; then
     systemctl enable avahi-daemon.service
     systemctl enable avahi-daemon.socket
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
-    mv /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.old
-    mv /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.old
+    rm -f /usr/share/applications/hplip.desktop /usr/share/applications/hplip.desktop.old
+    rm -f /usr/share/applications/hp-uiscan.desktop /usr/share/applications/hp-uiscan.desktop.old
 fi
 
 ## Install the AUR helper and additional packages
@@ -592,13 +592,13 @@ makepkg -si --noconfirm
 cd ..
 rm -rf yay
 yay -Sy --noconfirm
-if [[ $install_cups == "yes" ]]; then
+if [[ "$install_cups" == "yes" ]]; then
     yay -S hplip-plugin --noconfirm
 fi
-if [[ $de == "xfce" ]]; then
+if [[ "$de" == "xfce" ]]; then
     yay -S mugshot --noconfirm
 fi
-if [[ $de == "cinnamon" ]]; then
+if [[ "$de" == "cinnamon" ]]; then
     yay -S lightdm-settings --noconfirm
 fi
 
@@ -615,7 +615,7 @@ rm -f /etc/sudoers.d/tmp
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^#//g' /etc/sudoers
 
 ## If enabled, set up a swapfile for the system
-if [[ $create_swapfile == "yes" ]]; then
+if [[ "$create_swapfile" == "yes" ]]; then
     fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
@@ -624,7 +624,7 @@ if [[ $create_swapfile == "yes" ]]; then
 fi
 
 ## Install additional packages specified by the user
-pacman -S $custom_packages --noconfirm
+pacman -S "$custom_packages" --noconfirm
 
 ## Re-generate the initial ramdisk for booting the system
 mkinitcpio -P
@@ -635,7 +635,7 @@ while pacman -Qdtq; do
 done
 yes | pacman -Sc
 yes | pacman -Scc
-if [[ $keep_config == "no" ]]; then
+if [[ "$keep_config" == "no" ]]; then
     rm -f /config.conf
 else
     mv /config.conf /home/$username/
@@ -647,7 +647,7 @@ exit
 EOFile
 
 ## Copy configuration files and the second part of the script to the target system
-if [[ $luks_encryption == "yes" ]]; then
+if [[ "$luks_encryption" == "yes" ]]; then
     cp tmpfile.sh /mnt/
 fi
 cp main.sh /mnt/
