@@ -122,12 +122,7 @@ if [[ "$passwd_length" == 0 ]]; then
 fi
 
 if ! [[ "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
-    echo "The username is incorrect. It can't begin with a number nor with an uppercase character"
-    exit
-fi
-
-if [[ "$username_length" == 0 ]]; then
-    echo "Error: username not set."
+    echo "The username is incorrect. It can't begin with a number nor with an uppercase character."
     exit
 fi
 
