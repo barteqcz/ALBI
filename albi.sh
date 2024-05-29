@@ -32,74 +32,75 @@ else
     cat <<EOF > config.conf
 ## Here is the configuration for the installation.
 
-## Formatting
-# If you pick 'none' for a partition, it's left without doing anything. Remember to format it yourself if you choose this option.
-# Possible values: btrfs, ext4, ext3, ext2, xfs, none.
-root_part_filesystem="ext4"  # This sets the filesystem for the / partition.
-separate_home_part_filesystem="none"  # This sets the filesystem for the /home partition.
-separate_boot_part_filesystem="ext4"  # This sets the filesystem for the /boot partition.
-separate_var_part_filesystem="none"  # This sets the filesystem for the /var partition.
-separate_usr_part_filesystem="none"  # This sets the filesystem for the /usr partition.
-separate_tmp_part_filesystem="none"  # This sets the filesystem for the /tmp partition.
+### Formatting
+root_part_filesystem='ext4'  #### Filesystem for the / partition
+separate_home_part_filesystem='none'  #### Filesystem for the /home partition
+separate_boot_part_filesystem='ext4'  #### Filesystem for the /boot partition
+separate_var_part_filesystem='none'  #### Filesystem for the /var partition
+separate_usr_part_filesystem='none'  #### Filesystem for the /usr partition
+separate_tmp_part_filesystem='none'  #### Filesystem for the /tmp partition
 
-## Mounting
-# If you choose 'none' for a partition, it's ignored and left without doing anything. Remember to mount it yourself if you choose this option.
-# Possible values are disk paths (e.g. /dev/sda1, /dev/sdc4).
-root_part="/dev/sdX#"  # This sets the path for the / partition.
-separate_home_part="none"  # This sets the path for the /home partition.
-separate_boot_part="/dev/sdX#"  # This sets the path for the /boot partition.
-separate_var_part="none"  # This sets the path for the /var partition.
-separate_usr_part="none"  # This sets the path for the /usr partition.
-separate_tmp_part="none"  # This sets the path for the /tmp partition.
+### Mounting
+root_part='/dev/sdX#'  #### Path for the / partition
+separate_home_part='none'  #### Path for the /home partition
+separate_boot_part='/dev/sdX#'  #### Path for the /boot partition
+separate_var_part='none'  #### Path for the /var partition
+separate_usr_part='none'  #### Path for the /usr partition
+separate_tmp_part='none'  #### Path for the /tmp partition
 
-## Encryption
-luks_encryption="yes"  # Lets you to decide whether you want to encrypt the system. Valid values: yes, no.
-luks_passphrase="4V3ryH@rdP4ssphr@s3!"  # Applies only when the encryption is set to yes.
+### Encryption
+luks_encryption='yes'  #### Encrypt the system (yes/no)
+luks_passphrase='4V3ryH@rdP4ssphr@s3!'  #### Passphrase for encryption
 
 EOF
 
-if [[ $boot_mode == "UEFI" ]]; then
-    echo "## EFI partition settings" >> config.conf
-    echo "efi_part=\"/dev/sdX#\"  # Enter path to the EFI partition." >> config.conf
-    echo "efi_part_mountpoint=\"/boot/efi\"  # Enter mountpoint of the EFI partition. This is also needed" >> config.conf
+if [[ "$boot_mode" == "UEFI" ]]; then
+    echo "### EFI partition settings" >> config.conf
+    echo "efi_part='/dev/sdX#'  #### EFI partition path" >> config.conf
+    echo "efi_part_mountpoint='/boot/efi'  #### EFI partition mount point" >> config.conf
 else
-    echo "## GRUB installation disk settings" >> config.conf
-    echo 'grub_disk="/dev/sdX"  # Enter path to the disk meant for grub installation.' >> config.conf
+    echo "### GRUB installation disk settings" >> config.conf
+    echo "grub_disk='/dev/sdX'  #### Disk for GRUB installation" >> config.conf
 fi
 
 cat <<EOF >> config.conf
 
-## Kernel variant
-kernel_variant="normal"  # Lets you to choose the kernel variant. Valid values: normal, lts, zen.
+### Kernel Variant
+kernel_variant='normal'  #### Kernel variant (normal/lts/zen)
 
-## Mirror servers location
-mirror_location="none"  # Lets you to choose country for mirror servers in your system. Valid values are english country names. You can select multiple countries - separate them with comma, if you don't want to use mirror server - enter none.
+### Mirror Servers Location
+mirror_location='none'  #### Country for mirror servers (comma-separated list or none)
 
-## Timezone setting
-timezone="Europe/Prague"  # Defines the timezone for your system. Full list can be cound in the docs folder.
+### Timezone
+timezone='Europe/Prague'  #### System time zone
 
-## Hostname and user
-hostname="changeme"  # Defines the hostname of the machine.
-username="changeme"  # Lets you to select an username for the user.
-password="changeme"  # Lets you to select password for that user.
+### Hostname and User
+hostname='changeme'  #### Machine name
+username='changeme'  #### User name
+password='changeme'  #### User password
 
-## Locales settings
-language="en_US.UTF-8"  # Lets you to select the language of the system. Full list can be found in the docs folder.
-console_keyboard_layout="us"  # Lets you to select the keyboard layout for the TTY. Full list can be found in the docs folder.
+### Locales
+language='en_US.UTF-8'  #### System language
+console_keyboard_layout='us'  #### TTY keyboard layout
 
-## Software selection
-audio_server="pipewire"  # Lets you to select the audio server. Valid values: pulseaudio, pipewire, none.
-gpu="amd"  # Defines what GPU driver you want to use. Valid values: amd, intel, nvidia.
-de="gnome"  # Lets you to select the desktop environment. Valid values: gnome, plasma, xfce, mate, cinnamon, none.
-install_cups="yes"  # Lets you to decide whether CUPS should be installed, or not. Valid values: yes, no.
-custom_packages="firefox htop neofetch papirus-icon-theme"  # Custom packages (separated by spaces). If you don't need any, leave the list empty.
+### Software Selection
+audio_server='pipewire'  #### Audio server (pulseaudio/pipewire/none)
+gpu='amd'  #### GPU driver (amd/intel/nvidia)
+de='gnome'  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
+install_cups='yes'  #### Install CUPS (yes/no)
+custom_packages='firefox htop papirus-icon-theme'  #### Custom packages (space-separated list)
 
-## Swapfile settings
-create_swapfile="yes"  # Creates swapfile. Valid values: yes, no.
-swapfile_size_gb="4"  # Defines size of the swapfile. Valid values are only numbers.
+### Swapfile
+create_swapfile='yes'  #### Create swapfile (yes/no)
 
-## Script settings
-keep_config="no"  # Lets you to choose whether you want to keep a copy of this file in /home/<your_username> after the installation. Valid values: yes, no.
+EOF
+total_ram_gb=$(free | awk '/^Mem:/ {print $2 / 1024 / 1024}')
+echo "swapfile_size_gb='""$total_ram_gb""'  #### Swapfile size in GB"
+
+cat <<EOF >> config.conf
+
+### Script Settings
+keep_config='no'  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
