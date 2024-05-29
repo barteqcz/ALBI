@@ -33,74 +33,74 @@ else
 ## Installation Configuration
 
 ### Formatting
-root_part_filesystem='ext4'  # Filesystem for the / partition
-separate_home_part_filesystem='none'  # Filesystem for the /home partition
-separate_boot_part_filesystem='ext4'  # Filesystem for the /boot partition
-separate_var_part_filesystem='none'  # Filesystem for the /var partition
-separate_usr_part_filesystem='none'  # Filesystem for the /usr partition
-separate_tmp_part_filesystem='none'  # Filesystem for the /tmp partition
+root_part_filesystem='ext4'  #### Filesystem for the / partition
+separate_home_part_filesystem='none'  #### Filesystem for the /home partition
+separate_boot_part_filesystem='ext4'  #### Filesystem for the /boot partition
+separate_var_part_filesystem='none'  #### Filesystem for the /var partition
+separate_usr_part_filesystem='none'  #### Filesystem for the /usr partition
+separate_tmp_part_filesystem='none'  #### Filesystem for the /tmp partition
 
 ### Mounting
-root_part='/dev/sdX#'  # Path for the / partition
-separate_home_part='none'  # Path for the /home partition
-separate_boot_part='/dev/sdX#'  # Path for the /boot partition
-separate_var_part='none'  # Path for the /var partition
-separate_usr_part='none'  # Path for the /usr partition
-separate_tmp_part='none'  # Path for the /tmp partition
+root_part='/dev/sdX#'  #### Path for the / partition
+separate_home_part='none'  #### Path for the /home partition
+separate_boot_part='/dev/sdX#'  #### Path for the /boot partition
+separate_var_part='none'  #### Path for the /var partition
+separate_usr_part='none'  #### Path for the /usr partition
+separate_tmp_part='none'  #### Path for the /tmp partition
 
 ### Encryption
-luks_encryption='yes'  # Encrypt the system (yes/no)
-luks_passphrase='4V3ryH@rdP4ssphr@s3!'  # Passphrase for encryption
+luks_encryption='yes'  #### Encrypt the system (yes/no)
+luks_passphrase='4V3ryH@rdP4ssphr@s3!'  #### Passphrase for encryption
 
 EOF
 
 if [[ "$boot_mode" == "UEFI" ]]; then
     echo "### EFI partition settings" >> config.conf
-    echo "efi_part='/dev/sdX#'  # EFI partition path" >> config.conf
-    echo "efi_part_mountpoint='/boot/efi'  # EFI partition mount point" >> config.conf
+    echo "efi_part='/dev/sdX#'  #### EFI partition path" >> config.conf
+    echo "efi_part_mountpoint='/boot/efi'  #### EFI partition mount point" >> config.conf
 else
     echo "### GRUB installation disk settings" >> config.conf
-    echo "grub_disk='/dev/sdX'  # Disk for GRUB installation" >> config.conf
+    echo "grub_disk='/dev/sdX'  #### Disk for GRUB installation" >> config.conf
 fi
 
 cat <<EOF >> config.conf
 
 ### Kernel Variant
-kernel_variant='normal'  # Kernel variant (normal/lts/zen)
+kernel_variant='normal'  #### Kernel variant (normal/lts/zen)
 
 ### Mirror Servers Location
-mirror_location='none'  # Country for mirror servers (comma-separated list or none)
+mirror_location='none'  #### Country for mirror servers (comma-separated list or none)
 
 ### Timezone
-timezone='Europe/Prague'  # System time zone
+timezone='Europe/Prague'  #### System time zone
 
 ### Hostname and User
-hostname='changeme'  # Machine name
-username='changeme'  # User name
-password='changeme'  # User password
+hostname='changeme'  #### Machine name
+username='changeme'  #### User name
+password='changeme'  #### User password
 
 ### Locales
-language='en_US.UTF-8'  # System language
-console_keyboard_layout='us'  # TTY keyboard layout
+language='en_US.UTF-8'  #### System language
+console_keyboard_layout='us'  #### TTY keyboard layout
 
 ### Software Selection
-audio_server='pipewire'  # Audio server (pulseaudio/pipewire/none)
-gpu='amd'  # GPU driver (amd/intel/nvidia)
-de='gnome'  # Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
-install_cups='yes'  # Install CUPS (yes/no)
-custom_packages='firefox htop papirus-icon-theme'  # Custom packages (space-separated list)
+audio_server='pipewire'  #### Audio server (pulseaudio/pipewire/none)
+gpu='amd'  #### GPU driver (amd/intel/nvidia)
+de='gnome'  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
+install_cups='yes'  #### Install CUPS (yes/no)
+custom_packages='firefox htop papirus-icon-theme'  #### Custom packages (space-separated list)
 
 ### Swapfile
-create_swapfile='yes'  # Create swapfile (yes/no)
+create_swapfile='yes'  #### Create swapfile (yes/no)
 
 EOF
 total_ram_gb=$(free | awk '/^Mem:/ {print $2 / 1024 / 1024}')
-echo "swapfile_size_gb='""$total_ram_gb""'  # Swapfile size in GB"
+echo "swapfile_size_gb='""$total_ram_gb""'  #### Swapfile size in GB"
 
 cat <<EOF >> config.conf
 
 ### Script Settings
-keep_config='no'  # Keep a copy of this file in /home/<your_username> after installation (yes/no)
+keep_config='no'  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
 EOF
 
 echo "config.conf was generated successfully. Edit it to customize the installation."
