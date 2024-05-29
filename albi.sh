@@ -81,7 +81,7 @@ password="changeme"  #### User password
 
 ### Locales
 language="en_US.UTF-8"  #### System language
-console_keyboard_layout="us"  #### TTY keyboard layout
+tty_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
 audio_server="pipewire"  #### Audio server (pulseaudio/pipewire/none)
@@ -460,7 +460,7 @@ fi
 ## Configure system locales, console keyboard layout, and hostname
 sed -i "/$language/s/^#//" /etc/locale.gen
 echo "LANG=$language" > /etc/locale.conf
-echo "KEYMAP=$console_keyboard_layout" > /etc/vconsole.conf
+echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
 echo "$hostname" > /etc/hostname
 locale-gen
 
