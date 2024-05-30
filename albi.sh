@@ -105,6 +105,7 @@ fi
 ## Verify the values in the configuration file to ensure correct settings
 passwd_length=${#password}
 username_length=${#username}
+luks_passphrase_length=${#luks_passphrase}
 
 if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_variant" == "zen" ]]; then
     echo "Error: invalid value for the kernel variant."
@@ -139,6 +140,13 @@ fi
 if ! [[ "$de" == "cinnamon" || "$de" == "gnome" || "$de" == "mate" || "$de" == "plasma" || "$de" == "xfce" || "$de" == "none" ]]; then
     echo "Error: invalid value for the desktop environment."
     exit
+fi
+
+if [[ "$luks_encryption" == "yes" ]]; then
+    if [[ "$luks_passphrase_length" == 0 ]]; then
+        echo "Error: the encryption passphrase not set."
+        exit
+    fi
 fi
 
 if ! [[ "$create_swapfile" == "yes" || "$create_swapfile" == "no" ]]; then
