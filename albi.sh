@@ -463,7 +463,7 @@ locale-gen
 
 ## Configure the /etc/hosts file for local hostname resolution
 echo "127.0.0.1       localhost" >> /etc/hosts
-echo "127.0.0.1       $hostname" >> /etc/hosts
+echo "127.0.1.1       $hostname" >> /etc/hosts
 echo "" >> /etc/hosts
 echo "# The following lines are desirable for IPv6 capable hosts" >> /etc/hosts
 echo "::1             localhost ip6-localhost ip6-loopback" >> /etc/hosts
