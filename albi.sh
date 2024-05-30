@@ -620,7 +620,11 @@ if [[ "$create_swapfile" == "yes" ]]; then
 fi
 
 ## Install additional packages specified by the user
-pacman -S "$custom_packages" --noconfirm
+IFS=" " read -ra packages <<< "$custom_packages"
+
+for package in "${packages[@]}"; do
+    pacman -S "$package" --noconfirm
+done
 
 ## Re-generate the initial ramdisk for booting the system
 mkinitcpio -P
