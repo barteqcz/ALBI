@@ -92,7 +92,7 @@ custom_packages="firefox htop papirus-icon-theme"  #### Custom packages (space-s
 
 ### Swapfile
 create_swapfile="yes"  #### Create swapfile (yes/no)
-swapfile_size_gb="4"  #### Swapfile size in GB" >> config.conf
+swapfile_size_gb="4"  #### Swapfile size in GB"
 
 ### Script Settings
 keep_config="no"  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
