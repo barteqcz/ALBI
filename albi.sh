@@ -159,6 +159,14 @@ if ! [[ "$swapfile_size_gb" =~ ^[0-9]+$ ]]; then
     exit
 fi
 
+if [[ "$boot_mode" == "UEFI" ]]; then
+    if [[ "$efi_part_mountpoint" == "/boot" || "$efi_part_mountpoint" == "/boot/" ]]; then
+        echo "Error: mounting the EFI partition directly in the /boot directory isn't possible because of differing filesystems."
+        echo "It's recommended to mount the EFI partition in /boot/efi."
+        exit
+    fi
+fi
+
 ## Determine if there are any custom packages specified for installation
 if ! [[ -z "$custom_packages" ]]; then
     pacman -Sy
@@ -372,25 +380,19 @@ if [[ $tmp_part_exists == "true" ]]; then
 fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    if [[ "$efi_part_mountpoint" == "/boot" || "$efi_part_mountpoint" == "/boot/" ]]; then
-        echo "Error: mounting the EFI partition directly in the /boot directory isn't possible because of differing filesystems."
-        echo "It's recommended to mount the EFI partition in /boot/efi."
-        exit
+    efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
+    if [[ "$efi_part_filesystem" != "vfat" ]]; then
+        mkfs.fat -F32 "$efi_part"
+        mkdir -p /mnt"$efi_part_mountpoint"
+        mount "$efi_part" /mnt"$efi_part_mountpoint"
     else
-        efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
-        if [[ "$efi_part_filesystem" != "vfat" ]]; then
-            mkfs.fat -F32 "$efi_part"
+        if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
             mkdir -p /mnt"$efi_part_mountpoint"
             mount "$efi_part" /mnt"$efi_part_mountpoint"
         else
-            if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
-                mkdir -p /mnt"$efi_part_mountpoint"
-                mount "$efi_part" /mnt"$efi_part_mountpoint"
-            else
-                umount "$efi_part_mountpoint"
-                mkdir -p /mnt"$efi_part_mountpoint"
-                mount "$efi_part" "$efi_part_mountpoint"
-            fi
+            umount "$efi_part_mountpoint"
+            mkdir -p /mnt"$efi_part_mountpoint"
+            mount "$efi_part" "$efi_part_mountpoint"
         fi
     fi
 elif [[ "$boot_mode" == "BIOS" ]]; then
