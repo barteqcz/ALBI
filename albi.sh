@@ -159,6 +159,14 @@ if ! [[ "$swapfile_size_gb" =~ ^[0-9]+$ ]]; then
     exit
 fi
 
+if [[ "$boot_mode" == "UEFI" ]]; then
+    if [[ "$efi_part_mountpoint" == "/boot" || "$efi_part_mountpoint" == "/boot/" ]]; then
+        echo "Error: mounting the EFI partition directly in the /boot directory isn't possible because of differing filesystems."
+        echo "It's recommended to mount the EFI partition in /boot/efi."
+        exit
+    fi
+fi
+
 ## Determine if there are any custom packages specified for installation
 if ! [[ -z "$custom_packages" ]]; then
     pacman -Sy
