@@ -372,19 +372,24 @@ if [[ $tmp_part_exists == "true" ]]; then
 fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
-    if [[ "$efi_part_filesystem" != "vfat" ]]; then
-        mkfs.fat -F32 "$efi_part"
-        mkdir -p /mnt"$efi_part_mountpoint"
-        mount "$efi_part" /mnt"$efi_part_mountpoint"
+    if [[ "$boot_part_exists" == "true" && "$efi_part" == "$separate_boot_part" ]]; then
+        echo "Error: mounting the EFI partition in the /boot directory isn't possible because of differing filesystems."
+        exit
     else
-        if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
+        efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
+        if [[ "$efi_part_filesystem" != "vfat" ]]; then
+            mkfs.fat -F32 "$efi_part"
             mkdir -p /mnt"$efi_part_mountpoint"
             mount "$efi_part" /mnt"$efi_part_mountpoint"
         else
-            umount "$efi_part_mountpoint"
-            mkdir -p /mnt"$efi_part_mountpoint"
-            mount "$efi_part" "$efi_part_mountpoint"
+            if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
+                mkdir -p /mnt"$efi_part_mountpoint"
+                mount "$efi_part" /mnt"$efi_part_mountpoint"
+            else
+                umount "$efi_part_mountpoint"
+                mkdir -p /mnt"$efi_part_mountpoint"
+                mount "$efi_part" "$efi_part_mountpoint"
+            fi
         fi
     fi
 elif [[ "$boot_mode" == "BIOS" ]]; then
