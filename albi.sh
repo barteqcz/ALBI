@@ -447,7 +447,6 @@ pacman -Sy btrfs-progs dosfstools inetutils net-tools ufw xfsprogs base-devel ba
 systemctl enable NetworkManager
 systemctl enable bluetooth
 systemctl enable ufw
-sudo ufw enable
 
 ## Determine the system's boot mode (UEFI or BIOS)
 if [[ -d "/sys/firmware/efi/" ]]; then
