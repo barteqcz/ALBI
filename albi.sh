@@ -372,8 +372,9 @@ if [[ $tmp_part_exists == "true" ]]; then
 fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    if [[ "$boot_part_exists" == "true" && "$efi_part" == "$separate_boot_part" ]]; then
+    if [[ "$efi_part_mountpoint" == "/boot" ]]; then
         echo "Error: mounting the EFI partition in the /boot directory isn't possible because of differing filesystems."
+        echo "It's recommended to mount the EFI partition in /boot/efi."
         exit
     else
         efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
