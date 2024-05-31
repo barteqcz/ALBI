@@ -372,8 +372,8 @@ if [[ $tmp_part_exists == "true" ]]; then
 fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    if [[ "$efi_part_mountpoint" == "/boot" ]]; then
-        echo "Error: mounting the EFI partition in the /boot directory isn't possible because of differing filesystems."
+    if [[ "$efi_part_mountpoint" == "/boot" || "$efi_part_mountpoint" == "/boot/" ]]; then
+        echo "Error: mounting the EFI partition directly in the /boot directory isn't possible because of differing filesystems."
         echo "It's recommended to mount the EFI partition in /boot/efi."
         exit
     else
