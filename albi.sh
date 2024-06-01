@@ -107,6 +107,22 @@ passwd_length=${#password}
 username_length=${#username}
 luks_passphrase_length=${#luks_passphrase}
 
+ping -c 4 8.8.8.8 > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 1.1.1.1 > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: no Internet connection."
+    fi
+fi
+
+ping -c 4 google.com > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 one.one.one.one > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: no Internet connection."
+    fi
+fi
+
 if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_variant" == "zen" ]]; then
     echo "Error: invalid value for the kernel variant."
     exit
@@ -164,6 +180,11 @@ if [[ "$boot_mode" == "UEFI" ]]; then
         echo "Error: invalid EFI partition mount point detected. For maximized system compatibility, ALBI only supports the following mount points: /boot/efi (recommended) and /efi."
         exit
     fi
+fi
+
+if ! grep -qF "$language" "/etc/locale.gen"; then
+    echo "Error: the language you picked, doesn't exist."
+    exit
 fi
 
 ## Determine if there are any custom packages specified for installation
@@ -641,7 +662,7 @@ mkinitcpio -P
 
 ## Remove unnecessary packages and files, and exit the script
 while pacman -Qdtq; do
-    pacman -R $(pacman -Qdtq) --noconfirm
+    pacman -Runs $(pacman -Qdtq) --noconfirm
 done
 yes | pacman -Sc
 yes | pacman -Scc
