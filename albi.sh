@@ -107,6 +107,7 @@ passwd_length=${#password}
 username_length=${#username}
 luks_passphrase_length=${#luks_passphrase}
 
+echo "Checking the Internet connection..."
 ping -c 4 8.8.8.8 > /dev/null 2>&1
 if ! [[ $? -eq 0 ]]; then
     ping -c 4 1.1.1.1 > /dev/null 2>&1
@@ -119,7 +120,7 @@ ping -c 4 google.com > /dev/null 2>&1
 if ! [[ $? -eq 0 ]]; then
     ping -c 4 one.one.one.one > /dev/null 2>&1
     if ! [[ $? -eq 0 ]]; then
-        echo "Error: no Internet connection."
+        echo "Error: DNS isn't working. Check your network's configuration"
     fi
 fi
 
