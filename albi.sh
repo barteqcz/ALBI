@@ -641,7 +641,7 @@ mkinitcpio -P
 
 ## Remove unnecessary packages and files, and exit the script
 while pacman -Qdtq; do
-    pacman -R $(pacman -Qdtq) --noconfirm
+    pacman -Runs $(pacman -Qdtq) --noconfirm
 done
 yes | pacman -Sc
 yes | pacman -Scc
