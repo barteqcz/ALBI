@@ -160,9 +160,8 @@ if ! [[ "$swapfile_size_gb" =~ ^[0-9]+$ ]]; then
 fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    if [[ "$efi_part_mountpoint" == "/boot" || "$efi_part_mountpoint" == "/boot/" ]]; then
-        echo "Error: mounting the EFI partition directly in the /boot directory isn't possible because of differing filesystems."
-        echo "It's recommended to mount the EFI partition in /boot/efi."
+    if ! [[ "$efi_part_mountpoint" == "/boot/efi" || "$efi_part_mountpoint" == "/efi" ]]; then
+        echo "Error: invalid EFI partition mount point detected. For maximized system compatibility, ALBI only supports the following mount points: /boot/efi (recommended) and /efi."
         exit
     fi
 fi
