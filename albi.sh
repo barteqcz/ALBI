@@ -77,6 +77,7 @@ timezone="Europe/Prague"  #### System time zone
 ### Hostname and User
 hostname="changeme"  #### Machine name
 username="changeme"  #### User name
+full_username="Changeme Please"  #### Full user name (optional - leave empty if you don't want it)
 password="changeme"  #### User password
 
 ### Locales
@@ -505,6 +506,9 @@ echo "ff02::2         ip6-allrouters" >> /etc/hosts
 ## Create an user
 useradd -m "$username"
 echo "$password" | passwd "$username" --stdin
+if [[ "$full_username" != "" ]]; then
+    usermod -c "$full_username" "$username"
+fi
 usermod -aG wheel "$username"
 
 ## Remove the password from the configuration file if it's going to be kept
