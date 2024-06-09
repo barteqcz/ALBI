@@ -108,23 +108,6 @@ passwd_length=${#password}
 username_length=${#username}
 luks_passphrase_length=${#luks_passphrase}
 
-echo "Checking the Internet connection..."
-ping -c 4 8.8.8.8 > /dev/null 2>&1
-if ! [[ $? -eq 0 ]]; then
-    ping -c 4 1.1.1.1 > /dev/null 2>&1
-    if ! [[ $? -eq 0 ]]; then
-        echo "Error: no Internet connection."
-    fi
-fi
-
-ping -c 4 google.com > /dev/null 2>&1
-if ! [[ $? -eq 0 ]]; then
-    ping -c 4 one.one.one.one > /dev/null 2>&1
-    if ! [[ $? -eq 0 ]]; then
-        echo "Error: DNS isn't working. Check your network's configuration"
-    fi
-fi
-
 if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_variant" == "zen" ]]; then
     echo "Error: invalid value for the kernel variant."
     exit
@@ -397,6 +380,23 @@ elif [[ "$boot_mode" == "BIOS" ]]; then
     if ! [[ -b "$grub_disk" ]]; then
         echo "Error: disk path $grub_disk is not accessible or does not exist."
         exit
+    fi
+fi
+
+## Verify if the system is connected to the Internet
+ping -c 4 8.8.8.8 > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 1.1.1.1 > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: no Internet connection."
+    fi
+fi
+
+ping -c 4 google.com > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 one.one.one.one > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: DNS isn't working. Check your network's configuration"
     fi
 fi
 
