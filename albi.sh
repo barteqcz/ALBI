@@ -189,30 +189,6 @@ if ! grep -qF "$language" "/etc/locale.gen"; then
     exit
 fi
 
-## Determine if there are any custom packages specified for installation
-if ! [[ -z "$custom_packages" ]]; then
-    pacman -Sy
-
-    IFS=" " read -ra packages <<< "$custom_packages"
-
-    for package in "${packages[@]}"; do
-        pacman_output=$(pacman -Ss "$package")
-        if ! [[ -n "$pacman_output" ]]; then
-            echo "Error: package $package not found."
-            exit
-        fi
-    done
-fi
-
-## Verify if the reflector command execution encounters any errors
-if [[ "$mirror_location" != "none" ]]; then
-    reflector_output=$(reflector --country "$mirror_location")
-    if [[ "$reflector_output" == *"error"* || "$reflector_output" == *"no mirrors found"* ]]; then
-        echo "Error: invalid country name for Reflector."
-        exit
-    fi
-fi
-
 ## Validate the existence of the specified partitions before proceeding
 mount_output=$(df -h)
 mount_partition=$(echo "$mount_output" | awk '$6=="/mnt" {print $1}')
@@ -424,9 +400,30 @@ elif [[ "$boot_mode" == "BIOS" ]]; then
     fi
 fi
 
-## If a mirror location is specified, run Reflector and update the mirrorlist accordingly
+## Verify if the reflector command execution encounters any errors
 if [[ "$mirror_location" != "none" ]]; then
-    reflector --sort rate --country "$mirror_location" --save /etc/pacman.d/mirrorlist
+    reflector_output=$(reflector --country "$mirror_location")
+    if [[ "$reflector_output" == *"error"* || "$reflector_output" == *"no mirrors found"* ]]; then
+        echo "Error: invalid country name for Reflector."
+        exit
+    else
+        reflector --sort rate --country "$mirror_location" --save /etc/pacman.d/mirrorlist
+    fi
+fi
+
+## Determine if there are any custom packages specified for installation
+if ! [[ -z "$custom_packages" ]]; then
+    pacman -Sy
+
+    IFS=" " read -ra packages <<< "$custom_packages"
+
+    for package in "${packages[@]}"; do
+        pacman_output=$(pacman -Ss "$package")
+        if ! [[ -n "$pacman_output" ]]; then
+            echo "Error: package $package not found."
+            exit
+        fi
+    done
 fi
 
 ## Install the base system packages based on the selected kernel variant
