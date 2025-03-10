@@ -793,7 +793,7 @@ if [[ "$create_swapfile" == "yes" ]]; then
 fi
 
 if [[ "$tpm2_luks" == "yes" ]]; then
-    PASSWORD="$luks_passphrase" systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto "$root_part"
+    PASSWORD="$luks_passphrase" systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+7+8+9 "$root_part"
 fi
 
 mkinitcpio -P
