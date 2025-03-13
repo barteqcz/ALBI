@@ -15,6 +15,12 @@ else
     boot_mode="BIOS"
 fi
 
+if ls /dev/tpm* &>/dev/null; then
+    tpm2_available="yes"
+else
+    tpm2_available="no"
+fi
+
 if [[ -e "config.conf" ]]; then
     output=$(bash -n "$cwd"/config.conf 2>&1)
     if [[ -n "$output" ]]; then
@@ -59,6 +65,9 @@ if [[ -e "config.conf" ]]; then
 
         if [[ "$luks_encryption" == "yes" ]]; then
             echo "Disk encryption is enabled with a passphrase $luks_passphrase"
+            if [[ "$tpm2_luks" == "yes" ]]; then
+                echo "LUKS key will be stored in the TPM2 device"
+            fi
         else
             echo "Disk encryption is disabled"
         fi
@@ -141,6 +150,10 @@ separate_tmp_part="none"  #### Path for the /tmp partition
 luks_encryption="yes"  #### Encrypt the system (yes/no)
 luks_passphrase="4V3ryH@rdP4ssphr@s3!"  #### Passphrase for encryption
 EOF
+
+if [[ "$tpm2_available" == "yes" ]]; then
+    echo "tpm2_luks=\"yes\"  #### Whether or not to store the LUKS key in the TPM2 for automatic unlocking during boot (yes/no)" >> config.conf
+fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
     echo "" >> config.conf
@@ -598,7 +611,7 @@ ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 systemctl enable systemd-timesyncd
 hwclock --systohc
 
-pacman -Sy btrfs-progs dosfstools inetutils xfsprogs base-devel polkit bash-completion nano git grub ntfs-3g sshfs dnsmasq wget exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
+pacman -Sy btrfs-progs dosfstools inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
     pacman -S networkmanager --noconfirm
@@ -700,7 +713,7 @@ if [[ "$de" != "none" ]]; then
     sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)\(quiet\)\(.*\)"/\1\2 splash\3"/' /etc/default/grub
 fi
 
-grub-mkconfig -o /boot/grub/grub.cfg
+sed -i '/^#\s*GRUB_DISABLE_OS_PROBER/s/^#\s*//' /etc/default/grub
 
 if [[ "$audio_server" == "pipewire" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
@@ -721,14 +734,15 @@ elif [[ "$gpu" == "nvidia" ]]; then
     else
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
     fi
-    grub-mkconfig -o /boot/grub/grub.cfg
 elif [[ "$gpu" == "other" ]]; then
     pacman -S mesa --noconfirm
 fi
 
+grub-mkconfig -o /boot/grub/grub.cfg
+
 if [[ "$de" == "gnome" ]]; then
     pacman -S xorg wayland --noconfirm
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon --noconfirm
+    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon dnsmasq --noconfirm
     systemctl enable gdm
     if [[ "$gpu" == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
@@ -777,6 +791,12 @@ if [[ "$create_swapfile" == "yes" ]]; then
     mkswap /swapfile
     echo "# /swapfile" >> /etc/fstab
     echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
+fi
+
+if [[ "$tpm2_luks" == "yes" ]]; then
+    pacman -S tpm2_tools
+    tpm2_clear
+    PASSWORD="$luks_passphrase" --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=1+5+7 "$root_part"
 fi
 
 mkinitcpio -P
