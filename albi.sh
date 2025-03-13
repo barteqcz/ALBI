@@ -5,7 +5,7 @@ interrupt_handler() {
     exit
 }
 
-trap interrupt_handler SIGINT
+trap interrupt_handler SIGINT SIGTERM
 
 cwd=$(pwd)
 
