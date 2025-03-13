@@ -794,7 +794,7 @@ if [[ "$create_swapfile" == "yes" ]]; then
 fi
 
 if [[ "$tpm2_luks" == "yes" ]]; then
-    pacman -S tpm2_tools
+    pacman -S tpm2-tools
     tpm2_clear
     PASSWORD="$luks_passphrase" --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=1+5+7 "$root_part"
 fi
