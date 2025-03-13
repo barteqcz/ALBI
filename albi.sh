@@ -713,7 +713,7 @@ if [[ "$de" != "none" ]]; then
     sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)\(quiet\)\(.*\)"/\1\2 splash\3"/' /etc/default/grub
 fi
 
-sed -i '/^#\s*GRUB_DISABLE_OS_PROBER/s/^#\s*//' /etc/default/grub
+sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/g' /etc/default/grub
 
 if [[ "$audio_server" == "pipewire" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
