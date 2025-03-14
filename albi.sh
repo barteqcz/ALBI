@@ -15,12 +15,6 @@ else
     boot_mode="BIOS"
 fi
 
-if ls /dev/tpm* &>/dev/null; then
-    tpm2_available="yes"
-else
-    tpm2_available="no"
-fi
-
 if [[ -e "config.conf" ]]; then
     output=$(bash -n "$cwd"/config.conf 2>&1)
     if [[ -n "$output" ]]; then
@@ -65,9 +59,6 @@ if [[ -e "config.conf" ]]; then
 
         if [[ "$luks_encryption" == "yes" ]]; then
             echo "Disk encryption is enabled with a passphrase $luks_passphrase"
-            if [[ "$tpm2_luks" == "yes" ]]; then
-                echo "LUKS key will be stored in the TPM2 device"
-            fi
         else
             echo "Disk encryption is disabled"
         fi
@@ -150,10 +141,6 @@ separate_tmp_part="none"  #### Path for the /tmp partition
 luks_encryption="yes"  #### Encrypt the system (yes/no)
 luks_passphrase="4V3ryH@rdP4ssphr@s3!"  #### Passphrase for encryption
 EOF
-
-if [[ "$tpm2_available" == "yes" ]]; then
-    echo "tpm2_luks=\"yes\"  #### Whether or not to store the LUKS key in the TPM2 for automatic unlocking during boot (yes/no)" >> config.conf
-fi
 
 if [[ "$boot_mode" == "UEFI" ]]; then
     echo "" >> config.conf
@@ -791,12 +778,6 @@ if [[ "$create_swapfile" == "yes" ]]; then
     mkswap /swapfile
     echo "# /swapfile" >> /etc/fstab
     echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
-fi
-
-if [[ "$tpm2_luks" == "yes" ]]; then
-    pacman -S tpm2-tools --noconfirm
-    tpm2_clear
-    PASSWORD="$luks_passphrase" --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=1+5+7 "$root_part"
 fi
 
 mkinitcpio -P
