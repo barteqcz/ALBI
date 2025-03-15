@@ -20,7 +20,7 @@ An Arch Linux Bash Installer, with an easily customizable installation process u
 ### Downloading
 To download the entire repository, including both the source file and documentation, you can reach it using `git` (remember to install it first).
 
-`git clone https://github.com/barteqcz/ALBI` (which doesn't work for me recently)
+`git clone https://github.com/barteqcz/ALBI`
 
 you can also use `curl` which is available by default
 
