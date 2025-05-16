@@ -598,7 +598,7 @@ ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 systemctl enable systemd-timesyncd
 hwclock --systohc
 
-pacman -Sy btrfs-progs dosfstools inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
+pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
     pacman -S networkmanager --noconfirm
@@ -729,14 +729,15 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
     pacman -S xorg wayland --noconfirm
-    pacman -S gnome nautilus noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gvfs gdm gnome-browser-connector power-profiles-daemon dnsmasq --noconfirm
+    pacman -Sg gnome | awk '{print $1}' | grep -v -E 'epiphany|gnome-tour|gnome-maps|totem|gnome-user-docs|snapshot|yelp' | xargs pacman -S --noconfirm
+    pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
     if [[ "$gpu" == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ "$de" == "plasma" ]]; then
     pacman -S xorg wayland --noconfirm
-    pacman -S plasma-meta ufw dnsmasq --noconfirm
+    pacman -S plasma-meta ufw --noconfirm
     systemctl enable sddm
 elif [[ "$de" == "xfce" ]]; then
     pacman -S xorg wayland --noconfirm
