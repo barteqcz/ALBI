@@ -736,7 +736,7 @@ if [[ "$de" == "gnome" ]]; then
     fi
 elif [[ "$de" == "plasma" ]]; then
     pacman -S xorg wayland --noconfirm
-    pacman -S sddm plasma kwalletmanager kate kalk konsole dolphin spectacle ark noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon maliit-keyboard gwenview ufw --noconfirm
+    pacman -S plasma-meta ufw dnsmasq --noconfirm
     systemctl enable sddm
 elif [[ "$de" == "xfce" ]]; then
     pacman -S xorg wayland --noconfirm
