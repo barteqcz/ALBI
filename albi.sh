@@ -728,16 +728,16 @@ fi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
-    pacman -S xorg wayland --noconfirm
-    pacman -Sg gnome | awk '{print $1}' | grep -v -E 'epiphany|gnome-tour|gnome-maps|totem|gnome-user-docs|snapshot|yelp' | xargs pacman -S --noconfirm
+    pacman -S xorg wayland gnome --noconfirm
+    pacman -Rns epiphany gnome-tour gnome-maps totem gnome-user-docs snapshot yelp gnome-software --noconfirm
     pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
     if [[ "$gpu" == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ "$de" == "plasma" ]]; then
-    pacman -S xorg wayland --noconfirm
-    pacman -S plasma-meta ufw --noconfirm
+    pacman -S xorg wayland plasma ufw dolphin --noconfirm
+    pacman -Rns discover --noconfirm
     systemctl enable sddm
 elif [[ "$de" == "xfce" ]]; then
     pacman -S xorg wayland --noconfirm
