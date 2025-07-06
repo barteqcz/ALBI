@@ -11,7 +11,7 @@ An Arch Linux Bash Installer, with an easily customizable installation process u
 
 - Seamless Printing Experience: Enjoy full CUPS implementation support, which includes hassle-free driverless printing and seamless network printer compatibility. Additionally, the installation includes the essential HPLIP with its CUPS plugin for enhanced functionality and full support for HP printers.
 
-- Automated Configuration and Flexibility: Before installation, all settings are conveniently configured in a user-friendly file. Once initiated, the installation becomes completely 'hands-free,' requiring no further user intervention. Moreover, the configuration file can be easily replicated across multiple machines, streamlining the setup process. ALBI also offers custom package installation support, allowing you to specify additional packages you wish to install into your system.
+- Automated Configuration and Flexibility: Before installation, all settings are conveniently configured in a user-friendly file. Once initiated, the installation becomes completely 'hands-free,' requiring no further user intervention. Moreover, the configuration file can be easily replicated across multiple machines, streamlining the setup process.
 
 - Error-Proof Configuration Checker: ALBI features a configuration error checker, diligently scanning the configuration file for any errors or syntax issues. This ensures a flawless installation process with minimal chances of unexpected problems.
 
