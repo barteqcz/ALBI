@@ -32,4 +32,4 @@ If you prefer a more 'hands-on' approach, you have the option to manually downlo
 Before running the script, ensure that you have created all the partitions you intend to use. Then, you have to specify their paths in the configuration file. The script will then proceed to create a filesystem on each partition and automatically mount them as specified.
 
 ### Configuration and running
-Launching the program is a breeze; just type `bash albi.sh`, but ensure you are in the same directory as the script. On its first run, the script generates a configuration file named `config.conf`, tailored to your system's boot mode (UEFI or BIOS). For customizing variable values in the configuration file, use tools like nano or vim and refer to the documentation for possible variable values.
+Launching the program is a breeze; just type `bash albi.sh`, but ensure you are in the same directory as the script. On its first run, the script generates a configuration file named `config.conf`, tailored to your system's boot mode (UEFI or BIOS). For customizing variable values in the configuration file, use tools like `nano` or `vim`.
