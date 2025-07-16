@@ -202,6 +202,26 @@ passwd_length=${#password}
 username_length=${#username}
 luks_passphrase_length=${#luks_passphrase}
 
+
+echo "Checking the Internet connection..."
+ping -c 4 8.8.8.8 > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 1.1.1.1 > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: no Internet connection."
+        exit
+    fi
+fi
+
+ping -c 4 google.com > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 one.one.one.one > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: DNS isn't working. Check your network configuration"
+        exit
+    fi
+fi
+
 if ! [[ "$network_management" == "network-manager" || "$network_management" == "systemd-networkd" || "$network_management" == "none" ]]; then
     echo "Error: invalid value for the network management tool: $network_management"
     exit
@@ -524,23 +544,6 @@ elif [[ "$boot_mode" == "BIOS" ]]; then
     fi
 fi
 
-echo "Checking the Internet connection..."
-ping -c 4 8.8.8.8 > /dev/null 2>&1
-if ! [[ $? -eq 0 ]]; then
-    ping -c 4 1.1.1.1 > /dev/null 2>&1
-    if ! [[ $? -eq 0 ]]; then
-        echo "Error: no Internet connection."
-    fi
-fi
-
-ping -c 4 google.com > /dev/null 2>&1
-if ! [[ $? -eq 0 ]]; then
-    ping -c 4 one.one.one.one > /dev/null 2>&1
-    if ! [[ $? -eq 0 ]]; then
-        echo "Error: DNS isn't working. Check your network configuration"
-    fi
-fi
-
 if [[ "$mirror_location" != "none" ]]; then
     reflector_output=$(reflector --country "$mirror_location")
     if [[ "$reflector_output" == *"error"* || "$reflector_output" == *"no mirrors found"* ]]; then
@@ -601,8 +604,12 @@ hwclock --systohc
 pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
-    pacman -S networkmanager --noconfirm
+    pacman -S networkmanager iwd --noconfirm
+    systemctl mask wpa_supplicant
+    systemctl enable iwd
     systemctl enable NetworkManager
+    echo "[device]" > /etc/NetworkManager/conf.d/backend.conf
+    echo "wifi.backend = iwd" >> /etc/NetworkManager/conf.d/backend.conf
 elif [[ "$network_management" == "systemd-networkd" ]]; then
     default_route=$(ip route | grep '^default')
     gateway=$(echo "$default_route" | awk '{print $3}')
