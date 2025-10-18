@@ -74,7 +74,13 @@ if [[ -e "config.conf" ]]; then
         echo "Time zone: $timezone"
         echo "Hostname: $hostname"
         echo "Username: $username"
-        echo "Full username: $full_username"
+
+        if [[ "$full_username" != "" ]]; then
+            echo "Full username: $full_username"
+        else
+            echo "Full username was not set."
+        fi
+        
         echo "User password: $password"
         echo "Language: $language"
         echo "TTY keyboard layout: $tty_keyboard_layout"
