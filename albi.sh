@@ -362,6 +362,15 @@ if [[ "$separate_boot_part" != "none" ]]; then
     fi
 fi
 
+if [[ "$boot_mode" == "UEFI" ]]; then
+    if [[ "$separate_boot_part" != "none" ]]; then
+        if [[ "$separate_boot_part" == "$efi_part" ]]; then
+            echo "Error: EFI partition must not be the same as the /boot part, because of the filesystem difference."
+            exit
+        fi
+    fi
+fi
+
 if [[ "$root_part" != "none" ]]; then
     if [[ -n "$mount_partition" ]]; then
         echo "Error: /mnt is already mounted, however you specified another partition to mount it on."
