@@ -21,7 +21,19 @@ if [[ -e "config.conf" ]]; then
         echo "Syntax errors found in the configuration file."
         exit
     else
-        source "$cwd"/config.conf
+        while IFS='=' read -r key value; do
+            key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
+            value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
+            
+            [[ -z "$key" ]] && continue
+            
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            declare "$key=$value"
+        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
         clear
         echo "Are these information correct?"
         echo ""
@@ -122,7 +134,19 @@ if [[ -e "config.conf" ]]; then
             fi
         done
 
-        source "$cwd"/config.conf
+        while IFS='=' read -r key value; do
+            key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
+            value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
+            
+            [[ -z "$key" ]] && continue
+            
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            declare "$key=$value"
+        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
     fi
 else
     touch config.conf
@@ -598,7 +622,19 @@ interrupt_handler() {
 
 trap interrupt_handler SIGINT
 
-source /config.conf
+while IFS='=' read -r key value; do
+    key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
+    value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
+
+    [[ -z "$key" ]] && continue
+
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+            
+    declare "$key=$value"
+done < <(grep -v '^#' /config.conf | grep -v '^$')
 if [[ "$luks_encryption" == "yes" ]]; then
     source /tmpfile.sh
 fi
