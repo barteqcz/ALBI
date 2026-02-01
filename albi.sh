@@ -96,7 +96,13 @@ if [[ -e "config.conf" ]]; then
         echo "User password: $password"
         echo "Language: $language"
         echo "TTY keyboard layout: $tty_keyboard_layout"
-        echo "Audio server: $audio_server"
+
+        if [[ "$install_pipewire" == "yes" ]]; then
+            echo "PipeWire installation is enabled"
+        else
+            echo "PipeWire installation is disabled"
+        fi
+
         echo "GPU driver: $gpu"
         echo "Desktop environment: $de"
         
@@ -211,7 +217,7 @@ language="en_US.UTF-8"  #### System language
 tty_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
-audio_server="pipewire"  #### Audio server (pulseaudio/pipewire/none)
+install_pipewire="yes"  #### Install PipeWire (yes/no)
 gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none)
 de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
@@ -288,8 +294,8 @@ if ! [[ "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
     exit
 fi
 
-if ! [[ "$audio_server" == "pipewire" || "$audio_server" == "pulseaudio" || "$audio_server" == "none" ]]; then
-    echo "Error: invalid value for the audio server: $audio_server"
+if ! [[ "$install_pipewire" == "yes" || "$install_pipewire" == "no" ]]; then
+    echo "Error: invalid value for the PipeWire installation seting: $install_pipewire"
     exit
 fi
 
@@ -760,12 +766,8 @@ fi
 
 sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/g' /etc/default/grub
 
-if [[ "$audio_server" == "pipewire" ]]; then
+if [[ "$install_pipewire" == "yes" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
-    systemctl --global enable pipewire wireplumber
-elif [[ "$audio_server" == "pulseaudio" ]]; then
-    pacman -S pulseaudio --noconfirm
-    systemctl --global enable pipewire pulseaudio
 fi
 
 if [[ "$gpu" == "amd" ]]; then
