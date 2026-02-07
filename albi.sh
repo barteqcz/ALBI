@@ -789,7 +789,6 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
     pacman -S xorg wayland gnome --noconfirm
-    pacman -Rns gnome-tour gnome-maps totem gnome-user-docs snapshot yelp gnome-software --noconfirm
     pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
     if [[ "$gpu" == "nvidia" ]]; then
