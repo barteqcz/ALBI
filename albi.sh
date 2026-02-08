@@ -658,6 +658,15 @@ ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 systemctl enable systemd-timesyncd
 hwclock --systohc
 
+if [[ "$language" != "en_US.UTF-8" ]]; then
+    sed -i "/en_US.UTF-8 UTF-8/s/^#//" /etc/locale.gen
+fi
+sed -i "/$language/s/^#//" /etc/locale.gen
+echo "LANG=$language" > /etc/locale.conf
+echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
+echo "$hostname" > /etc/hostname
+locale-gen
+
 pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
@@ -708,15 +717,6 @@ if [[ "$vendor" == "GenuineIntel" ]]; then
 elif [[ "$vendor" == "AuthenticAMD" ]]; then
     pacman -Sy amd-ucode --noconfirm
 fi
-
-if [[ "$language" != "en_US.UTF-8" ]]; then
-    sed -i "/en_US.UTF-8 UTF-8/s/^#//" /etc/locale.gen
-fi
-sed -i "/$language/s/^#//" /etc/locale.gen
-echo "LANG=$language" > /etc/locale.conf
-echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
-echo "$hostname" > /etc/hostname
-locale-gen
 
 echo "127.0.0.1       localhost" >> /etc/hosts
 echo "127.0.1.1       $hostname" >> /etc/hosts
