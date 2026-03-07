@@ -795,7 +795,7 @@ if [[ "$de" == "gnome" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ "$de" == "plasma" ]]; then
-    pacman -S xorg wayland plasma ufw dolphin konsole --noconfirm
+    pacman -S xorg wayland plasma ufw dolphin konsole power-profiles-daemon --noconfirm
     pacman -Rns discover --noconfirm
     systemctl enable sddm
 elif [[ "$de" == "xfce" ]]; then
