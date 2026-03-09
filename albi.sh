@@ -675,7 +675,7 @@ if [[ "$network_management" == "network-manager" ]]; then
     systemctl enable NetworkManager
     echo "[device]" > /etc/NetworkManager/conf.d/backend.conf
     echo "wifi.backend = iwd" >> /etc/NetworkManager/conf.d/backend.conf
-    pacman -Rns wpa_supplicant --noconfirm
+    #pacman -Rns wpa_supplicant --noconfirm
 elif [[ "$network_management" == "systemd-networkd" ]]; then
     default_route=$(ip route | grep '^default')
     gateway=$(echo "$default_route" | awk '{print $3}')
