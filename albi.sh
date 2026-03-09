@@ -672,10 +672,10 @@ pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit b
 if [[ "$network_management" == "network-manager" ]]; then
     pacman -S networkmanager iwd --noconfirm
     systemctl mask wpa_supplicant
-    systemctl enable iwd
     systemctl enable NetworkManager
     echo "[device]" > /etc/NetworkManager/conf.d/backend.conf
     echo "wifi.backend = iwd" >> /etc/NetworkManager/conf.d/backend.conf
+    pacman -Rns wpa_supplicant --noconfirm
 elif [[ "$network_management" == "systemd-networkd" ]]; then
     default_route=$(ip route | grep '^default')
     gateway=$(echo "$default_route" | awk '{print $3}')
