@@ -22,9 +22,9 @@ if [[ -e "config.conf" ]]; then
         exit
     else
         while IFS='=' read -r key value; do
-            key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
-            value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
-            
+            key=$(echo "$key" | sed 's/[[:space:]]\+#.*$//' | xargs)
+            value=$(echo "$value" | sed 's/[[:space:]]\+#.*$//' | xargs)
+
             [[ -z "$key" ]] && continue
             
             value="${value%\"}"
