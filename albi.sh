@@ -772,6 +772,12 @@ fi
 
 if [[ "$gpu" == "amd" ]]; then
     pacman -S mesa vulkan-radeon --noconfirm
+    if grep -q "^MODULES=()" /etc/mkinitcpio.conf; then
+        sed -i "s|^MODULES=()|MODULES=(amdgpu)|" /etc/mkinitcpio.conf
+    else
+        sed -i "s|^\(MODULES=(.*\))|\1 amdgpu)|" /etc/mkinitcpio.conf
+    fi
+fi
 elif [[ "$gpu" == "intel" ]]; then
     pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 elif [[ "$gpu" == "nvidia" ]]; then
