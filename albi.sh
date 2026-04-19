@@ -777,7 +777,6 @@ if [[ "$gpu" == "amd" ]]; then
     else
         sed -i "s|^\(MODULES=(.*\))|\1 amdgpu)|" /etc/mkinitcpio.conf
     fi
-fi
 elif [[ "$gpu" == "intel" ]]; then
     pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 elif [[ "$gpu" == "nvidia" ]]; then
