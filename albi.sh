@@ -791,7 +791,7 @@ if [[ "$de" == "gnome" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ "$de" == "plasma" ]]; then
-    pacman -S plasma noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
+    pacman -S plasma plasma-login-manager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
 elif [[ "$de" == "xfce" ]]; then
     pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
     systemctl enable lightdm
