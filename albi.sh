@@ -193,7 +193,6 @@ cat <<EOF >> config.conf
 
 ### Connectivity
 network_management="network-manager"  #### Network management tool (network-manager/systemd-networkd/none)
-bluetooth="yes"  #### Decides if you want to have Bluetooth support (yes/no)
 
 ### Kernel Variant
 kernel_variant="normal"  #### Kernel variant (normal/lts/zen)
@@ -272,11 +271,6 @@ if [[ "$network_management" == "systemd-networkd" ]]; then
         echo "Error: if you wish to use a desktop environment, please use Network Manager."
         exit
     fi
-fi
-
-if ! [[ "$bluetooth" == "yes" || "$bluetooth" == "no" ]]; then
-    echo "Error: invalid value for the bluetooth support question: $bluetooth"
-    exit
 fi
 
 if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_variant" == "zen" ]]; then
@@ -699,10 +693,8 @@ elif [[ "$network_management" == "systemd-networkd" ]]; then
     systemctl enable systemd-networkd systemd-resolved
 fi
 
-if [[ "$bluetooth" == "yes" ]]; then
-    pacman -S bluez --noconfirm
-    systemctl enable bluetooth
-fi
+pacman -S bluez --noconfirm
+systemctl enable bluetooth
 
 if [[ -d "/sys/firmware/efi/" ]]; then
     boot_mode="UEFI"
@@ -793,41 +785,31 @@ fi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
-    pacman -S xorg wayland gnome --noconfirm
-    pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
+    pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
     if [[ "$gpu" == "nvidia" ]]; then
         ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
     fi
 elif [[ "$de" == "plasma" ]]; then
-    pacman -S xorg wayland plasma noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
-    systemctl enable sddm
+    pacman -S plasma noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
 elif [[ "$de" == "xfce" ]]; then
-    pacman -S xorg wayland --noconfirm
     pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
     systemctl enable lightdm
 elif [[ "$de" == "cinnamon" ]]; then
-    pacman -S xorg wayland --noconfirm
     pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
     sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
 elif [[ "$de" == "mate" ]]; then
-    pacman -S xorg wayland --noconfirm
     pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
     systemctl enable lightdm
 fi
 
 if [[ "$install_cups" == yes ]]; then
-    pacman -S cups cups-browsed cups-filters cups-pk-helper foomatic-db foomatic-db-engine foomatic-db-gutenprint-ppds foomatic-db-nonfree foomatic-db-nonfree-ppds foomatic-db-ppds ghostscript gutenprint hplip nss-mdns system-config-printer --noconfirm
+    pacman -S cups cups-filters cups-pk-helper cups-browsed bluez-cups ghostscript gutenprint hplip nss-mdns --noconfirm
     systemctl enable cups
     systemctl enable cups-browsed
     systemctl enable avahi-daemon
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
-    rm -f /usr/share/applications/hplip.desktop
-    rm -f /usr/share/applications/hp-uiscan.desktop
-    if [[ "$bluetooth" == "yes" ]]; then
-        pacman -S bluez-cups --noconfirm
-    fi
 fi
 
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
