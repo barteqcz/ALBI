@@ -573,7 +573,7 @@ if [[ "$boot_mode" == "UEFI" ]]; then
         else
             umount "$efi_part_mountpoint"
             mkdir -p /mnt"$efi_part_mountpoint"
-            mount "$efi_part" "$efi_part_mountpoint"
+            mount "$efi_part" /mnt/"$efi_part_mountpoint"
         fi
     fi
 elif [[ "$boot_mode" == "BIOS" ]]; then
