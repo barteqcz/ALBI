@@ -8,15 +8,14 @@ fi
 
 # --- Theme Customization (dialogrc) ---
 # You can change BLACK, BLUE, RED, GREEN, YELLOW, MAGENTA, CYAN, WHITE
-DIALOGRC_TMP=$(mktemp)
 cat << 'EOF' > "$DIALOGRC_TMP"
 use_colors = ON
-screen_color = (WHITE,BLACK,OFF)       # Change 'BLACK' to change the main background backdrop
-dialog_color = (BLACK,WHITE,OFF)       # Dialog box body
-title_color = (RED,WHITE,ON)           # Title text color
-border_color = (GRAY,WHITE,OFF)        # Dialog box borders
-button_active_color = (WHITE,RED,ON)   # Selected button color
-button_inactive_color = (BLACK,WHITE,OFF)
+screen_color = (white,black,off)       
+dialog_color = (black,white,off)       
+title_color = (red,white,on)           
+border_color = (black,white,on)        # Changed from GRAY to black with highlight ON
+button_active_color = (white,red,on)   
+button_inactive_color = (black,white,off)
 EOF
 export DIALOGRC="$DIALOGRC_TMP"
 
