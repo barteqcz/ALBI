@@ -559,21 +559,20 @@ if [[ "$tmp_part_exists" == "true" ]]; then
         echo "Error: wrong filesystem for the /tmp partition: $separate_tmp_part_filesystem"
     fi
 fi
-
 if [[ "$boot_mode" == "UEFI" ]]; then
-    efi_part_filesystem=$(blkid -s TYPE -o value $efi_part)
+    efi_part_filesystem=$(blkid -s TYPE -o value "$efi_part")
     if [[ "$efi_part_filesystem" != "vfat" ]]; then
-        mkfs.fat -F32 "$efi_part"
+        mkfs.fat -F 32 "$efi_part"
         mkdir -p /mnt"$efi_part_mountpoint"
-        mount "$efi_part" /mnt"$efi_part_mountpoint"
+        mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
     else
-        if ! findmnt --noheadings -o SOURCE "$efi_part_mountpoint" | grep -q "$efi_part"; then
+        if ! findmnt --noheadings -o SOURCE /mnt"$efi_part_mountpoint" | grep -q "$efi_part"; then
             mkdir -p /mnt"$efi_part_mountpoint"
-            mount "$efi_part" /mnt"$efi_part_mountpoint"
+            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
         else
             umount /mnt"$efi_part_mountpoint"
             mkdir -p /mnt"$efi_part_mountpoint"
-            mount "$efi_part" /mnt"$efi_part_mountpoint"
+            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
         fi
     fi
 elif [[ "$boot_mode" == "BIOS" ]]; then
