@@ -58,94 +58,105 @@ step=1
 while true; do
     case $step in
         1)
-            root_part=$(dialog --backtitle "$BT" --title "Root Partition" --inputbox "Enter the path for the / partition:" 10 60 "$root_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then clear; echo "Configuration aborted."; exit 0; fi
+            root_part=$(dialog --stdout --backtitle "$BT" --title "Root Partition" --inputbox "Enter the path for the / partition:" 10 60 "$root_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then clear; echo "Configuration aborted."; exit 0; fi
             step=2
             ;;
         2)
-            root_part_filesystem=$(dialog --backtitle "$BT" --title "Root Filesystem" --radiolist "Select the filesystem for /:" 15 50 5 \
+            root_part_filesystem=$(dialog --stdout --backtitle "$BT" --title "Root Filesystem" --radiolist "Select the filesystem for /:" 15 50 5 \
                 "ext4" "" "$(get_status "$root_part_filesystem" "ext4")" \
                 "btrfs" "" "$(get_status "$root_part_filesystem" "btrfs")" \
                 "xfs" "" "$(get_status "$root_part_filesystem" "xfs")" \
                 "ext3" "" "$(get_status "$root_part_filesystem" "ext3")" \
-                "ext2" "" "$(get_status "$root_part_filesystem" "ext2")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=1; continue; fi
+                "ext2" "" "$(get_status "$root_part_filesystem" "ext2")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=1; continue; fi
             step=3
             ;;
         3)
-            separate_home_part=$(dialog --backtitle "$BT" --title "Home Partition" --inputbox "Enter the path for /home, or leave as 'none':" 10 60 "$separate_home_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=2; continue; fi
+            separate_home_part=$(dialog --stdout --backtitle "$BT" --title "Home Partition" --inputbox "Enter the path for /home, or leave as 'none':" 10 60 "$separate_home_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=2; continue; fi
             if [ "$separate_home_part" = "none" ]; then step=5; else step=4; fi
             ;;
         4)
-            separate_home_part_filesystem=$(dialog --backtitle "$BT" --title "Home Filesystem" --radiolist "Select the filesystem for /home:" 15 50 5 \
+            separate_home_part_filesystem=$(dialog --stdout --backtitle "$BT" --title "Home Filesystem" --radiolist "Select the filesystem for /home:" 15 50 5 \
                 "ext4" "" "$(get_status "$separate_home_part_filesystem" "ext4")" \
                 "btrfs" "" "$(get_status "$separate_home_part_filesystem" "btrfs")" \
                 "xfs" "" "$(get_status "$separate_home_part_filesystem" "xfs")" \
                 "ext3" "" "$(get_status "$separate_home_part_filesystem" "ext3")" \
-                "ext2" "" "$(get_status "$separate_home_part_filesystem" "ext2")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=3; continue; fi
+                "ext2" "" "$(get_status "$separate_home_part_filesystem" "ext2")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=3; continue; fi
             step=5
             ;;
         5)
-            separate_boot_part=$(dialog --backtitle "$BT" --title "Boot Partition" --inputbox "Enter the path for /boot, or leave as 'none':" 10 60 "$separate_boot_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+            separate_boot_part=$(dialog --stdout --backtitle "$BT" --title "Boot Partition" --inputbox "Enter the path for /boot, or leave as 'none':" 10 60 "$separate_boot_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$separate_home_part" = "none" ]; then step=3; else step=4; fi
                 continue
             fi
             if [ "$separate_boot_part" = "none" ]; then step=7; else step=6; fi
             ;;
         6)
-            separate_boot_part_filesystem=$(dialog --backtitle "$BT" --title "Boot Filesystem" --radiolist "Select the filesystem for /boot:" 15 50 5 \
+            separate_boot_part_filesystem=$(dialog --stdout --backtitle "$BT" --title "Boot Filesystem" --radiolist "Select the filesystem for /boot:" 15 50 5 \
                 "ext4" "" "$(get_status "$separate_boot_part_filesystem" "ext4")" \
                 "btrfs" "" "$(get_status "$separate_boot_part_filesystem" "btrfs")" \
                 "xfs" "" "$(get_status "$separate_boot_part_filesystem" "xfs")" \
                 "ext3" "" "$(get_status "$separate_boot_part_filesystem" "ext3")" \
-                "ext2" "" "$(get_status "$separate_boot_part_filesystem" "ext2")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=5; continue; fi
+                "ext2" "" "$(get_status "$separate_boot_part_filesystem" "ext2")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=5; continue; fi
             step=7
             ;;
         7)
-            separate_var_part=$(dialog --backtitle "$BT" --title "Var Partition" --inputbox "Enter the path for /var, or leave as 'none':" 10 60 "$separate_var_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+            separate_var_part=$(dialog --stdout --backtitle "$BT" --title "Var Partition" --inputbox "Enter the path for /var, or leave as 'none':" 10 60 "$separate_var_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$separate_boot_part" = "none" ]; then step=5; else step=6; fi
                 continue
             fi
             if [ "$separate_var_part" = "none" ]; then step=9; else step=8; fi
             ;;
         8)
-            separate_var_part_filesystem=$(dialog --backtitle "$BT" --title "Var Filesystem" --radiolist "Select the filesystem for /var:" 15 50 5 \
+            separate_var_part_filesystem=$(dialog --stdout --backtitle "$BT" --title "Var Filesystem" --radiolist "Select the filesystem for /var:" 15 50 5 \
                 "ext4" "" "$(get_status "$separate_var_part_filesystem" "ext4")" \
                 "btrfs" "" "$(get_status "$separate_var_part_filesystem" "btrfs")" \
                 "xfs" "" "$(get_status "$separate_var_part_filesystem" "xfs")" \
                 "ext3" "" "$(get_status "$separate_var_part_filesystem" "ext3")" \
-                "ext2" "" "$(get_status "$separate_var_part_filesystem" "ext2")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=7; continue; fi
+                "ext2" "" "$(get_status "$separate_var_part_filesystem" "ext2")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=7; continue; fi
             step=9
             ;;
         9)
-            separate_tmp_part=$(dialog --backtitle "$BT" --title "Tmp Partition" --inputbox "Enter the path for /tmp, or leave as 'none':" 10 60 "$separate_tmp_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+            separate_tmp_part=$(dialog --stdout --backtitle "$BT" --title "Tmp Partition" --inputbox "Enter the path for /tmp, or leave as 'none':" 10 60 "$separate_tmp_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$separate_var_part" = "none" ]; then step=7; else step=8; fi
                 continue
             fi
             if [ "$separate_tmp_part" = "none" ]; then step=11; else step=10; fi
             ;;
         10)
-            separate_tmp_part_filesystem=$(dialog --backtitle "$BT" --title "Tmp Filesystem" --radiolist "Select the filesystem for /tmp:" 15 50 5 \
+            separate_tmp_part_filesystem=$(dialog --stdout --backtitle "$BT" --title "Tmp Filesystem" --radiolist "Select the filesystem for /tmp:" 15 50 5 \
                 "ext4" "" "$(get_status "$separate_tmp_part_filesystem" "ext4")" \
                 "btrfs" "" "$(get_status "$separate_tmp_part_filesystem" "btrfs")" \
                 "xfs" "" "$(get_status "$separate_tmp_part_filesystem" "xfs")" \
                 "ext3" "" "$(get_status "$separate_tmp_part_filesystem" "ext3")" \
-                "ext2" "" "$(get_status "$separate_tmp_part_filesystem" "ext2")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=9; continue; fi
+                "ext2" "" "$(get_status "$separate_tmp_part_filesystem" "ext2")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=9; continue; fi
             step=11
             ;;
         11)
-            luks_encryption=$(dialog --backtitle "$BT" --title "Disk Encryption" --radiolist "Encrypt the system with LUKS?" 12 40 2 \
+            luks_encryption=$(dialog --stdout --backtitle "$BT" --title "Disk Encryption" --radiolist "Encrypt the system with LUKS?" 12 40 2 \
                 "yes" "" "$(get_status "$luks_encryption" "yes")" \
-                "no" "" "$(get_status "$luks_encryption" "no")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+                "no" "" "$(get_status "$luks_encryption" "no")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$separate_tmp_part" = "none" ]; then step=9; else step=10; fi
                 continue
             fi
@@ -154,144 +165,165 @@ while true; do
             fi
             ;;
         12)
-            luks_passphrase=$(dialog --insecure --backtitle "$BT" --title "LUKS Passphrase" --passwordbox "Enter your encryption passphrase:" 10 50 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=11; continue; fi
+            luks_passphrase=$(dialog --stdout --insecure --backtitle "$BT" --title "LUKS Passphrase" --passwordbox "Enter your encryption passphrase:" 10 50)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=11; continue; fi
             if [ "$boot_mode" = "UEFI" ]; then step=13; else step=15; fi
             ;;
         13)
-            efi_part=$(dialog --backtitle "$BT" --title "EFI Partition" --inputbox "Enter EFI partition path (e.g., /dev/sda1):" 10 60 "$efi_part" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+            efi_part=$(dialog --stdout --backtitle "$BT" --title "EFI Partition" --inputbox "Enter EFI partition path (e.g., /dev/sda1):" 10 60 "$efi_part")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$luks_encryption" = "yes" ]; then step=12; else step=11; fi
                 continue
             fi
             step=14
             ;;
         14)
-            efi_part_mountpoint=$(dialog --backtitle "$BT" --title "EFI Mountpoint" --radiolist "Select EFI mountpoint:" 12 50 2 \
+            efi_part_mountpoint=$(dialog --stdout --backtitle "$BT" --title "EFI Mountpoint" --radiolist "Select EFI mountpoint:" 12 50 2 \
                 "/boot/efi" "Recommended" "$(get_status "$efi_part_mountpoint" "/boot/efi")" \
-                "/efi" "Alternative" "$(get_status "$efi_part_mountpoint" "/efi")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=13; continue; fi
+                "/efi" "Alternative" "$(get_status "$efi_part_mountpoint" "/efi")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=13; continue; fi
             step=16
             ;;
         15)
-            grub_disk=$(dialog --backtitle "$BT" --title "GRUB Disk" --inputbox "Enter disk for GRUB installation (e.g., /dev/sda):" 10 60 "$grub_disk" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+            grub_disk=$(dialog --stdout --backtitle "$BT" --title "GRUB Disk" --inputbox "Enter disk for GRUB installation (e.g., /dev/sda):" 10 60 "$grub_disk")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$luks_encryption" = "yes" ]; then step=12; else step=11; fi
                 continue
             fi
             step=16
             ;;
         16)
-            network_management=$(dialog --backtitle "$BT" --title "Network Management" --radiolist "Select a network manager tool:" 14 50 3 \
+            network_management=$(dialog --stdout --backtitle "$BT" --title "Network Management" --radiolist "Select a network manager tool:" 14 50 3 \
                 "network-manager" "" "$(get_status "$network_management" "network-manager")" \
                 "systemd-networkd" "" "$(get_status "$network_management" "systemd-networkd")" \
-                "none" "" "$(get_status "$network_management" "none")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+                "none" "" "$(get_status "$network_management" "none")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$boot_mode" = "UEFI" ]; then step=14; else step=15; fi
                 continue
             fi
             step=17
             ;;
         17)
-            kernel_variant=$(dialog --backtitle "$BT" --title "Kernel Variant" --radiolist "Select kernel variant:" 14 50 3 \
+            kernel_variant=$(dialog --stdout --backtitle "$BT" --title "Kernel Variant" --radiolist "Select kernel variant:" 14 50 3 \
                 "normal" "Standard Arch Kernel" "$(get_status "$kernel_variant" "normal")" \
                 "lts" "Long Term Support" "$(get_status "$kernel_variant" "lts")" \
-                "zen" "Zen Kernel" "$(get_status "$kernel_variant" "zen")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=16; continue; fi
+                "zen" "Zen Kernel" "$(get_status "$kernel_variant" "zen")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=16; continue; fi
             step=18
             ;;
         18)
-            mirror_location=$(dialog --backtitle "$BT" --title "Mirrors" --inputbox "Enter mirror country (comma-separated or 'none'):" 10 60 "$mirror_location" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=17; continue; fi
+            mirror_location=$(dialog --stdout --backtitle "$BT" --title "Mirrors" --inputbox "Enter mirror country (comma-separated or 'none'):" 10 60 "$mirror_location")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=17; continue; fi
             step=19
             ;;
         19)
-            timezone=$(dialog --backtitle "$BT" --title "Timezone" --inputbox "Enter timezone (Region/City):" 10 60 "$timezone" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=18; continue; fi
+            timezone=$(dialog --stdout --backtitle "$BT" --title "Timezone" --inputbox "Enter timezone (Region/City):" 10 60 "$timezone")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=18; continue; fi
             step=20
             ;;
         20)
-            hostname=$(dialog --backtitle "$BT" --title "Hostname" --inputbox "Enter machine hostname:" 10 60 "$hostname" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=19; continue; fi
+            hostname=$(dialog --stdout --backtitle "$BT" --title "Hostname" --inputbox "Enter machine hostname:" 10 60 "$hostname")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=19; continue; fi
             step=21
             ;;
         21)
-            username=$(dialog --backtitle "$BT" --title "Username" --inputbox "Enter the primary username:" 10 60 "$username" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=20; continue; fi
+            username=$(dialog --stdout --backtitle "$BT" --title "Username" --inputbox "Enter the primary username:" 10 60 "$username")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=20; continue; fi
             step=22
             ;;
         22)
-            full_username=$(dialog --backtitle "$BT" --title "Full Name" --inputbox "Enter full name (optional, leave empty to skip):" 10 60 "$full_username" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=21; continue; fi
+            full_username=$(dialog --stdout --backtitle "$BT" --title "Full Name" --inputbox "Enter full name (optional, leave empty to skip):" 10 60 "$full_username")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=21; continue; fi
             step=23
             ;;
         23)
-            password=$(dialog --insecure --backtitle "$BT" --title "User Password" --passwordbox "Enter user password:" 10 60 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=22; continue; fi
+            password=$(dialog --stdout --insecure --backtitle "$BT" --title "User Password" --passwordbox "Enter user password:" 10 60)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=22; continue; fi
             step=24
             ;;
         24)
-            language=$(dialog --backtitle "$BT" --title "System Language" --inputbox "Enter system language locale:" 10 60 "$language" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=23; continue; fi
+            language=$(dialog --stdout --backtitle "$BT" --title "System Language" --inputbox "Enter system language locale:" 10 60 "$language")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=23; continue; fi
             step=25
             ;;
         25)
-            tty_keyboard_layout=$(dialog --backtitle "$BT" --title "TTY Keyboard Layout" --inputbox "Enter TTY keyboard layout:" 10 60 "$tty_keyboard_layout" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=24; continue; fi
+            tty_keyboard_layout=$(dialog --stdout --backtitle "$BT" --title "TTY Keyboard Layout" --inputbox "Enter TTY keyboard layout:" 10 60 "$tty_keyboard_layout")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=24; continue; fi
             step=26
             ;;
         26)
-            install_pipewire=$(dialog --backtitle "$BT" --title "Audio (PipeWire)" --radiolist "Install PipeWire for audio?" 12 40 2 \
+            install_pipewire=$(dialog --stdout --backtitle "$BT" --title "Audio (PipeWire)" --radiolist "Install PipeWire for audio?" 12 40 2 \
                 "yes" "" "$(get_status "$install_pipewire" "yes")" \
-                "no" "" "$(get_status "$install_pipewire" "no")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=25; continue; fi
+                "no" "" "$(get_status "$install_pipewire" "no")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=25; continue; fi
             step=27
             ;;
         27)
-            gpu=$(dialog --backtitle "$BT" --title "GPU Driver" --radiolist "Select GPU driver:" 16 50 5 \
+            gpu=$(dialog --stdout --backtitle "$BT" --title "GPU Driver" --radiolist "Select GPU driver:" 16 50 5 \
                 "amd" "" "$(get_status "$gpu" "amd")" \
                 "intel" "" "$(get_status "$gpu" "intel")" \
                 "nvidia" "" "$(get_status "$gpu" "nvidia")" \
                 "other" "" "$(get_status "$gpu" "other")" \
-                "none" "" "$(get_status "$gpu" "none")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=26; continue; fi
+                "none" "" "$(get_status "$gpu" "none")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=26; continue; fi
             step=28
             ;;
         28)
-            de=$(dialog --backtitle "$BT" --title "Desktop Environment" --radiolist "Select desktop environment:" 16 50 6 \
+            de=$(dialog --stdout --backtitle "$BT" --title "Desktop Environment" --radiolist "Select desktop environment:" 16 50 6 \
                 "gnome" "" "$(get_status "$de" "gnome")" \
                 "plasma" "" "$(get_status "$de" "plasma")" \
                 "xfce" "" "$(get_status "$de" "xfce")" \
                 "cinnamon" "" "$(get_status "$de" "cinnamon")" \
                 "mate" "" "$(get_status "$de" "mate")" \
-                "none" "" "$(get_status "$de" "none")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=27; continue; fi
+                "none" "" "$(get_status "$de" "none")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=27; continue; fi
             step=29
             ;;
         29)
-            install_cups=$(dialog --backtitle "$BT" --title "Printing (CUPS)" --radiolist "Install CUPS printing support?" 12 40 2 \
+            install_cups=$(dialog --stdout --backtitle "$BT" --title "Printing (CUPS)" --radiolist "Install CUPS printing support?" 12 40 2 \
                 "yes" "" "$(get_status "$install_cups" "yes")" \
-                "no" "" "$(get_status "$install_cups" "no")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=28; continue; fi
+                "no" "" "$(get_status "$install_cups" "no")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=28; continue; fi
             step=30
             ;;
         30)
-            create_swapfile=$(dialog --backtitle "$BT" --title "Swapfile" --radiolist "Create a swapfile?" 12 40 2 \
+            create_swapfile=$(dialog --stdout --backtitle "$BT" --title "Swapfile" --radiolist "Create a swapfile?" 12 40 2 \
                 "yes" "" "$(get_status "$create_swapfile" "yes")" \
-                "no" "" "$(get_status "$create_swapfile" "no")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=29; continue; fi
+                "no" "" "$(get_status "$create_swapfile" "no")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=29; continue; fi
             if [ "$create_swapfile" = "yes" ]; then step=31; else step=32; fi
             ;;
         31)
-            swapfile_size_gb=$(dialog --backtitle "$BT" --title "Swapfile Size" --inputbox "Enter swapfile size in GB:" 10 50 "$swapfile_size_gb" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then step=30; continue; fi
+            swapfile_size_gb=$(dialog --stdout --backtitle "$BT" --title "Swapfile Size" --inputbox "Enter swapfile size in GB:" 10 50 "$swapfile_size_gb")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then step=30; continue; fi
             step=32
             ;;
         32)
-            keep_config=$(dialog --backtitle "$BT" --title "Keep Copy of Config" --radiolist "Keep config.conf in user home folder after installation?" 12 40 2 \
+            keep_config=$(dialog --stdout --backtitle "$BT" --title "Keep Copy of Config" --radiolist "Keep config.conf in user home folder after installation?" 12 40 2 \
                 "yes" "" "$(get_status "$keep_config" "yes")" \
-                "no" "" "$(get_status "$keep_config" "no")" 3>&1 1>&2 2>&3)
-            if [ $? -ne 0 ]; then
+                "no" "" "$(get_status "$keep_config" "no")")
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
                 if [ "$create_swapfile" = "yes" ]; then step=31; else step=30; fi
                 continue
             fi
