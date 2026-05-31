@@ -2,30 +2,10 @@
 
 # Ensure dialog is installed
 if ! command -v dialog &> /dev/null; then
-    echo "Error: 'dialog' is not installed. Install it using: pacman -Sy dialog"
-    exit 1
+    pacman -Sy dialog --noconfirm
 fi
 
-# --- Theme Customization (dialogrc) ---
-# You can change BLACK, BLUE, RED, GREEN, YELLOW, MAGENTA, CYAN, WHITE
-cat << 'EOF' > "$DIALOGRC_TMP"
-use_colors = ON
-screen_color = (white,black,off)       
-dialog_color = (black,white,off)       
-title_color = (red,white,on)           
-border_color = (black,white,on)        # Changed from GRAY to black with highlight ON
-button_active_color = (white,red,on)   
-button_inactive_color = (black,white,off)
-EOF
-export DIALOGRC="$DIALOGRC_TMP"
-
-# Cleanup temporary theme file on exit
-cleanup() {
-    rm -f "$DIALOGRC_TMP"
-}
-trap cleanup EXIT
-
-BT="ALBI Arch Linux Installer Configuration Wizard"
+BT="ALBI configuration wizard"
 
 # Helper to maintain selection states across navigation
 get_status() {
@@ -40,7 +20,7 @@ else
 fi
 
 # Set default values
-root_part="/dev/sda2"
+root_part=""
 root_part_filesystem="ext4"
 separate_home_part="none"
 separate_home_part_filesystem="ext4"
@@ -52,9 +32,9 @@ separate_tmp_part="none"
 separate_tmp_part_filesystem="ext4"
 luks_encryption="no"
 luks_passphrase=""
-efi_part="/dev/sda1"
+efi_part=""
 efi_part_mountpoint="/boot/efi"
-grub_disk="/dev/sda"
+grub_disk=""
 network_management="network-manager"
 kernel_variant="normal"
 mirror_location="none"
