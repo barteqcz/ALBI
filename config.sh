@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Ensure dialog is installed
 if ! command -v dialog &> /dev/null; then
     pacman -Sy dialog --noconfirm
 fi
 
 BT="ALBI configuration wizard"
 
-# Helper to maintain selection states across navigation
 get_status() {
     if [ "$1" = "$2" ]; then echo "ON"; else echo "OFF"; fi
 }
@@ -19,7 +17,6 @@ else
     boot_mode="BIOS"
 fi
 
-# Set default values
 root_part=""
 root_part_filesystem="ext4"
 separate_home_part="none"
@@ -331,7 +328,6 @@ while true; do
     esac
 done
 
-# --- Generate config.conf ---
 cat <<EOF > config.conf
 ## Installation Configuration
 
