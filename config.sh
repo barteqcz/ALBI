@@ -7,15 +7,15 @@ if ! command -v dialog &> /dev/null; then
 fi
 
 # --- Theme Customization (dialogrc) ---
-# You can change BLACK, BLUE, RED, GREEN, YELLOW, MAGENTA, CYAN, WHITE
+# This changes the backdrop from the default ugly blue to a modern dark grey/black scheme
 DIALOGRC_TMP=$(mktemp)
 cat << 'EOF' > "$DIALOGRC_TMP"
 use_colors = ON
-screen_color = (WHITE,BLACK,OFF)       # Change 'BLACK' to change the main background backdrop
-dialog_color = (BLACK,WHITE,OFF)       # Dialog box body
-title_color = (RED,WHITE,ON)           # Title text color
-border_color = (GRAY,WHITE,OFF)        # Dialog box borders
-button_active_color = (WHITE,RED,ON)   # Selected button color
+screen_color = (WHITE,BLACK,OFF)       # Main background backdrop (BLACK removes the blue)
+dialog_color = (BLACK,WHITE,OFF)       # Dialog box background body
+title_color = (RED,WHITE,ON)           # Window Title color
+border_color = (GRAY,WHITE,OFF)        # Box borders
+button_active_color = (WHITE,RED,ON)   # Selected action button color
 button_inactive_color = (BLACK,WHITE,OFF)
 EOF
 export DIALOGRC="$DIALOGRC_TMP"
@@ -28,7 +28,7 @@ trap cleanup EXIT
 
 BT="ALBI Arch Linux Installer Configuration Wizard"
 
-# Helper to maintain selection states across navigation
+# Helper to maintain selection states across menus
 get_status() {
     if [ "$1" = "$2" ]; then echo "ON"; else echo "OFF"; fi
 }
@@ -40,7 +40,7 @@ else
     boot_mode="BIOS"
 fi
 
-# Set default values
+# Define defaults matching your main script's expectations
 root_part="/dev/sda2"
 root_part_filesystem="ext4"
 separate_home_part="none"
@@ -262,7 +262,7 @@ while true; do
             step=22
             ;;
         22)
-            full_username=$(dialog --stdout --cancel-label "Back" --backtitle "$BT" --title "Full Name" --inputbox "Enter full name (optional, leave empty to skip):" 10 60 "$full_username")
+            full_username=$(dialog --stdout --cancel-label "Back" --backtitle "$BT" --title "Full Name" --inputbox "Enter full name (optional):" 10 60 "$full_username")
             exit_code=$?
             if [ $exit_code -ne 0 ]; then step=21; continue; fi
             step=23
@@ -356,7 +356,7 @@ done
 cat <<EOF > config.conf
 ## Installation Configuration
 
-### Formatting (will be ignored even if not set to "none", unless the corresponding partition is enabled)
+### Formatting
 root_part_filesystem="$root_part_filesystem"
 separate_home_part_filesystem="$separate_home_part_filesystem"
 separate_boot_part_filesystem="$separate_boot_part_filesystem"
@@ -428,5 +428,5 @@ swapfile_size_gb="$swapfile_size_gb"
 keep_config="$keep_config"
 EOF
 
-dialog --title "Complete" --msgbox "Configuration generated successfully! You can now run albi.sh to begin your installation." 10 60
+dialog --title "Complete" --msgbox "Configuration generated successfully! You can now run ./albi.sh to begin your installation." 10 60
 clear
