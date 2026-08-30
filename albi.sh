@@ -810,6 +810,7 @@ if [[ "$install_cups" == yes ]]; then
     systemctl enable cups-browsed
     systemctl enable avahi-daemon
     sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
+    mkdir -p /home/"$username"/.local/share/applications
     cp /usr/share/applications/hplip.desktop /home/"$username"/.local/share/applications/
     echo "Hidden=true" >> /home/"$username"/.local/share/applications/hplip.desktop
     cp /usr/share/applications/hp-uiscan.desktop /home/"$username"/.local/share/applications/
