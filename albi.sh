@@ -815,6 +815,7 @@ if [[ "$install_cups" == yes ]]; then
     echo "NoDisplay=true" >> /home/"$username"/.local/share/applications/hplip.desktop
     cp /usr/share/applications/hp-uiscan.desktop /home/"$username"/.local/share/applications/
     echo "NoDisplay=true" >> /home/"$username"/.local/share/applications/hp-uiscan.desktop
+    chown -R "$username:$username" /home/"$username"/.local/
 fi
 
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
