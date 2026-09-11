@@ -662,14 +662,7 @@ locale-gen
 
 pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
-if [[ "$network_management" == "network-manager" ]]; then
-    pacman -S networkmanager iwd --noconfirm
-    systemctl mask wpa_supplicant
-    systemctl enable NetworkManager
-    echo "[device]" > /etc/NetworkManager/conf.d/backend.conf
-    echo "wifi.backend = iwd" >> /etc/NetworkManager/conf.d/backend.conf
-    #pacman -Rns wpa_supplicant --noconfirm
-elif [[ "$network_management" == "systemd-networkd" ]]; then
+if [[ "$network_management" == "systemd-networkd" ]]; then
     default_route=$(ip route | grep '^default')
     gateway=$(echo "$default_route" | awk '{print $3}')
     iface=$(echo "$default_route" | awk '{print $5}')
