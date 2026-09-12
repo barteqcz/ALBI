@@ -662,7 +662,10 @@ locale-gen
 
 pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
-if [[ "$network_management" == "systemd-networkd" ]]; then
+if [[ "$network_management" == "network-manager' ]]; then
+    pacman -S networkmanager --noconfirm
+    systemctl enable NetworkManager
+elif [[ "$network_management" == "systemd-networkd" ]]; then
     default_route=$(ip route | grep '^default')
     gateway=$(echo "$default_route" | awk '{print $3}')
     iface=$(echo "$default_route" | awk '{print $5}')
@@ -809,6 +812,10 @@ if [[ "$install_cups" == yes ]]; then
     cp /usr/share/applications/hp-uiscan.desktop /home/"$username"/.local/share/applications/
     echo "NoDisplay=true" >> /home/"$username"/.local/share/applications/hp-uiscan.desktop
     chown -R "$username:$username" /home/"$username"/.local/
+fi
+
+if [[ "$de" != "none" && "$install_cups" == yes ]]; then
+    pacman -S system-config-printer --noconfirm
 fi
 
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
