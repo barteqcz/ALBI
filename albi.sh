@@ -160,9 +160,9 @@ else
 ## Installation Configuration
 
 ### Formatting (will be ignored even if not set to "none", unless the corresponding partition is enabled)
-root_part_filesystem="ext4"  #### Filesystem for the / partition
+root_part_filesystem="btrfs"  #### Filesystem for the / partition
 separate_home_part_filesystem="none"  #### Filesystem for the /home partition
-separate_boot_part_filesystem="ext4"  #### Filesystem for the /boot partition
+separate_boot_part_filesystem="btrfs"  #### Filesystem for the /boot partition
 separate_var_part_filesystem="none"  #### Filesystem for the /var partition
 separate_tmp_part_filesystem="none"  #### Filesystem for the /tmp partition
 
@@ -405,8 +405,22 @@ if [[ "$root_part" != "none" ]]; then
                 mount "$root_part" /mnt
             elif [[ "$root_part_filesystem" == "btrfs" ]]; then
                 yes | mkfs.btrfs -f "$root_part"
-                mount "$root_part" /mnt
-                mount -o compress=zstd "$root_part" /mnt
+
+                mount -t btrfs -o subvolid=5 "$root_part" /mnt
+                btrfs subvolume create /mnt/root
+
+                if [[ "$separate_home_part" == "none" ]]; then
+                    btrfs subvolume create /mnt/home
+                fi
+
+                umount /mnt
+
+                mount -t btrfs -o subvol=root,compress=zstd:1 "$root_part" /mnt
+
+                if [[ "$separate_home_part" == "none" ]]; then
+                    mkdir -p /mnt/home
+                    mount -t btrfs -o subvol=home,compress=zstd:1 "$root_part" /mnt/home
+                fi
             elif [[ "$root_part_filesystem" == "xfs" ]]; then
                 yes | mkfs.xfs "$root_part"
                 mount "$root_part" /mnt
@@ -469,8 +483,7 @@ if [[ "$home_part_exists" == "true" ]]; then
     elif [[ "$separate_home_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs -f "$separate_home_part"
         mkdir -p /mnt/home
-        mount "$separate_home_part" /mnt/home
-        mount -o compress=zstd "$separate_home_part" /mnt/home
+        mount -t btrfs -o compress=zstd:1 "$separate_home_part" /mnt/home
     elif [[ "$separate_home_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_home_part"
         mkdir -p /mnt/home
@@ -496,7 +509,7 @@ if [[ "$boot_part_exists" == "true" ]]; then
     elif [[ "$separate_boot_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs -f "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount "$separate_boot_part" /mnt/boot
+        mount -t btrfs "$separate_boot_part" /mnt/boot
     elif [[ "$separate_boot_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_boot_part"
         mkdir -p /mnt/boot
@@ -522,8 +535,7 @@ if [[ "$var_part_exists" == "true" ]]; then
     elif [[ "$separate_var_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs -f "$separate_var_part"
         mkdir -p /mnt/var
-        mount "$separate_var_part" /mnt/var
-        mount -o compress=zstd "$separate_var_part" /mnt/var
+        mount -t btrfs -o compress=zstd:1 "$separate_var_part" /mnt/var
     elif [[ "$separate_var_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_var_part"
         mkdir -p /mnt/var
@@ -549,8 +561,7 @@ if [[ "$tmp_part_exists" == "true" ]]; then
     elif [[ "$separate_tmp_part_filesystem" == "btrfs" ]]; then
         yes | mkfs.btrfs -f "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount "$separate_tmp_part" /mnt/tmp
-        mount -o compress=zstd "$separate_tmp_part" /mnt/tmp
+        mount -t btrfs -o compress=zstd:1 "$separate_tmp_part" /mnt/tmp
     elif [[ "$separate_tmp_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_tmp_part"
         mkdir -p /mnt/tmp
@@ -662,7 +673,7 @@ locale-gen
 
 pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
-if [[ "$network_management" == "network-manager" ]]; then
+if [[ "$network_management" == "network-manager' ]]; then
     pacman -S networkmanager --noconfirm
     systemctl enable NetworkManager
 elif [[ "$network_management" == "systemd-networkd" ]]; then
