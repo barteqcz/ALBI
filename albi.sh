@@ -780,11 +780,8 @@ fi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
-    pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
+    pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon ptyxis --assume-installed=gnome-console --noconfirm
     systemctl enable gdm
-    if [[ "$gpu" == "nvidia" ]]; then
-        ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
-    fi
 elif [[ "$de" == "plasma" ]]; then
     pacman -Sgq plasma | grep -v "sddm-kcm" | pacman -S - plasma-login-manager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
     systemctl enable plasmalogin
