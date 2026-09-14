@@ -620,9 +620,6 @@ interrupt_handler() {
     if [[ "$var_part_exists" == "true" ]]; then
         umount /mnt/var
     fi
-    if [[ "$usr_part_exists" == "true" ]]; then
-        umount /mnt/usr
-    fi
     if [[ "$tmp_part_exists" == "true" ]]; then
         umount /mnt/tmp
     fi
