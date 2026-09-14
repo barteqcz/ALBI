@@ -1,1738 +1,868 @@
 #!/bin/bash
 
-set -Eeuo pipefail
-
-readonly SCRIPT_FILE="$(readlink -f "${BASH_SOURCE[0]}")"
-readonly SCRIPT_NAME="$(basename "$SCRIPT_FILE")"
-readonly SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_FILE")" && pwd)"
-readonly CONFIG_FILE_HOST="$SCRIPT_DIR/config.conf"
-readonly TARGET_MOUNT="/mnt"
-readonly CHROOT_INSTALLER="/usr/local/lib/albi-installer.sh"
-
-boot_mode=""
-root_part_orig=""
-root_part_encrypted_name=""
-root_part=""
-
-# Tracks whether this installer actually mounted the target root at /mnt.
-# This prevents cleanup from ever unmounting the Arch ISO's airootfs/overlay.
-target_root_mounted_by_installer=0
-
-
-error_handler() {
-    local exit_code=$?
-    local failed_line="${BASH_LINENO[0]:-unknown}"
-    local failed_command="${BASH_COMMAND:-unknown}"
-
-    printf 'ERROR: command failed on line %s (exit status %s): %s\n' \
-        "$failed_line" "$exit_code" "$failed_command" >&2
-
-    exit "$exit_code"
-}
-
-
 interrupt_handler() {
-    echo
-    echo "Interruption signal received. Aborting..."
-    exit 130
+    echo "Interruption signal received. Aborting... "
+    exit
 }
 
-
-trap error_handler ERR
 trap interrupt_handler SIGINT SIGTERM
 
+cwd=$(pwd)
 
-die() {
-    printf 'ERROR: %s\n' "$*" >&2
-    exit 1
-}
+if [[ -d "/sys/firmware/efi/" ]]; then
+    boot_mode="UEFI"
+else
+    boot_mode="BIOS"
+fi
 
-
-require_root() {
-    [[ "${EUID:-$(id -u)}" -eq 0 ]] ||
-        die "This installer must be run as root."
-}
-
-
-detect_boot_mode() {
-    if [[ -d /sys/firmware/efi ]]; then
-        boot_mode="UEFI"
+if [[ -e "config.conf" ]]; then
+    output=$(bash -n "$cwd"/config.conf 2>&1)
+    if [[ -n "$output" ]]; then
+        echo "Syntax errors found in the configuration file."
+        exit
     else
-        boot_mode="BIOS"
-    fi
-}
+        while IFS='=' read -r key value; do
+            key=$(echo "$key" | sed 's/[[:space:]]\+#.*$//' | xargs)
+            value=$(echo "$value" | sed 's/[[:space:]]\+#.*$//' | xargs)
 
+            [[ -z "$key" ]] && continue
+            
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            declare "$key=$value"
+        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
+        clear
+        echo "Are these information correct?"
+        echo ""
 
-# Parse only simple KEY="value", KEY='value', or KEY=value assignments.
-# This deliberately avoids executing config.conf as shell code.
-load_config() {
-    local file=$1
-    local line key value
+        echo "/: $root_part_filesystem on $root_part"
 
-    local re_double='^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*"([^"]*)"[[:space:]]*(#.*)?$'
-    local re_single="^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*'([^']*)'[[:space:]]*(#.*)?$"
-    local re_unquoted='^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*(#.*)?$'
+        if [[ "$separate_home_part" != "none" ]]; then
+            if [[ "$separate_home_part_filesystem" != "none" ]]; then
+                echo "/home: $separate_home_part_filesystem on $separate_home_part"
+            else
+                echo "Error: a partition has been selected for /home, but the filesystem is not specified."
+            fi
+        fi
+        if [[ "$separate_boot_part" != "none" ]]; then
+            if [[ "$separate_boot_part_filesystem" != "none" ]]; then
+                echo "/boot: $separate_boot_part_filesystem on $separate_boot_part"
+            else
+                echo "Error: a partition has been selected for /boot, but the filesystem is not specified."
+            fi
+        fi
+        if [[ "$separate_var_part" != "none" ]]; then
+            if [[ "$separate_var_part_filesystem" != "none" ]]; then
+                echo "/var: $separate_var_part_filesystem on $separate_var_part"
+            else
+                echo "Error: a partition has been selected for /var, but the filesystem is not specified."
+            fi
+        fi
+        if [[ "$separate_tmp_part" != "none" ]]; then
+            if [[ "$separate_tmp_part_filesystem" != "none" ]]; then
+                echo "/home: $separate_tmp_part_filesystem on $separate_tmp_part"
+            else
+                echo "Error: a partition has been selected for /tmp, but the filesystem is not specified."
+            fi
+        fi
 
-    [[ -f "$file" ]] ||
-        die "Configuration file not found: $file"
-
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        [[ "$line" =~ ^[[:space:]]*# ]] && continue
-
-        if [[ "$line" =~ $re_double ]]; then
-            key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-        elif [[ "$line" =~ $re_single ]]; then
-            key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-        elif [[ "$line" =~ $re_unquoted ]]; then
-            key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
+        if [[ "$luks_encryption" == "yes" ]]; then
+            echo "Disk encryption is enabled with a passphrase $luks_passphrase"
         else
-            die "Invalid configuration line: $line"
+            echo "Disk encryption is disabled"
         fi
-
-        case "$key" in
-            root_part_filesystem|separate_home_part_filesystem|separate_boot_part_filesystem|separate_var_part_filesystem|separate_tmp_part_filesystem| \
-            root_part|separate_home_part|separate_boot_part|separate_var_part|separate_tmp_part| \
-            luks_encryption|luks_passphrase|efi_part|efi_part_mountpoint|grub_disk| \
-            network_management|kernel_variant|mirror_location|timezone| \
-            hostname|username|full_username|password|language|tty_keyboard_layout| \
-            install_pipewire|gpu|de|install_cups|create_swapfile|swapfile_size_gb|keep_config)
-                declare -g "$key=$value"
-                ;;
-            *)
-                die "Unknown configuration option: $key"
-                ;;
-        esac
-    done < "$file"
-}
-
-
-has_value() {
-    local name=$1
-    [[ -n "${!name:-}" ]]
-}
-
-
-validate_yes_no() {
-    local name=$1
-    local value=${!name:-}
-
-    case "$value" in
-        yes|no)
-            ;;
-        *)
-            die "Invalid value for $name: ${value:-<empty>} (expected yes/no)."
-            ;;
-    esac
-}
-
-
-validate_filesystem() {
-    local name=$1
-    local value=${!name:-}
-
-    case "$value" in
-        ext2|ext3|ext4|btrfs|xfs|none)
-            ;;
-        *)
-            die "Invalid filesystem for $name: ${value:-<empty>}."
-            ;;
-    esac
-}
-
-
-validate_partition_setting() {
-    local name=$1
-    local value=${!name:-}
-
-    [[ "$value" == "none" ]] && return 0
-
-    [[ -b "$value" ]] ||
-        die "$name does not point to a block device: $value"
-}
-
-
-partition_is_mounted() {
-    local part=$1
-
-    findmnt -n -S "$part" >/dev/null 2>&1
-}
-
-
-validate_not_mounted() {
-    local part=$1
-
-    if partition_is_mounted "$part"; then
-        die "Partition is already mounted; refusing to format it: $part"
-    fi
-}
-
-
-validate_distinct_partitions() {
-    local -A seen=()
-    local name value
-
-    for name in \
-        root_part \
-        separate_home_part \
-        separate_boot_part \
-        separate_var_part \
-        separate_tmp_part \
-        efi_part
-    do
-        value="${!name:-none}"
-
-        [[ "$value" == "none" ]] && continue
-
-        if [[ -n "${seen[$value]:-}" ]]; then
-            die "The same partition/device is assigned to both $name and ${seen[$value]}: $value"
-        fi
-
-        seen[$value]="$name"
-    done
-}
-
-
-prompt_for_secret() {
-    local var_name=$1
-    local label=$2
-    local confirmation
-    local secret
-
-    read -r -s -p "$label: " secret
-    echo
-
-    read -r -s -p "Confirm $label: " confirmation
-    echo
-
-    [[ "$secret" == "$confirmation" ]] ||
-        die "The two values do not match."
-
-    [[ -n "$secret" ]] ||
-        die "$label must not be empty."
-
-    printf -v "$var_name" '%s' "$secret"
-}
-
-
-prompt_for_missing_secrets() {
-    if [[ -z "${password:-}" ]]; then
-        prompt_for_secret password "Enter the user password"
-    fi
-
-    if [[ "${luks_encryption:-no}" == "yes" &&
-          -z "${luks_passphrase:-}" ]]; then
-        prompt_for_secret luks_passphrase "Enter the LUKS passphrase"
-    fi
-}
-
-
-validate_config() {
-    local mode=${1:-host}
-    local required
-
-    for required in \
-        root_part_filesystem \
-        separate_home_part_filesystem \
-        separate_boot_part_filesystem \
-        separate_var_part_filesystem \
-        separate_tmp_part_filesystem \
-        root_part \
-        separate_home_part \
-        separate_boot_part \
-        separate_var_part \
-        separate_tmp_part \
-        luks_encryption \
-        network_management \
-        kernel_variant \
-        mirror_location \
-        timezone \
-        hostname \
-        username \
-        language \
-        tty_keyboard_layout \
-        install_pipewire \
-        gpu \
-        de \
-        install_cups \
-        create_swapfile \
-        swapfile_size_gb \
-        keep_config
-    do
-        has_value "$required" ||
-            die "Missing configuration option: $required"
-    done
-
-    validate_filesystem root_part_filesystem
-    validate_filesystem separate_home_part_filesystem
-    validate_filesystem separate_boot_part_filesystem
-    validate_filesystem separate_var_part_filesystem
-    validate_filesystem separate_tmp_part_filesystem
-
-    validate_yes_no luks_encryption
-    validate_yes_no install_pipewire
-    validate_yes_no install_cups
-    validate_yes_no create_swapfile
-    validate_yes_no keep_config
-
-    case "$network_management" in
-        network-manager|systemd-networkd|none)
-            ;;
-        *)
-            die "Invalid network management tool: $network_management"
-            ;;
-    esac
-
-    case "$kernel_variant" in
-        normal|lts|zen)
-            ;;
-        *)
-            die "Invalid kernel variant: $kernel_variant"
-            ;;
-    esac
-
-    case "$gpu" in
-        amd|intel|nvidia|other|none)
-            ;;
-        *)
-            die "Invalid GPU driver selection: $gpu"
-            ;;
-    esac
-
-    case "$de" in
-        gnome|plasma|xfce|mate|cinnamon|none)
-            ;;
-        *)
-            die "Invalid desktop environment: $de"
-            ;;
-    esac
-
-    if [[ "$gpu" == "none" && "$de" != "none" ]]; then
-        die "A desktop environment requires a GPU driver selection."
-    fi
-
-    if [[ "$luks_encryption" == "yes" &&
-          "$root_part" != "none" &&
-          "$separate_boot_part" == "none" ]]; then
-        die "Encrypted / requires a separate /boot partition."
-    fi
-
-    [[ "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] ||
-        die "Invalid username: $username"
-
-    [[ "$hostname" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$ ]] ||
-        die "Invalid hostname: $hostname"
-
-    [[ -f "/usr/share/zoneinfo/$timezone" ]] ||
-        die "Invalid timezone: $timezone"
-
-    [[ -n "$password" ]] ||
-        die "User password is not set."
-
-    if [[ "$luks_encryption" == "yes" ]]; then
-        [[ -n "${luks_passphrase:-}" ]] ||
-            die "LUKS passphrase is not set."
-    fi
-
-    awk -v locale="$language" '
-        {
-            candidate=$1
-            sub(/^#/, "", candidate)
-
-            if (candidate == locale && $2 == "UTF-8")
-                found=1
-        }
-
-        END {
-            exit !found
-        }
-    ' /etc/locale.gen ||
-        die "Selected locale does not exist in /etc/locale.gen: $language"
-
-    local keymap_list
-    keymap_list="$(localectl list-keymaps 2>/dev/null || true)"
-
-    grep -Fxq "$tty_keyboard_layout" <<< "$keymap_list" ||
-        die "Selected TTY keymap is unavailable: $tty_keyboard_layout"
-
-    [[ "$swapfile_size_gb" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
-        die "Invalid swapfile size: $swapfile_size_gb"
-
-    awk -v size="$swapfile_size_gb" \
-        'BEGIN { exit !(size > 0) }' ||
-        die "Swapfile size must be greater than zero."
-
-    if [[ "$mode" == "host" ]]; then
 
         if [[ "$boot_mode" == "UEFI" ]]; then
-            has_value efi_part ||
-                die "Missing EFI partition configuration."
-
-            has_value efi_part_mountpoint ||
-                die "Missing EFI partition mount point."
-
-            [[ "$efi_part_mountpoint" == "/boot/efi" ||
-               "$efi_part_mountpoint" == "/efi" ]] ||
-                die "Invalid EFI mount point: $efi_part_mountpoint"
-
-            validate_partition_setting efi_part
+            echo "EFI partition: $efi_part at $efi_part_mountpoint"
         else
-            has_value grub_disk ||
-                die "Missing GRUB disk configuration."
-
-            [[ -b "$grub_disk" ]] ||
-                die "GRUB target is not a block device: $grub_disk"
+            echo "GRUB disk: $grub_disk"
         fi
 
-        validate_partition_setting root_part
-        validate_partition_setting separate_home_part
-        validate_partition_setting separate_boot_part
-        validate_partition_setting separate_var_part
-        validate_partition_setting separate_tmp_part
+        echo "Kernel variant: $kernel_variant"
+        echo "Mirror country: $mirror_location"
+        echo "Time zone: $timezone"
+        echo "Hostname: $hostname"
+        echo "Username: $username"
 
-        validate_distinct_partitions
+        if [[ "$full_username" != "" ]]; then
+            echo "Full username: $full_username"
+        else
+            echo "Full username was not set."
+        fi
+        
+        echo "User password: $password"
+        echo "Language: $language"
+        echo "TTY keyboard layout: $tty_keyboard_layout"
 
-        local part value
+        if [[ "$install_pipewire" == "yes" ]]; then
+            echo "PipeWire installation is enabled"
+        else
+            echo "PipeWire installation is disabled"
+        fi
 
-        for part in \
-            root_part \
-            separate_home_part \
-            separate_boot_part \
-            separate_var_part \
-            separate_tmp_part
-        do
-            value="${!part:-none}"
+        echo "GPU driver: $gpu"
+        echo "Desktop environment: $de"
+        
+        if [[ "$install_cups" == "yes" ]]; then
+            echo "CUPS installation is enabled"
+        else
+            echo "CUPS installation is disabled"
+        fi
+        
+        if [[ "$create_swapfile" == "yes" ]]; then
+            echo "Swapfile creation is enabled, size: $swapfile_size_gb GB"
+        else
+            echo "Swapfile creation is disabled"
+        fi
 
-            [[ "$value" == "none" ]] ||
-                validate_not_mounted "$value"
+        if [[ "$keep_config" == "yes" ]]; then
+            echo "Config file will be kept in the user directory."
+        else
+            echo "Config file won't be kept in the user directory."
+        fi
+
+        echo ""
+
+        while true; do
+            read -rp "Do you want to start the installation? [Y/n] " response
+
+            if [[ "$response" == "Y" || "$response" == "y" || "$response" == "" ]]; then
+                clear
+                break
+            elif [[ "$response" == "N" || "$response" == "n" ]]; then
+                echo "Aborting..."
+                exit
+            else
+                echo "Error: incorrect option. Please try again"
+            fi
         done
 
-        if [[ "$boot_mode" == "UEFI" ]]; then
-            validate_not_mounted "$efi_part"
-
-            [[ "$efi_part" != "${separate_boot_part:-none}" ]] ||
-                die "EFI and /boot cannot use the same partition."
-        fi
-
-        if [[ "$network_management" == "systemd-networkd" ]]; then
-            local iface
-
-            iface="$(
-                ip -o route show default 2>/dev/null |
-                    awk 'NR==1 {print $5}'
-            )"
-
-            [[ -n "$iface" ]] ||
-                die "Could not determine the active network interface."
-
-            if [[ -d "/sys/class/net/$iface/wireless" ]]; then
-                die "systemd-networkd configuration for wireless is not supported by ALBI; use NetworkManager."
-            fi
-
-            if [[ "$de" != "none" ]]; then
-                die "systemd-networkd mode is only supported here for installs without a desktop environment."
-            fi
-        fi
+        while IFS='=' read -r key value; do
+            key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
+            value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
+            
+            [[ -z "$key" ]] && continue
+            
+            value="${value%\"}"
+            value="${value#\"}"
+            value="${value%\'}"
+            value="${value#\'}"
+            
+            declare "$key=$value"
+        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
     fi
-}
+else
+    touch config.conf
+    cat <<EOF > config.conf
+## Installation Configuration
+
+### Formatting (will be ignored even if not set to "none", unless the corresponding partition is enabled)
+root_part_filesystem="btrfs"  #### Filesystem for the / partition
+separate_home_part_filesystem="none"  #### Filesystem for the /home partition
+separate_boot_part_filesystem="btrfs"  #### Filesystem for the /boot partition
+separate_var_part_filesystem="none"  #### Filesystem for the /var partition
+separate_tmp_part_filesystem="none"  #### Filesystem for the /tmp partition
+
+### Mounting
+root_part="/dev/sdX#"  #### Path for the / partition
+separate_home_part="none"  #### Path for the /home partition
+separate_boot_part="/dev/sdX#"  #### Path for the /boot partition
+separate_var_part="none"  #### Path for the /var partition
+separate_tmp_part="none"  #### Path for the /tmp partition
+
+### Encryption
+luks_encryption="yes"  #### Encrypt the system (yes/no)
+luks_passphrase="4V3ryH@rdP4ssphr@s3!"  #### Passphrase for encryption
+EOF
+
+if [[ "$boot_mode" == "UEFI" ]]; then
+    echo "" >> config.conf
+    echo "### EFI partition settings" >> config.conf
+    echo "efi_part=\"/dev/sdX#\"  #### EFI partition path" >> config.conf
+    echo "efi_part_mountpoint=\"/boot/efi\"  #### EFI partition mountpoint" >> config.conf
+else
+    echo "" >> config.conf
+    echo "### GRUB installation disk settings" >> config.conf
+    echo "grub_disk=\"/dev/sdX\"  #### Disk for GRUB installation" >> config.conf
+fi
+
+cat <<EOF >> config.conf
+
+### Connectivity
+network_management="network-manager"  #### Network management tool (network-manager/systemd-networkd/none)
+
+### Kernel Variant
+kernel_variant="normal"  #### Kernel variant (normal/lts/zen)
+
+### Mirror Servers Location
+mirror_location="none"  #### Country for mirror servers (comma-separated list of countries or none)
+
+### Timezone
+timezone="Europe/Prague"  #### System time zone
+
+### Hostname and User
+EOF
+echo "hostname=\"$(dmidecode -s system-product-name | sed 's/[[:space:]]*$//')\"  #### Machine name" >> config.conf
+cat <<EOF >> config.conf
+username="changeme"  #### User name
+full_username="Changeme Please"  #### Full user name (optional - leave empty if you don't want it)
+password="changeme"  #### User password
+
+### Locales
+language="en_US.UTF-8"  #### System language
+tty_keyboard_layout="us"  #### TTY keyboard layout
+
+### Software Selection
+install_pipewire="yes"  #### Install PipeWire (yes/no)
+gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none)
+de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
+install_cups="yes"  #### Install CUPS (yes/no)
+
+### Swapfile
+create_swapfile="yes"  #### Create swapfile (yes/no)
+swapfile_size_gb="4"  #### Swapfile size in GB
+
+### Script Settings
+keep_config="no"  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
+EOF
+
+echo "config.conf was generated successfully. Edit it to customize the installation."
+exit
+fi
+
+passwd_length=${#password}
+username_length=${#username}
+luks_passphrase_length=${#luks_passphrase}
 
 
-show_config() {
-    local secret_state="not set"
-    [[ -n "${password:-}" ]] && secret_state="set"
+echo "Checking the Internet connection..."
+ping -c 4 8.8.8.8 > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 1.1.1.1 > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: no Internet connection."
+        exit
+    fi
+fi
 
-    local luks_state="disabled"
-    [[ "$luks_encryption" == "yes" ]] && luks_state="enabled"
+ping -c 4 google.com > /dev/null 2>&1
+if ! [[ $? -eq 0 ]]; then
+    ping -c 4 one.one.one.one > /dev/null 2>&1
+    if ! [[ $? -eq 0 ]]; then
+        echo "Error: DNS isn't working. Check your network configuration"
+        exit
+    fi
+fi
 
-    echo "Are these information correct?"
-    echo
-    echo "/: $root_part_filesystem on $root_part"
+if ! [[ "$network_management" == "network-manager" || "$network_management" == "systemd-networkd" || "$network_management" == "none" ]]; then
+    echo "Error: invalid value for the network management tool: $network_management"
+    exit
+fi
 
-    [[ "$separate_home_part" != "none" ]] &&
-        echo "/home: $separate_home_part_filesystem on $separate_home_part"
+if [[ "$network_management" == "systemd-networkd" ]]; then
+    if [ -d "/sys/class/net/$iface/wireless" ]; then
+        echo "Error: ALBI currently doesn't support systemd-networkd for wireless connections."
+        echo "In this case, please use Network Manager."
+        exit
+    elif [[ "$de" != "none" ]]; then
+        echo "Error: if you wish to use a desktop environment, please use Network Manager."
+        exit
+    fi
+fi
 
-    [[ "$separate_boot_part" != "none" ]] &&
-        echo "/boot: $separate_boot_part_filesystem on $separate_boot_part"
+if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_variant" == "zen" ]]; then
+    echo "Error: invalid value for the kernel variant: $kernel_variant"
+    exit
+fi
 
-    [[ "$separate_var_part" != "none" ]] &&
-        echo "/var: $separate_var_part_filesystem on $separate_var_part"
+if [[ "$passwd_length" == 0 ]]; then
+    echo "Error: user password not set."
+    exit
+fi
 
-    [[ "$separate_tmp_part" != "none" ]] &&
-        echo "/tmp: $separate_tmp_part_filesystem on $separate_tmp_part"
+if ! [[ "$username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+    echo "The username is incorrect. It can't begin with a number nor with an uppercase character."
+    exit
+fi
 
-    echo "Disk encryption: $luks_state"
+if ! [[ "$install_pipewire" == "yes" || "$install_pipewire" == "no" ]]; then
+    echo "Error: invalid value for the PipeWire installation seting: $install_pipewire"
+    exit
+fi
 
-    if [[ "$boot_mode" == "UEFI" ]]; then
-        echo "EFI partition: $efi_part at $efi_part_mountpoint"
+if ! [[ "$install_cups" == "yes" || "$install_cups" == "no" ]]; then
+    echo "Error: invalid value for the CUPS installation setting: $install_cups"
+    exit
+fi
+
+if ! [[ "$gpu" == "amd" || "$gpu" == "intel" || "$gpu" == "nvidia" || "$gpu" == "other" || "$gpu" == "none" ]]; then
+    echo "Error: invalid value for the GPU driver: $gpu"
+    exit
+fi
+
+if [[ "$gpu" == "none" ]]; then
+    if ! [[ "$de" == "none" ]]; then
+        echo "Error: desktop environment requires a GPU driver to be installed."
+        exit
+    fi
+fi
+
+if ! [[ "$de" == "cinnamon" || "$de" == "gnome" || "$de" == "mate" || "$de" == "plasma" || "$de" == "xfce" || "$de" == "none" ]]; then
+    echo "Error: invalid value for the desktop environment: $de"
+    exit
+fi
+
+if [[ "$luks_encryption" == "yes" ]]; then
+    if [[ "$luks_passphrase_length" == 0 ]]; then
+        echo "Error: the encryption passphrase not set."
+        exit
+    fi
+fi
+
+if ! [[ "$create_swapfile" == "yes" || "$create_swapfile" == "no" ]]; then
+    echo "Error: invalid value for the swapfile creation question: $swapfile_creation"
+    exit
+fi
+
+if ! [[ "$swapfile_size_gb" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    echo "Error: invalid value for the swapfile size - the value isn't numeric: $swapfile_size"
+    exit
+fi
+
+if [[ "$boot_mode" == "UEFI" ]]; then
+    if ! [[ "$efi_part_mountpoint" == "/boot/efi" || "$efi_part_mountpoint" == "/efi" ]]; then
+        echo "Error: invalid EFI partition mount point detected: $efi_part_mountpoint"
+        echo "For maximized system compatibility, ALBI only supports the following mount points: /boot/efi (recommended) and /efi."
+        exit
+    fi
+fi
+
+if ! grep -qE "^#?\s*${language}" /etc/locale.gen; then
+    echo "Selected language doesn't exist (not found in /etc/locale.gen.): $language"
+    exit
+fi
+
+if ! localectl list-keymaps | grep -Fxq "$tty_keyboard_layout"; then
+    echo "Selected TTY keymap isn't available: $tty_keyboard_layout"
+    exit
+fi
+
+mount_output=$(df -h)
+mount_partition=$(echo "$mount_output" | awk '$6=="/mnt" {print $1}')
+
+if [[ "$separate_boot_part" != "none" ]]; then
+    if [[ -e "$separate_boot_part" ]]; then
+        boot_part_exists="true"
     else
-        echo "GRUB disk: $grub_disk"
+        echo "Error: partition $separate_boot_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
     fi
+fi
 
-    echo "Kernel variant: $kernel_variant"
-    echo "Mirror country: $mirror_location"
-    echo "Time zone: $timezone"
-    echo "Hostname: $hostname"
-    echo "Username: $username"
-    echo "Full username: ${full_username:-not set}"
-    echo "User password: $secret_state"
-    echo "Language: $language"
-    echo "TTY keyboard layout: $tty_keyboard_layout"
-    echo "PipeWire: $install_pipewire"
-    echo "GPU driver: $gpu"
-    echo "Desktop environment: $de"
-    echo "CUPS: $install_cups"
-
-    if [[ "$create_swapfile" == "yes" ]]; then
-        echo "Swapfile: enabled (size: $swapfile_size_gb GB)"
-    else
-        echo "Swapfile: disabled"
-    fi
-
-    echo "Keep config: $keep_config"
-    echo
-}
-
-
-confirm_installation() {
-    local response
-
-    while true; do
-        read -r -p "Do you want to start the installation? [Y/n] " response
-
-        case "$response" in
-            ""|Y|y)
-                return 0
-                ;;
-            N|n)
-                echo "Aborting..."
-                exit 0
-                ;;
-            *)
-                echo "Error: incorrect option. Please try again."
-                ;;
-        esac
-    done
-}
-
-
-check_internet() {
-    echo "Checking the Internet connection..."
-
-    if ! ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1 &&
-       ! ping -c 1 -W 3 1.1.1.1 >/dev/null 2>&1; then
-        die "No Internet connection."
-    fi
-
-    if ! ping -c 1 -W 3 google.com >/dev/null 2>&1 &&
-       ! ping -c 1 -W 3 one.one.one.one >/dev/null 2>&1; then
-        die "DNS isn't working. Check your network configuration."
-    fi
-}
-
-
-format_and_mount() {
-    local part=$1
-    local filesystem=$2
-    local mountpoint=$3
-
-    [[ -b "$part" ]] ||
-        die "Not a block device: $part"
-
-    validate_not_mounted "$part"
-
-    mkdir -p "$mountpoint"
-
-    case "$filesystem" in
-        ext2)
-            mkfs.ext2 -F "$part"
-            mount "$part" "$mountpoint"
-            ;;
-        ext3)
-            mkfs.ext3 -F "$part"
-            mount "$part" "$mountpoint"
-            ;;
-        ext4)
-            mkfs.ext4 -F "$part"
-            mount "$part" "$mountpoint"
-            ;;
-        btrfs)
-            mkfs.btrfs -f "$part"
-            mount -t btrfs -o compress=zstd:1 "$part" "$mountpoint"
-            ;;
-        xfs)
-            mkfs.xfs -f "$part"
-            mount "$part" "$mountpoint"
-            ;;
-        *)
-            die "Unsupported filesystem for $mountpoint: $filesystem"
-            ;;
-    esac
-}
-
-
-setup_root() {
-    local mount_source
-
-    # IMPORTANT:
-    #
-    # Do NOT use:
-    #
-    #   findmnt --target /mnt
-    #
-    # because /mnt is normally just a directory inside the Arch ISO's
-    # airootfs/overlay root. --target follows the mount hierarchy and can
-    # report "airootfs" even though /mnt itself is NOT mounted.
-    #
-    # --mountpoint checks for an actual mount whose mountpoint is exactly /mnt.
-    mount_source="$(
-        findmnt -n -o SOURCE --mountpoint "$TARGET_MOUNT" 2>/dev/null || true
-    )"
-
-    if [[ -n "$mount_source" ]]; then
-        die "$TARGET_MOUNT is already mounted by $mount_source."
-    fi
-
-    if [[ "$root_part" == "none" ]]; then
-        die "root_part is set to none; an installation root partition is required."
-    fi
-
-    [[ -b "$root_part" ]] ||
-        die "Root partition isn't a block device: $root_part"
-
-    validate_not_mounted "$root_part"
-
-    if [[ "$luks_encryption" == "yes" ]]; then
-        [[ "$separate_boot_part" != "none" ]] ||
-            die "A separate /boot partition is required for encrypted root."
-
-        echo "Setting up LUKS encryption..."
-
-        root_part_orig="$root_part"
-        root_part_encrypted_name="$(basename "$root_part")_crypt"
-
-        printf '%s' "$luks_passphrase" |
-            cryptsetup luksFormat \
-                --batch-mode \
-                --type luks2 \
-                "$root_part" -
-
-        printf '%s' "$luks_passphrase" |
-            cryptsetup open \
-                "$root_part" \
-                "$root_part_encrypted_name" -
-
-        root_part="/dev/mapper/$root_part_encrypted_name"
-    fi
-
-    mkdir -p "$TARGET_MOUNT"
-
-    if [[ "$root_part_filesystem" == "btrfs" ]]; then
-        echo "Formatting root filesystem as Btrfs..."
-
-        mkfs.btrfs -f "$root_part"
-
-        # Temporarily mount Btrfs top-level subvolume.
-        mount -t btrfs \
-            -o subvolid=5 \
-            "$root_part" \
-            "$TARGET_MOUNT"
-
-        target_root_mounted_by_installer=1
-
-        btrfs subvolume create "$TARGET_MOUNT/root"
-
-        if [[ "$separate_home_part" == "none" ]]; then
-            btrfs subvolume create "$TARGET_MOUNT/home"
-        fi
-
-        umount "$TARGET_MOUNT"
-
-        # Mount the actual root subvolume.
-        mount -t btrfs \
-            -o subvol=root,compress=zstd:1 \
-            "$root_part" \
-            "$TARGET_MOUNT"
-
-        if [[ "$separate_home_part" == "none" ]]; then
-            mkdir -p "$TARGET_MOUNT/home"
-
-            mount -t btrfs \
-                -o subvol=home,compress=zstd:1 \
-                "$root_part" \
-                "$TARGET_MOUNT/home"
-        fi
-    else
-        format_and_mount \
-            "$root_part" \
-            "$root_part_filesystem" \
-            "$TARGET_MOUNT"
-
-        target_root_mounted_by_installer=1
-    fi
-
-    echo "Root filesystem mounted at $TARGET_MOUNT."
-}
-
-
-setup_optional_mounts() {
-    if [[ "$separate_home_part" != "none" ]]; then
-        format_and_mount \
-            "$separate_home_part" \
-            "$separate_home_part_filesystem" \
-            "$TARGET_MOUNT/home"
-    fi
-
+if [[ "$boot_mode" == "UEFI" ]]; then
     if [[ "$separate_boot_part" != "none" ]]; then
-        format_and_mount \
-            "$separate_boot_part" \
-            "$separate_boot_part_filesystem" \
-            "$TARGET_MOUNT/boot"
-    fi
-
-    if [[ "$separate_var_part" != "none" ]]; then
-        format_and_mount \
-            "$separate_var_part" \
-            "$separate_var_part_filesystem" \
-            "$TARGET_MOUNT/var"
-    fi
-
-    if [[ "$separate_tmp_part" != "none" ]]; then
-        format_and_mount \
-            "$separate_tmp_part" \
-            "$separate_tmp_part_filesystem" \
-            "$TARGET_MOUNT/tmp"
-    fi
-}
-
-
-setup_efi() {
-    [[ "$boot_mode" == "UEFI" ]] || return 0
-
-    local efi_filesystem
-
-    efi_filesystem="$(
-        blkid -s TYPE -o value "$efi_part" 2>/dev/null || true
-    )"
-
-    if [[ "$efi_filesystem" != "vfat" ]]; then
-        echo "Formatting EFI partition as FAT32: $efi_part"
-        mkfs.fat -F 32 "$efi_part"
-    fi
-
-    mkdir -p "$TARGET_MOUNT$efi_part_mountpoint"
-
-    mount -t vfat \
-        "$efi_part" \
-        "$TARGET_MOUNT$efi_part_mountpoint"
-}
-
-
-configure_mirrors() {
-    [[ "$mirror_location" != "none" ]] || return 0
-
-    echo "Selecting mirrors for: $mirror_location"
-
-    reflector \
-        --country "$mirror_location" \
-        --sort rate \
-        --save /etc/pacman.d/mirrorlist
-}
-
-
-select_kernel_packages() {
-    case "$kernel_variant" in
-        normal)
-            printf '%s\n' linux linux-firmware linux-headers
-            ;;
-        lts)
-            printf '%s\n' linux-lts linux-firmware linux-lts-headers
-            ;;
-        zen)
-            printf '%s\n' linux-zen linux-firmware linux-zen-headers
-            ;;
-        *)
-            die "Unexpected kernel variant: $kernel_variant"
-            ;;
-    esac
-}
-
-
-install_base_system() {
-    local -a kernel_packages
-
-    mapfile -t kernel_packages < <(select_kernel_packages)
-
-    pacstrap \
-        -K \
-        "$TARGET_MOUNT" \
-        base \
-        "${kernel_packages[@]}"
-
-    genfstab -U "$TARGET_MOUNT" >> "$TARGET_MOUNT/etc/fstab"
-}
-
-
-prepare_config_for_target() {
-    install -d -m 700 "$TARGET_MOUNT/usr/local/lib"
-
-    install \
-        -m 700 \
-        "$SCRIPT_FILE" \
-        "$TARGET_MOUNT$CHROOT_INSTALLER"
-
-    install \
-        -m 600 \
-        "$CONFIG_FILE_HOST" \
-        "$TARGET_MOUNT/config.conf"
-
-    umask 077
-
-    printf '%s\n%s\n' \
-        "$password" \
-        "${luks_passphrase:-}" \
-        > "$TARGET_MOUNT/.albi-secrets"
-
-    chmod 600 "$TARGET_MOUNT/.albi-secrets"
-}
-
-
-load_target_secrets() {
-    [[ -f /.albi-secrets ]] || return 0
-
-    {
-        IFS= read -r password || true
-        IFS= read -r luks_passphrase || true
-    } < /.albi-secrets
-
-    rm -f /.albi-secrets
-}
-
-
-cleanup_host_mounts() {
-    set +e
-
-    rm -f "$TARGET_MOUNT/.albi-secrets"
-
-    # Only unmount filesystems that this installer actually mounted.
-    #
-    # This is important because /mnt is normally just a directory inside
-    # the Arch ISO's airootfs/overlay. We must NEVER unmount the live ISO root.
-    if (( target_root_mounted_by_installer )); then
-        if findmnt -n --mountpoint "$TARGET_MOUNT" >/dev/null 2>&1; then
-            umount -R "$TARGET_MOUNT"
+        if [[ "$separate_boot_part" == "$efi_part" ]]; then
+            echo "Error: EFI partition must not be the same as the /boot part, because of the filesystem difference."
+            exit
         fi
     fi
+fi
 
-    if [[ -n "$root_part_encrypted_name" ]] &&
-       cryptsetup status "$root_part_encrypted_name" >/dev/null 2>&1; then
-        cryptsetup close "$root_part_encrypted_name"
-    fi
-
-    target_root_mounted_by_installer=0
-}
-
-
-host_abort_cleanup() {
-    echo "Cleaning up mounted filesystems..."
-
-    cleanup_host_mounts
-
-    exit 1
-}
-
-
-host_main() {
-    require_root
-    detect_boot_mode
-
-    if [[ ! -e "$CONFIG_FILE_HOST" ]]; then
-        generate_config
-        exit 0
-    fi
-
-    load_config "$CONFIG_FILE_HOST"
-
-    prompt_for_missing_secrets
-    validate_config
-    show_config
-    confirm_installation
-
-    trap host_abort_cleanup ERR SIGINT SIGTERM
-
-    check_internet
-
-    if [[ "$mirror_location" != "none" ]]; then
-        command -v reflector >/dev/null 2>&1 ||
-            die "reflector is required when mirror_location is not none."
-    fi
-
-    configure_mirrors
-
-    setup_root
-    setup_optional_mounts
-    setup_efi
-    install_base_system
-    prepare_config_for_target
-
-    echo "Entering chroot configuration..."
-
-    if [[ -n "$root_part_orig" ]]; then
-        arch-chroot \
-            "$TARGET_MOUNT" \
-            "$CHROOT_INSTALLER" \
-            --chroot \
-            "$root_part_orig" \
-            "$root_part_encrypted_name"
+if [[ "$root_part" != "none" ]]; then
+    if [[ -n "$mount_partition" ]]; then
+        echo "Error: /mnt is already mounted, however you specified another partition to mount it on."
+        exit
     else
-        arch-chroot \
-            "$TARGET_MOUNT" \
-            "$CHROOT_INSTALLER" \
-            --chroot
-    fi
-
-    echo "Installation completed. Unmounting target filesystems..."
-
-    trap - ERR SIGINT SIGTERM
-
-    cleanup_host_mounts
-
-    echo "ALBI installation finished successfully."
-}
-
-
-generate_config() {
-    local hostname_default
-
-    hostname_default="$(
-        cat /sys/class/dmi/id/product_name 2>/dev/null || true
-    )"
-
-    if [[ -z "$hostname_default" ]]; then
-        hostname_default="archlinux"
-    fi
-
-    hostname_default="${hostname_default,,}"
-
-    hostname_default="$(
-        sed \
-            's/[^a-z0-9-]/-/g; s/--*/-/g; s/^-*//; s/-*$//' \
-            <<< "$hostname_default"
-    )"
-
-    hostname_default="${hostname_default:0:63}"
-
-    [[ -n "$hostname_default" ]] ||
-        hostname_default="archlinux"
-
-    if [[ "$boot_mode" == "UEFI" ]]; then
-        cat > "$CONFIG_FILE_HOST" <<EOF_CONFIG
-## ALBI Installation Configuration
-
-### Formatting
-root_part_filesystem="btrfs"
-separate_home_part_filesystem="none"
-separate_boot_part_filesystem="btrfs"
-separate_var_part_filesystem="none"
-separate_tmp_part_filesystem="none"
-
-### Mounting
-root_part="/dev/sdX#"
-separate_home_part="none"
-separate_boot_part="/dev/sdX#"
-separate_var_part="none"
-separate_tmp_part="none"
-
-efi_part="/dev/sdX#"
-efi_part_mountpoint="/boot/efi"
-
-### Encryption
-luks_encryption="yes"
-luks_passphrase=""
-
-### Connectivity
-network_management="network-manager"
-
-### Kernel Variant
-kernel_variant="normal"
-
-### Mirror Servers Location
-mirror_location="none"
-
-### Timezone
-timezone="Europe/Prague"
-
-### Hostname and User
-hostname="$hostname_default"
-username="changeme"
-full_username=""
-password=""
-
-### Locales
-language="en_US.UTF-8"
-tty_keyboard_layout="us"
-
-### Software Selection
-install_pipewire="yes"
-gpu="amd"
-de="gnome"
-install_cups="yes"
-
-### Swapfile
-create_swapfile="yes"
-swapfile_size_gb="4"
-
-### Script Settings
-keep_config="no"
-EOF_CONFIG
-    else
-        cat > "$CONFIG_FILE_HOST" <<EOF_CONFIG
-## ALBI Installation Configuration
-
-### Formatting
-root_part_filesystem="btrfs"
-separate_home_part_filesystem="none"
-separate_boot_part_filesystem="btrfs"
-separate_var_part_filesystem="none"
-separate_tmp_part_filesystem="none"
-
-### Mounting
-root_part="/dev/sdX#"
-separate_home_part="none"
-separate_boot_part="/dev/sdX#"
-separate_var_part="none"
-separate_tmp_part="none"
-
-grub_disk="/dev/sdX"
-
-### Encryption
-luks_encryption="yes"
-luks_passphrase=""
-
-### Connectivity
-network_management="network-manager"
-
-### Kernel Variant
-kernel_variant="normal"
-
-### Mirror Servers Location
-mirror_location="none"
-
-### Timezone
-timezone="Europe/Prague"
-
-### Hostname and User
-hostname="$hostname_default"
-username="changeme"
-full_username=""
-password=""
-
-### Locales
-language="en_US.UTF-8"
-tty_keyboard_layout="us"
-
-### Software Selection
-install_pipewire="yes"
-gpu="amd"
-de="gnome"
-install_cups="yes"
-
-### Swapfile
-create_swapfile="yes"
-swapfile_size_gb="4"
-
-### Script Settings
-keep_config="no"
-EOF_CONFIG
-    fi
-
-    chmod 600 "$CONFIG_FILE_HOST"
-
-    echo "config.conf was generated successfully: $CONFIG_FILE_HOST"
-    echo "Edit it to customize the installation. Password fields may be left empty to be requested securely at runtime."
-}
-
-
-configure_locale() {
-    local locale_regex
-
-    locale_regex="${language//./\\.}"
-
-    sed -i -E \
-        "s/^#?[[:space:]]*(${locale_regex}[[:space:]]+UTF-8)$/\1/" \
-        /etc/locale.gen
-
-    grep -Eq \
-        "^${locale_regex}[[:space:]]+UTF-8$" \
-        /etc/locale.gen ||
-        die "Failed to enable locale: $language"
-
-    printf 'LANG=%s\n' "$language" > /etc/locale.conf
-    printf 'KEYMAP=%s\n' "$tty_keyboard_layout" > /etc/vconsole.conf
-    printf '%s\n' "$hostname" > /etc/hostname
-
-    locale-gen
-}
-
-
-configure_timezone() {
-    ln -sf \
-        "/usr/share/zoneinfo/$timezone" \
-        /etc/localtime
-
-    systemctl enable systemd-timesyncd.service
-
-    hwclock --systohc
-}
-
-
-install_common_packages() {
-    local -a packages=(
-        btrfs-progs
-        cryptsetup
-        dosfstools
-        dnsmasq
-        inetutils
-        xfsprogs
-        base-devel
-        polkit
-        bash-completion
-        nano
-        sudo
-        grub
-        ntfs-3g
-        sshfs
-        exfatprogs
-        usbutils
-        xdg-utils
-        xdg-user-dirs
-        unzip
-        unrar
-        zip
-        7zip
-        os-prober
-        plymouth
-    )
-
-    pacman \
-        -S \
-        --needed \
-        --noconfirm \
-        "${packages[@]}"
-}
-
-
-configure_network() {
-    case "$network_management" in
-        network-manager)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                networkmanager
-
-            systemctl enable NetworkManager.service
-            ;;
-
-        systemd-networkd)
-            local iface
-
-            iface="$(
-                ip -o route show default 2>/dev/null |
-                    awk 'NR==1 {print $5}'
-            )"
-
-            [[ -n "$iface" ]] ||
-                die "Could not determine an interface for systemd-networkd."
-
-            install -d /etc/systemd/network
-
-            cat > /etc/systemd/network/20-wired.network <<EOF_NETWORK
-[Match]
-Name=$iface
-
-[Link]
-RequiredForOnline=routable
-
-[Network]
-DHCP=yes
-EOF_NETWORK
-
-            systemctl enable \
-                systemd-networkd.service \
-                systemd-resolved.service
-
-            ln -sfn \
-                /run/systemd/resolve/stub-resolv.conf \
-                /etc/resolv.conf
-            ;;
-
-        none)
-            ;;
-
-        *)
-            die "Unexpected network management setting: $network_management"
-            ;;
-    esac
-}
-
-
-install_bluetooth() {
-    pacman \
-        -S \
-        --needed \
-        --noconfirm \
-        bluez
-
-    systemctl enable bluetooth.service
-}
-
-
-install_cpu_microcode() {
-    local vendor
-
-    vendor="$(
-        awk -F: '
-            /^vendor_id[[:space:]]*:/ {
-                gsub(/[[:space:]]/, "", $2)
-                print $2
+        if [[ -e "$root_part" ]]; then
+            if [[ "$luks_encryption" == "yes" ]]; then
+                if [[ "$boot_part_exists" == "true" ]]; then
+                    echo "Setting up the encryption..."
+                    root_part_orig="$root_part"
+                    root_part_basename=$(basename "$root_part")
+                    root_part_encrypted_name="${root_part_basename}_crypt"
+                    echo -n "$luks_passphrase" | cryptsetup luksFormat "$root_part" -
+                    echo -n "$luks_passphrase" | cryptsetup luksOpen "$root_part" "$root_part_encrypted_name" -
+                    root_part="/dev/mapper/${root_part_encrypted_name}"
+                    echo "root_part_orig=\"$root_part_orig\"" > tmpfile.sh
+                    echo "root_part_encrypted_name=\"$root_part_encrypted_name\"" >> tmpfile.sh
+                else
+                    echo "Error: you haven't defined a separate /boot partition. It is needed in order to encrypt the / partition."
+                    exit
+                fi
+            fi
+
+            if [[ "$root_part_filesystem" == "ext4" ]]; then
+                yes | mkfs.ext4 "$root_part"
+                mount "$root_part" /mnt
+            elif [[ "$root_part_filesystem" == "ext3" ]]; then
+                yes | mkfs.ext3 "$root_part"
+                mount "$root_part" /mnt
+            elif [[ "$root_part_filesystem" == "ext2" ]]; then
+                yes | mkfs.ext2 "$root_part"
+                mount "$root_part" /mnt
+            elif [[ "$root_part_filesystem" == "btrfs" ]]; then
+                yes | mkfs.btrfs -f "$root_part"
+
+                mount -t btrfs -o subvolid=5 "$root_part" /mnt
+                btrfs subvolume create /mnt/root
+
+                if [[ "$separate_home_part" == "none" ]]; then
+                    btrfs subvolume create /mnt/home
+                fi
+
+                umount /mnt
+
+                mount -t btrfs -o subvol=root,compress=zstd:1 "$root_part" /mnt
+
+                if [[ "$separate_home_part" == "none" ]]; then
+                    mkdir -p /mnt/home
+                    mount -t btrfs -o subvol=home,compress=zstd:1 "$root_part" /mnt/home
+                fi
+            elif [[ "$root_part_filesystem" == "xfs" ]]; then
+                yes | mkfs.xfs "$root_part"
+                mount "$root_part" /mnt
+            else
+                echo "Error: wrong filesystem for the / partition: $root_part"
                 exit
-            }
-        ' /proc/cpuinfo
-    )"
-
-    case "$vendor" in
-        GenuineIntel)
-            pacman -S --needed --noconfirm intel-ucode
-            ;;
-        AuthenticAMD)
-            pacman -S --needed --noconfirm amd-ucode
-            ;;
-    esac
-}
-
-
-configure_hosts() {
-    cat > /etc/hosts <<EOF_HOSTS
-127.0.0.1       localhost
-127.0.1.1       $hostname
-
-# The following lines are desirable for IPv6 capable hosts
-::1             localhost ip6-localhost ip6-loopback
-ff02::1         ip6-allnodes
-ff02::2         ip6-allrouters
-EOF_HOSTS
-}
-
-
-create_user() {
-    id "$username" >/dev/null 2>&1 &&
-        die "User already exists: $username"
-
-    useradd --create-home "$username"
-
-    printf '%s:%s\n' "$username" "$password" |
-        chpasswd
-
-    if [[ -n "$full_username" ]]; then
-        usermod -c "$full_username" "$username"
-    fi
-
-    usermod -aG wheel "$username"
-}
-
-
-configure_shell_tools() {
-    if ! grep -q \
-        '^include /usr/share/nano/.*\.nanorc' \
-        /etc/nanorc 2>/dev/null
-    then
-        sed -i \
-            's|^# *include /usr/share/nano/\*\.nanorc|include /usr/share/nano/*.nanorc|' \
-            /etc/nanorc
-    fi
-
-    if grep -q '^#Color$' /etc/pacman.conf; then
-        sed -i \
-            's/^#Color$/Color/' \
-            /etc/pacman.conf
-    fi
-
-    if ! grep -q '^ILoveCandy$' /etc/pacman.conf; then
-        printf '\nILoveCandy\n' >> /etc/pacman.conf
-    fi
-
-    install -d -m 755 /etc/sudoers.d
-
-    cat > /etc/sudoers.d/10-wheel <<'EOF_SUDO'
-%wheel ALL=(ALL:ALL) ALL
-EOF_SUDO
-
-    chmod 440 /etc/sudoers.d/10-wheel
-
-    visudo -cf /etc/sudoers
-}
-
-
-configure_grub() {
-    if [[ "$boot_mode" == "UEFI" ]]; then
-        grub-install \
-            --target=x86_64-efi \
-            --efi-directory="$efi_part_mountpoint" \
-            --bootloader-id=archlinux
-    else
-        grub-install \
-            --target=i386-pc \
-            "$grub_disk"
-    fi
-
-    if [[ "$luks_encryption" == "yes" ]]; then
-        local cryptdevice_grub
-
-        cryptdevice_grub="$(
-            blkid \
-                -s UUID \
-                -o value \
-                "$root_part_orig"
-        )"
-
-        [[ -n "$cryptdevice_grub" ]] ||
-            die "Could not determine the LUKS UUID."
-
-        sed -i \
-            's/^HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' \
-            /etc/mkinitcpio.conf
-
-        if grep -q '^GRUB_CMDLINE_LINUX=""' /etc/default/grub; then
-            sed -i \
-                "s|^GRUB_CMDLINE_LINUX=\"\"$|GRUB_CMDLINE_LINUX=\"rd.luks.uuid=$cryptdevice_grub\"|" \
-                /etc/default/grub
+            fi
         else
-            sed -i \
-                "s|^GRUB_CMDLINE_LINUX=\"|GRUB_CMDLINE_LINUX=\"rd.luks.uuid=$cryptdevice_grub |" \
-                /etc/default/grub
+            echo "Error: partition $root_part isn't a valid path - it doesn't exist or isn't accessible."
+            exit
         fi
+    fi
+elif [[ "$root_part" == "none" ]]; then
+    if ! [[ -n "$mount_partition" ]]; then
+        echo "Error: no partition is mounted to / and you didn't define any in the config file."
+        exit
+    fi
+fi
+
+if [[ "$separate_home_part" != "none" ]]; then
+    if [[ -e "$separate_home_part" ]]; then
+        home_part_exists="true"
     else
-        sed -i \
-            's/^HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth filesystems fsck)/' \
-            /etc/mkinitcpio.conf
+        echo "Error: partition $separate_home_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
     fi
+fi
 
-    if [[ "$de" != "none" ]]; then
-        if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=' /etc/default/grub; then
-            if grep -q \
-                '^GRUB_CMDLINE_LINUX_DEFAULT=".*quiet' \
-                /etc/default/grub
-            then
-                sed -i \
-                    's/quiet/& splash/' \
-                    /etc/default/grub
-            else
-                sed -i \
-                    's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 quiet splash"/' \
-                    /etc/default/grub
-            fi
+if [[ "$separate_var_part" != "none" ]]; then
+    if [[ -e "$separate_var_part" ]]; then
+        var_part_exists="true"
+    else
+        echo "Error: partition $separate_var_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
+    fi
+fi
+
+if [[ "$separate_tmp_part" != "none" ]]; then
+    if [[ -e "$separate_tmp_part" ]]; then
+        tmp_part_exists="true"
+    else
+        echo "Error: partition $separate_tmp_part isn't a valid path - it doesn't exist or isn't accessible."
+        exit
+    fi
+fi
+
+if [[ "$home_part_exists" == "true" ]]; then
+    if [[ "$separate_home_part_filesystem" == "ext4" ]]; then
+        yes | mkfs.ext4 "$separate_home_part"
+        mkdir -p /mnt/home
+        mount "$separate_home_part" /mnt/home
+    elif [[ "$separate_home_part_filesystem" == "ext3" ]]; then
+        yes | mkfs.ext3 "$separate_home_part"
+        mkdir -p /mnt/home
+        mount "$separate_home_part" /mnt/home
+    elif [[ "$separate_home_part_filesystem" == "ext2" ]]; then
+        yes | mkfs.ext2 "$separate_home_part"
+        mkdir -p /mnt/home
+        mount "$separate_home_part" /mnt/home
+    elif [[ "$separate_home_part_filesystem" == "btrfs" ]]; then
+        yes | mkfs.btrfs -f "$separate_home_part"
+        mkdir -p /mnt/home
+        mount -t btrfs -o compress=zstd:1 "$separate_home_part" /mnt/home
+    elif [[ "$separate_home_part_filesystem" == "xfs" ]]; then
+        yes | mkfs.xfs "$separate_home_part"
+        mkdir -p /mnt/home
+        mount "$separate_home_part" /mnt/home
+    else
+        echo "Error: wrong filesystem for the /home partition: $separate_home_part_filesystem"
+    fi
+fi
+
+if [[ "$boot_part_exists" == "true" ]]; then
+    if [[ "$separate_boot_part_filesystem" == "ext4" ]]; then
+        yes | mkfs.ext4 "$separate_boot_part"
+        mkdir -p /mnt/boot
+        mount "$separate_boot_part" /mnt/boot
+    elif [[ "$separate_boot_part_filesystem" == "ext3" ]]; then
+        yes | mkfs.ext3 "$separate_boot_part"
+        mkdir -p /mnt/boot
+        mount "$separate_boot_part" /mnt/boot
+    elif [[ "$separate_boot_part_filesystem" == "ext2" ]]; then
+        yes | mkfs.ext2 "$separate_boot_part"
+        mkdir -p /mnt/boot
+        mount "$separate_boot_part" /mnt/boot
+    elif [[ "$separate_boot_part_filesystem" == "btrfs" ]]; then
+        yes | mkfs.btrfs -f "$separate_boot_part"
+        mkdir -p /mnt/boot
+        mount -t btrfs "$separate_boot_part" /mnt/boot
+    elif [[ "$separate_boot_part_filesystem" == "xfs" ]]; then
+        yes | mkfs.xfs "$separate_boot_part"
+        mkdir -p /mnt/boot
+        mount -o compress=zstd "$separate_boot_part" /mnt/boot
+    else
+        echo "Error: wrong filesystem for the /boot partition: $separate_boot_part_filesystem"
+    fi
+fi
+
+if [[ "$var_part_exists" == "true" ]]; then
+    if [[ "$separate_var_part_filesystem" == "ext4" ]]; then
+        yes | mkfs.ext4 "$separate_var_part"
+        mkdir -p /mnt/var
+        mount "$separate_var_part" /mnt/var
+    elif [[ "$separate_var_part_filesystem" == "ext3" ]]; then
+        yes | mkfs.ext3 "$separate_var_part"
+        mkdir -p /mnt/var
+        mount "$separate_var_part" /mnt/var
+    elif [[ "$separate_var_part_filesystem" == "ext2" ]]; then
+        yes | mkfs.ext2 "$separate_var_part"
+        mkdir -p /mnt/var
+        mount "$separate_var_part" /mnt/var
+    elif [[ "$separate_var_part_filesystem" == "btrfs" ]]; then
+        yes | mkfs.btrfs -f "$separate_var_part"
+        mkdir -p /mnt/var
+        mount -t btrfs -o compress=zstd:1 "$separate_var_part" /mnt/var
+    elif [[ "$separate_var_part_filesystem" == "xfs" ]]; then
+        yes | mkfs.xfs "$separate_var_part"
+        mkdir -p /mnt/var
+        mount "$separate_var_part" /mnt/var
+    else
+        echo "Error: wrong filesystem for the /var partition: $var_part_filesystem"
+    fi
+fi
+
+if [[ "$tmp_part_exists" == "true" ]]; then
+    if [[ "$separate_tmp_part_filesystem" == "ext4" ]]; then
+        yes | mkfs.ext4 "$separate_tmp_part"
+        mkdir -p /mnt/tmp
+        mount "$separate_tmp_part" /mnt/tmp
+    elif [[ "$separate_tmp_part_filesystem" == "ext3" ]]; then
+        yes | mkfs.ext3 "$separate_tmp_part"
+        mkdir -p /mnt/tmp
+        mount "$separate_tmp_part" /mnt/tmp
+    elif [[ "$separate_tmp_part_filesystem" == "ext2" ]]; then
+        yes | mkfs.ext2 "$separate_tmp_part"
+        mkdir -p /mnt/tmp
+        mount "$separate_tmp_part" /mnt/tmp
+    elif [[ "$separate_tmp_part_filesystem" == "btrfs" ]]; then
+        yes | mkfs.btrfs -f "$separate_tmp_part"
+        mkdir -p /mnt/tmp
+        mount -t btrfs -o compress=zstd:1 "$separate_tmp_part" /mnt/tmp
+    elif [[ "$separate_tmp_part_filesystem" == "xfs" ]]; then
+        yes | mkfs.xfs "$separate_tmp_part"
+        mkdir -p /mnt/tmp
+        mount "$separate_tmp_part" /mnt/tmp
+    else
+        echo "Error: wrong filesystem for the /tmp partition: $separate_tmp_part_filesystem"
+    fi
+fi
+if [[ "$boot_mode" == "UEFI" ]]; then
+    efi_part_filesystem=$(blkid -s TYPE -o value "$efi_part")
+    if [[ "$efi_part_filesystem" != "vfat" ]]; then
+        mkfs.fat -F 32 "$efi_part"
+        mkdir -p /mnt"$efi_part_mountpoint"
+        mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
+    else
+        if ! findmnt --noheadings -o SOURCE /mnt"$efi_part_mountpoint" | grep -q "$efi_part"; then
+            mkdir -p /mnt"$efi_part_mountpoint"
+            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
+        else
+            umount /mnt"$efi_part_mountpoint"
+            mkdir -p /mnt"$efi_part_mountpoint"
+            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
         fi
     fi
-
-    if grep -q '^#GRUB_DISABLE_OS_PROBER=false$' /etc/default/grub; then
-        sed -i \
-            's/^#GRUB_DISABLE_OS_PROBER=false$/GRUB_DISABLE_OS_PROBER=false/' \
-            /etc/default/grub
+elif [[ "$boot_mode" == "BIOS" ]]; then
+    if ! [[ -b "$grub_disk" ]]; then
+        echo "Error: disk path $grub_disk is not accessible or does not exist."
+        exit
     fi
-}
+fi
 
-
-configure_gpu() {
-    case "$gpu" in
-        amd)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                mesa \
-                vulkan-radeon
-
-            if grep -q '^MODULES=()$' /etc/mkinitcpio.conf; then
-                sed -i \
-                    's/^MODULES=()$/MODULES=(amdgpu)/' \
-                    /etc/mkinitcpio.conf
-            elif ! grep -Eq \
-                '^MODULES=.*\bamdgpu\b' \
-                /etc/mkinitcpio.conf
-            then
-                sed -i \
-                    's/^MODULES=(\(.*\))/MODULES=(\1 amdgpu)/' \
-                    /etc/mkinitcpio.conf
-            fi
-            ;;
-
-        intel)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                mesa \
-                vulkan-intel \
-                intel-media-driver
-            ;;
-
-        nvidia)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                nvidia \
-                nvidia-settings
-
-            if grep -q '^GRUB_CMDLINE_LINUX=""' /etc/default/grub; then
-                sed -i \
-                    's/^GRUB_CMDLINE_LINUX=""$/GRUB_CMDLINE_LINUX="nvidia-drm.modeset=1 nvidia-drm.fbdev=1"/' \
-                    /etc/default/grub
-            else
-                sed -i \
-                    's/^GRUB_CMDLINE_LINUX="\(.*\)"$/GRUB_CMDLINE_LINUX="\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1"/' \
-                    /etc/default/grub
-            fi
-            ;;
-
-        other)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                mesa
-            ;;
-
-        none)
-            ;;
-    esac
-}
-
-
-install_desktop() {
-    case "$de" in
-        gnome)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                gnome \
-                noto-fonts \
-                noto-fonts-cjk \
-                noto-fonts-emoji \
-                noto-fonts-extra \
-                gnome-tweaks \
-                gnome-shell-extensions \
-                gnome-browser-connector \
-                power-profiles-daemon \
-                ptyxis \
-                --assume-installed=gnome-console
-
-            systemctl enable gdm.service
-            ;;
-
-        plasma)
-            local -a plasma_group_packages
-
-            mapfile -t plasma_group_packages < <(
-                pacman -Sgq plasma |
-                    grep -v '^sddm-kcm$'
-            )
-
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                "${plasma_group_packages[@]}" \
-                plasma-login-manager \
-                noto-fonts \
-                noto-fonts-cjk \
-                noto-fonts-emoji \
-                noto-fonts-extra \
-                ufw \
-                dolphin \
-                konsole \
-                power-profiles-daemon
-
-            systemctl enable plasmalogin.service
-            ;;
-
-        xfce)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                xfce4 \
-                xfce4-goodies \
-                xarchiver \
-                xfce4-terminal \
-                xfce4-dev-tools \
-                blueman \
-                lightdm \
-                lightdm-gtk-greeter \
-                lightdm-gtk-greeter-settings \
-                noto-fonts \
-                noto-fonts-cjk \
-                noto-fonts-emoji \
-                noto-fonts-extra \
-                gvfs \
-                network-manager-applet \
-                power-profiles-daemon
-
-            systemctl enable lightdm.service
-            ;;
-
-        cinnamon)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                blueman \
-                cinnamon \
-                cinnamon-translations \
-                nemo-fileroller \
-                gnome-terminal \
-                lightdm \
-                lightdm-slick-greeter \
-                noto-fonts \
-                noto-fonts-cjk \
-                noto-fonts-emoji \
-                noto-fonts-extra \
-                gvfs \
-                power-profiles-daemon
-
-            systemctl enable lightdm.service
-
-            sed -i \
-                's/^#greeter-session=example-gtk-gnome$/greeter-session=lightdm-slick-greeter/' \
-                /etc/lightdm/lightdm.conf
-            ;;
-
-        mate)
-            pacman \
-                -S \
-                --needed \
-                --noconfirm \
-                mate \
-                mate-extra \
-                blueman \
-                lightdm \
-                lightdm-gtk-greeter \
-                lightdm-gtk-greeter-settings \
-                noto-fonts \
-                noto-fonts-cjk \
-                noto-fonts-emoji \
-                noto-fonts-extra \
-                gvfs \
-                power-profiles-daemon
-
-            systemctl enable lightdm.service
-            ;;
-
-        none)
-            ;;
-    esac
-}
-
-
-install_pipewire() {
-    [[ "$install_pipewire" == "yes" ]] || return 0
-
-    pacman \
-        -S \
-        --needed \
-        --noconfirm \
-        pipewire \
-        pipewire-pulse \
-        pipewire-alsa \
-        pipewire-jack \
-        wireplumber
-}
-
-
-install_cups() {
-    [[ "$install_cups" == "yes" ]] || return 0
-
-    pacman \
-        -S \
-        --needed \
-        --noconfirm \
-        cups \
-        cups-filters \
-        cups-pk-helper \
-        cups-browsed \
-        bluez-cups \
-        ghostscript \
-        gutenprint \
-        hplip \
-        nss-mdns
-
-    systemctl enable \
-        cups.service \
-        cups-browsed.service \
-        avahi-daemon.service
-
-    sed -i \
-        's/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/' \
-        /etc/nsswitch.conf
-
-    if [[ "$de" != "none" ]]; then
-        pacman \
-            -S \
-            --needed \
-            --noconfirm \
-            system-config-printer
-
-        install -d -m 755 \
-            "/home/$username/.local/share/applications"
-
-        if [[ -f /usr/share/applications/hplip.desktop ]]; then
-            cp \
-                /usr/share/applications/hplip.desktop \
-                "/home/$username/.local/share/applications/"
-
-            printf '\nNoDisplay=true\n' \
-                >> "/home/$username/.local/share/applications/hplip.desktop"
-        fi
-
-        if [[ -f /usr/share/applications/hp-uiscan.desktop ]]; then
-            cp \
-                /usr/share/applications/hp-uiscan.desktop \
-                "/home/$username/.local/share/applications/"
-
-            printf '\nNoDisplay=true\n' \
-                >> "/home/$username/.local/share/applications/hp-uiscan.desktop"
-        fi
-
-        chown -R \
-            "$username:$username" \
-            "/home/$username/.local"
+if [[ "$mirror_location" != "none" ]]; then
+    reflector_output=$(reflector --country "$mirror_location")
+    if [[ "$reflector_output" == *"error"* || "$reflector_output" == *"no mirrors found"* ]]; then
+        echo "Error: invalid country name for Reflector."
+        exit
+    else
+        reflector --sort rate --country "$mirror_location" --save /etc/pacman.d/mirrorlist
     fi
+fi
+
+if [[ "$kernel_variant" == "normal" ]]; then
+    pacstrap -K /mnt base linux linux-firmware linux-headers
+elif [[ "$kernel_variant" == "lts" ]]; then
+    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
+elif [[ "$kernel_variant" == "zen" ]]; then
+    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
+fi
+
+genfstab -U /mnt >> /mnt/etc/fstab
+
+touch main.sh
+cat <<'EOFile' > main.sh
+#!/bin/bash
+
+interrupt_handler() {
+    echo "Interruption signal received. Aborting..."
+    echo "Unmounting partitions..."
+    if [[ "$home_part_exists" == "true" ]]; then
+        umount /mnt/home
+    fi
+    if [[ "$var_part_exists" == "true" ]]; then
+        umount /mnt/var
+    fi
+    if [[ "$usr_part_exists" == "true" ]]; then
+        umount /mnt/usr
+    fi
+    if [[ "$tmp_part_exists" == "true" ]]; then
+        umount /mnt/tmp
+    fi
+    if [[ "$boot_mode" == "UEFI" ]]; then
+        umount /mnt"$efi_part_mountpoint"
+    fi
+    umount /mnt
+    exit
 }
 
+trap interrupt_handler SIGINT
 
-create_swapfile() {
-    [[ "$create_swapfile" == "yes" ]] || return 0
+while IFS='=' read -r key value; do
+    key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
+    value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
 
+    [[ -z "$key" ]] && continue
+
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+            
+    declare "$key=$value"
+done < <(grep -v '^#' /config.conf | grep -v '^$')
+if [[ "$luks_encryption" == "yes" ]]; then
+    source /tmpfile.sh
+fi
+
+ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+systemctl enable systemd-timesyncd
+hwclock --systohc
+
+if [[ "$language" != "en_US.UTF-8" ]]; then
+    sed -i "/en_US.UTF-8 UTF-8/s/^#//" /etc/locale.gen
+fi
+sed -i "/$language/s/^#//" /etc/locale.gen
+echo "LANG=$language" > /etc/locale.conf
+echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
+echo "$hostname" > /etc/hostname
+locale-gen
+
+pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
+
+if [[ "$network_management" == "network-manager' ]]; then
+    pacman -S networkmanager --noconfirm
+    systemctl enable NetworkManager
+elif [[ "$network_management" == "systemd-networkd" ]]; then
+    default_route=$(ip route | grep '^default')
+    gateway=$(echo "$default_route" | awk '{print $3}')
+    iface=$(echo "$default_route" | awk '{print $5}')
+    method=$(echo "$default_route" | awk '{print $7}')
+    ip_info=$(ip addr show "$iface" | grep -oP '(?<=inet\s)\d+(\.\d+){3}/\d+')
+    echo "[Match]" > /etc/systemd/network/20-wired.network
+    echo "Name=$iface" >> /etc/systemd/network/20-wired.network
+    echo "" >> /etc/systemd/network/20-wired.network
+    echo "[Link]" >> /etc/systemd/network/20-wired.network
+    echo "RequiredForOnline=routable" >> /etc/systemd/network/20-wired.network
+    echo "" >> /etc/systemd/network/20-wired.network
+    echo "[Network]" >> /etc/systemd/network/20-wired.network
+    if [[ "$method" == "dhcp" ]]; then
+        echo "DHCP=yes" >> /etc/systemd/network/20-wired.network
+    elif [[ "$method" == "static" ]]; then
+        echo "Address=$ip_info" >> /etc/systemd/network/20-wired.network
+        echo "Gateway=$gateway" >> /etc/systemd/network/20-wired.network
+        echo "DNS=1.1.1.1" >> /etc/systemd/network/20-wired.network
+    fi
+    systemctl enable systemd-networkd systemd-resolved
+fi
+
+pacman -S bluez --noconfirm
+systemctl enable bluetooth
+
+if [[ -d "/sys/firmware/efi/" ]]; then
+    boot_mode="UEFI"
+    pacman -S efibootmgr --noconfirm
+else
+    boot_mode="BIOS"
+fi
+
+vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
+if [[ "$vendor" == "GenuineIntel" ]]; then
+    pacman -Sy intel-ucode --noconfirm
+elif [[ "$vendor" == "AuthenticAMD" ]]; then
+    pacman -Sy amd-ucode --noconfirm
+fi
+
+echo "127.0.0.1       localhost" >> /etc/hosts
+echo "127.0.1.1       $hostname" >> /etc/hosts
+echo "" >> /etc/hosts
+echo "# The following lines are desirable for IPv6 capable hosts" >> /etc/hosts
+echo "::1             localhost ip6-localhost ip6-loopback" >> /etc/hosts
+echo "ff02::1         ip6-allnodes" >> /etc/hosts
+echo "ff02::2         ip6-allrouters" >> /etc/hosts
+
+useradd -m "$username"
+echo "$password" | passwd "$username" --stdin
+if [[ "$full_username" != "" ]]; then
+    usermod -c "$full_username" "$username"
+fi
+
+usermod -aG wheel "$username"
+
+cln=$(grep -n "Color" /etc/pacman.conf | cut -d ':' -f1)
+dln=$(grep -n "## Defaults specification" /etc/sudoers | cut -d ':' -f1)
+sed -i 's/^# include \/usr\/share\/nano\/\*\.nanorc/include \/usr\/share\/nano\/\*\.nanorc/' /etc/nanorc
+sed -i '/Color/s/^#//g' /etc/pacman.conf
+sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
+sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
+sed -i "${dln}s/$/\n##/" /etc/sudoers
+
+if [[ "$boot_mode" == "UEFI" ]]; then
+    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
+elif [[ "$boot_mode" == "BIOS" ]]; then
+    grub-install --target=i386-pc "$grub_disk"
+fi
+
+if [[ "$luks_encryption" == "yes" ]]; then
+    cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
+    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
+    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
+    else
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
+    fi
+else
+    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth filesystems fsck)/' /etc/mkinitcpio.conf
+fi
+
+if [[ "$de" != "none" ]]; then
+    sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)\(quiet\)\(.*\)"/\1\2 splash\3"/' /etc/default/grub
+fi
+
+sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/g' /etc/default/grub
+
+if [[ "$install_pipewire" == "yes" ]]; then
+    pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
+fi
+
+if [[ "$gpu" == "amd" ]]; then
+    pacman -S mesa vulkan-radeon --noconfirm
+    if grep -q "^MODULES=()" /etc/mkinitcpio.conf; then
+        sed -i "s|^MODULES=()|MODULES=(amdgpu)|" /etc/mkinitcpio.conf
+    else
+        sed -i "s|^\(MODULES=(.*\))|\1 amdgpu)|" /etc/mkinitcpio.conf
+    fi
+elif [[ "$gpu" == "intel" ]]; then
+    pacman -S mesa vulkan-intel intel-media-driver --noconfirm
+elif [[ "$gpu" == "nvidia" ]]; then
+    pacman -S nvidia nvidia-settings --noconfirm
+    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
+    else
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
+    fi
+elif [[ "$gpu" == "other" ]]; then
+    pacman -S mesa --noconfirm
+fi
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+if [[ "$de" == "gnome" ]]; then
+    pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon ptyxis --assume-installed=gnome-console --noconfirm
+    systemctl enable gdm
+elif [[ "$de" == "plasma" ]]; then
+    pacman -Sgq plasma | grep -v "sddm-kcm" | pacman -S - plasma-login-manager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
+    systemctl enable plasmalogin
+elif [[ "$de" == "xfce" ]]; then
+    pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
+    systemctl enable lightdm
+elif [[ "$de" == "cinnamon" ]]; then
+    pacman -S blueman cinnamon cinnamon-translations nemo-fileroller gnome-terminal lightdm lightdm-slick-greeter noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
+    systemctl enable lightdm
+    sed -i 's/#greeter-session=example-gtk-gnome/greeter-session=lightdm-slick-greeter/g' /etc/lightdm/lightdm.conf
+elif [[ "$de" == "mate" ]]; then
+    pacman -S mate mate-extra blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs power-profiles-daemon --noconfirm
+    systemctl enable lightdm
+fi
+
+if [[ "$install_cups" == yes ]]; then
+    pacman -S cups cups-filters cups-pk-helper cups-browsed bluez-cups ghostscript gutenprint hplip nss-mdns --noconfirm
+    systemctl enable cups
+    systemctl enable cups-browsed
+    systemctl enable avahi-daemon
+    sed -i "s/^hosts:.*/hosts: mymachines mdns_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/" /etc/nsswitch.conf
+    mkdir -p /home/"$username"/.local/share/applications
+    cp /usr/share/applications/hplip.desktop /home/"$username"/.local/share/applications/
+    echo "NoDisplay=true" >> /home/"$username"/.local/share/applications/hplip.desktop
+    cp /usr/share/applications/hp-uiscan.desktop /home/"$username"/.local/share/applications/
+    echo "NoDisplay=true" >> /home/"$username"/.local/share/applications/hp-uiscan.desktop
+    chown -R "$username:$username" /home/"$username"/.local/
+fi
+
+if [[ "$de" != "none" && "$install_cups" == yes ]]; then
+    pacman -S system-config-printer --noconfirm
+fi
+
+sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
+
+if [[ "$create_swapfile" == "yes" ]]; then
     if [[ "$root_part_filesystem" == "btrfs" ]]; then
         truncate -s 0 /swapfile
         chattr +C /swapfile
     fi
-
-    fallocate \
-        -l "${swapfile_size_gb}G" \
-        /swapfile
-
+    fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
-
     mkswap /swapfile
+    echo "# /swapfile" >> /etc/fstab
+    echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
+fi
 
-    cat >> /etc/fstab <<'EOF_SWAP'
+mkinitcpio -P
 
-# /swapfile
-/swapfile    none    swap    sw    0    0
-EOF_SWAP
-}
+while pacman -Qdtq; do
+    pacman -Runs $(pacman -Qdtq) --noconfirm
+done
+yes | pacman -Sc
+yes | pacman -Scc
+if [[ "$keep_config" == "no" ]]; then
+    rm -f /config.conf
+else
+    mv /config.conf /home/$username/
+fi
+rm -f /main.sh
+rm -f /tmpfile.sh
+rm -f /tmpscript.sh
+exit
+EOFile
 
+if [[ "$luks_encryption" == "yes" ]]; then
+    cp tmpfile.sh /mnt/
+fi
 
-cleanup_packages() {
-    local -a orphans
+cp main.sh /mnt/
+cp config.conf /mnt/
 
-    mapfile -t orphans < <(
-        pacman -Qdtq 2>/dev/null || true
-    )
-
-    if ((${#orphans[@]} > 0)); then
-        pacman \
-            -Runs \
-            --noconfirm \
-            "${orphans[@]}"
-    fi
-
-    pacman -Sc --noconfirm
-}
-
-
-remove_installer_files() {
-    if [[ "$keep_config" == "yes" ]]; then
-        install \
-            -m 600 \
-            /config.conf \
-            "/home/$username/config.conf"
-
-        chown \
-            "$username:$username" \
-            "/home/$username/config.conf"
-
-        rm -f /config.conf
-    else
-        rm -f /config.conf
-    fi
-
-    rm -f "$CHROOT_INSTALLER"
-}
-
-
-chroot_main() {
-    root_part_orig="${2:-}"
-    root_part_encrypted_name="${3:-}"
-
-    [[ -f /config.conf ]] ||
-        die "Missing /config.conf inside target system."
-
-    load_config /config.conf
-    load_target_secrets
-    prompt_for_missing_secrets
-    validate_config target
-
-    configure_timezone
-    configure_locale
-    install_common_packages
-    configure_network
-    install_bluetooth
-    install_cpu_microcode
-    configure_hosts
-    create_user
-    configure_shell_tools
-    configure_grub
-    configure_gpu
-    install_pipewire
-    install_desktop
-    install_cups
-    create_swapfile
-
-    mkinitcpio -P
-
-    grub-mkconfig \
-        -o /boot/grub/grub.cfg
-
-    cleanup_packages
-    remove_installer_files
-
-    echo "Chroot configuration completed successfully."
-}
-
-
-main() {
-    case "${1:-}" in
-        --chroot)
-            require_root
-            detect_boot_mode
-            chroot_main "$@"
-            ;;
-
-        "")
-            host_main
-            ;;
-
-        *)
-            die "Unknown argument: $1"
-            ;;
-    esac
-}
-
-
-main "$@"
+arch-chroot /mnt bash main.sh
