@@ -690,6 +690,7 @@ elif [[ "$network_management" == "systemd-networkd" ]]; then
         echo "Gateway=$gateway" >> /etc/systemd/network/20-wired.network
         echo "DNS=1.1.1.1" >> /etc/systemd/network/20-wired.network
     fi
+    ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
     systemctl enable systemd-networkd systemd-resolved
 fi
 
