@@ -16,7 +16,10 @@ root_part=""
 
 error_handler() {
     local exit_code=$?
-    printf 'ERROR: command failed on line %s (exit status %s)\n' "$LINENO" "$exit_code" >&2
+    local failed_line="${BASH_LINENO[0]:-unknown}"
+    local failed_command="${BASH_COMMAND:-unknown}"
+    printf 'ERROR: command failed on line %s (exit status %s): %s\n' \
+        "$failed_line" "$exit_code" "$failed_command" >&2
     exit "$exit_code"
 }
 
