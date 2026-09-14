@@ -823,7 +823,7 @@ fi
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
 
 if [[ "$create_swap" == "yes" ]]; then
-    pacman -S systemd-zram-generator --noconfirm
+    pacman -S zram-generator --noconfirm
     cat <<EOF > /etc/systemd/zram-generator.conf
 [zram0]
 zram-size = ram / 2
