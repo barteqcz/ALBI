@@ -513,7 +513,7 @@ if [[ "$boot_part_exists" == "true" ]]; then
     elif [[ "$separate_boot_part_filesystem" == "xfs" ]]; then
         yes | mkfs.xfs "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount -o compress=zstd "$separate_boot_part" /mnt/boot
+        mount "$separate_boot_part" /mnt/boot
     else
         echo "Error: wrong filesystem for the /boot partition: $separate_boot_part_filesystem"
     fi
