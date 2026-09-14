@@ -112,10 +112,10 @@ if [[ -e "config.conf" ]]; then
             echo "CUPS installation is disabled"
         fi
         
-        if [[ "$create_swapfile" == "yes" ]]; then
-            echo "Swapfile creation is enabled, size: $swapfile_size_gb GB"
+        if [[ "$create_swap" == "yes" ]]; then
+            echo "Swap creation is enabled"
         else
-            echo "Swapfile creation is disabled"
+            echo "Swap creation is disabled"
         fi
 
         if [[ "$keep_config" == "yes" ]]; then
@@ -221,9 +221,8 @@ gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none)
 de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
 
-### Swapfile
-create_swapfile="yes"  #### Create swapfile (yes/no)
-swapfile_size_gb="4"  #### Swapfile size in GB
+### Swap
+create_swap="yes"  #### Create swap (yes/no)
 
 ### Script Settings
 keep_config="no"  #### Keep a copy of this file in /home/<your_username> after installation (yes/no)
@@ -322,13 +321,8 @@ if [[ "$luks_encryption" == "yes" ]]; then
     fi
 fi
 
-if ! [[ "$create_swapfile" == "yes" || "$create_swapfile" == "no" ]]; then
-    echo "Error: invalid value for the swapfile creation question: $swapfile_size_gb"
-    exit
-fi
-
-if ! [[ "$swapfile_size_gb" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-    echo "Error: invalid value for the swapfile size - the value isn't numeric: $swapfile_size_gb"
+if ! [[ "$create_swap" == "yes" || "$create_swap" == "no" ]]; then
+    echo "Error: invalid value for the swap creation question"
     exit
 fi
 
@@ -828,23 +822,15 @@ fi
 
 sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
 
-if [[ "$create_swapfile" == "yes" ]]; then
-    if [[ "$root_part_filesystem" == "btrfs" ]]; then
-        pacman -S systemd-zram-generator --noconfirm
-        cat <<EOF > /etc/systemd/zram-generator.conf
+if [[ "$create_swap" == "yes" ]]; then
+    pacman -S systemd-zram-generator --noconfirm
+    cat <<EOF > /etc/systemd/zram-generator.conf
 [zram0]
 zram-size = ram / 2
 compression-algorithm = zstd
 swap-priority = 100
 fs-type = swap
 EOF
-        systemctl enable systemd-zram-generator
-    fi
-    fallocate -l "$swapfile_size_gb"G /swapfile
-    chmod 600 /swapfile
-    mkswap /swapfile
-    echo "# /swapfile" >> /etc/fstab
-    echo "/swapfile    none    swap    sw    0    0" >> /etc/fstab
 fi
 
 mkinitcpio -P
