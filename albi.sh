@@ -725,7 +725,7 @@ echo "ff02::1         ip6-allnodes" >> /etc/hosts
 echo "ff02::2         ip6-allrouters" >> /etc/hosts
 
 useradd -m "$username"
-echo "$password" | passwd "$username" --stdin
+echo "$username:$password" | chpasswd
 if [[ "$full_username" != "" ]]; then
     usermod -c "$full_username" "$username"
 fi
@@ -830,8 +830,15 @@ sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
 
 if [[ "$create_swapfile" == "yes" ]]; then
     if [[ "$root_part_filesystem" == "btrfs" ]]; then
-        truncate -s 0 /swapfile
-        chattr +C /swapfile
+        pacman -S systemd-zram-generator --noconfirm
+        cat <<EOF > /etc/systemd/zram-generator.conf
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+swap-priority = 100
+fs-type = swap
+EOF
+        systemctl enable systemd-zram-generator
     fi
     fallocate -l "$swapfile_size_gb"G /swapfile
     chmod 600 /swapfile
