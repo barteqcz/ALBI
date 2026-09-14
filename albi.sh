@@ -131,7 +131,9 @@ partition_is_mounted() {
 
 validate_not_mounted() {
     local part=$1
-    partition_is_mounted "$part" && die "Partition is already mounted; refusing to format it: $part"
+    if partition_is_mounted "$part"; then
+        die "Partition is already mounted; refusing to format it: $part"
+    fi
 }
 
 validate_distinct_partitions() {
