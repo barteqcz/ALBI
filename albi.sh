@@ -786,7 +786,7 @@ if [[ "$de" == "gnome" ]]; then
     pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
 elif [[ "$de" == "plasma" ]]; then
-    pacman -Sgq plasma | grep -v "sddm-kcm" | pacman -S - plasma-login-manager noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
+    pacman -Sgq plasma | grep -v "sddm-kcm" | pacman -S - plasma-login-manager libcec qrca noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ufw dolphin konsole power-profiles-daemon --noconfirm
     systemctl enable plasmalogin
 elif [[ "$de" == "xfce" ]]; then
     pacman -S xfce4 xfce4-goodies xarchiver xfce4-terminal xfce4-dev-tools blueman lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gvfs network-manager-applet power-profiles-daemon --noconfirm
