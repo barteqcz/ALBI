@@ -604,10 +604,9 @@ if [[ "$mirror_location" != "none" ]]; then
 fi
 
 if [[ "$gpu" == "nvidia" && "$kernel_variant" == "zen" ]]; then
-    # The zen driver uses DKMS and needs matching headers to build its module.
-    pacstrap -K /mnt base "$kernel_package" linux-zen-headers linux-firmware || exit 1
+    pacstrap -K /mnt base "$kernel_package" linux-zen-headers linux-firmware
 else
-    pacstrap -K /mnt base "$kernel_package" linux-firmware || exit 1
+    pacstrap -K /mnt base "$kernel_package" linux-firmware
 fi
 
 genfstab -U /mnt >> /mnt/etc/fstab
