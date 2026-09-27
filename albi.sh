@@ -598,11 +598,11 @@ if [[ "$mirror_location" != "none" ]]; then
 fi
 
 if [[ "$kernel_variant" == "normal" ]]; then
-    pacstrap -K /mnt base linux linux-firmware linux-headers
+    pacstrap -K /mnt base linux linux-firmware
 elif [[ "$kernel_variant" == "lts" ]]; then
-    pacstrap -K /mnt base linux-lts linux-firmware linux-lts-headers
+    pacstrap -K /mnt base linux-lts linux-firmware
 elif [[ "$kernel_variant" == "zen" ]]; then
-    pacstrap -K /mnt base linux-zen linux-firmware linux-zen-headers
+    pacstrap -K /mnt base linux-zen linux-firmware
 fi
 
 genfstab -U /mnt >> /mnt/etc/fstab
