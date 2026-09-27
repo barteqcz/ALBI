@@ -805,7 +805,8 @@ sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 
 if [[ "$boot_mode" == "UEFI" ]]; then
-    grub-install --target=x86_64-efi --efi-directory=$efi_part_mountpoint --bootloader-id="archlinux"
+    grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --bootloader-id="archlinux"
+    grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --removable
 elif [[ "$boot_mode" == "BIOS" ]]; then
     grub-install --target=i386-pc "$grub_disk"
 fi
