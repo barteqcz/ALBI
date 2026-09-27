@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Stop critical installation steps on failure and preserve their exit status.
+run_checked() {
+    local description="$1"
+    shift
+    local status
+    if "$@"; then
+        return 0
+    else
+        status=$?
+        printf 'Error: %s failed (exit status %s). Aborting.\n' "$description" "$status" >&2
+        exit "$status"
+    fi
+}
+
 interrupt_handler() {
     echo "Interruption signal received. Aborting... "
     exit
@@ -614,11 +628,11 @@ if [[ "$mirror_location" != "none" ]]; then
 fi
 
 if [[ "$kernel_variant" == "normal" ]]; then
-    pacstrap -K /mnt base linux linux-firmware
+    run_checked "Base system installation" pacstrap -K /mnt base linux linux-firmware
 elif [[ "$kernel_variant" == "lts" ]]; then
-    pacstrap -K /mnt base linux-lts linux-firmware
+    run_checked "Base system installation" pacstrap -K /mnt base linux-lts linux-firmware
 elif [[ "$kernel_variant" == "zen" ]]; then
-    pacstrap -K /mnt base linux-zen linux-firmware
+    run_checked "Base system installation" pacstrap -K /mnt base linux-zen linux-firmware
 fi
 
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -626,6 +640,20 @@ genfstab -U /mnt >> /mnt/etc/fstab
 touch main.sh
 cat <<'EOFile' > main.sh
 #!/bin/bash
+
+# Stop critical installation steps on failure and preserve their exit status.
+run_checked() {
+    local description="$1"
+    shift
+    local status
+    if "$@"; then
+        return 0
+    else
+        status=$?
+        printf 'Error: %s failed (exit status %s). Aborting.\n' "$description" "$status" >&2
+        exit "$status"
+    fi
+}
 
 interrupt_handler() {
     echo "Interruption signal received. Aborting..."
@@ -678,7 +706,8 @@ echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
 echo "$hostname" > /etc/hostname
 locale-gen
 
-pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
+# Refresh repositories only with a full upgrade, then reuse this database snapshot.
+run_checked "System upgrade and base packages" pacman -Syu --needed btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
     pacman -S networkmanager --noconfirm
@@ -719,9 +748,9 @@ fi
 
 vendor=$(grep -m1 vendor_id /proc/cpuinfo | cut -d ':' -f2 | tr -d '[:space:]')
 if [[ "$vendor" == "GenuineIntel" ]]; then
-    pacman -Sy intel-ucode --noconfirm
+    run_checked "Intel microcode installation" pacman -S --needed intel-ucode --noconfirm
 elif [[ "$vendor" == "AuthenticAMD" ]]; then
-    pacman -Sy amd-ucode --noconfirm
+    run_checked "AMD microcode installation" pacman -S --needed amd-ucode --noconfirm
 fi
 
 echo "127.0.0.1       localhost" >> /etc/hosts
@@ -756,14 +785,14 @@ fi
 
 if [[ "$luks_encryption" == "yes" ]]; then
     cryptdevice_grub=$(blkid -s UUID -o value "$root_part_orig")
-    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
+    run_checked "Initramfs hook configuration" sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     else
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 rd.luks.uuid=$cryptdevice_grub\"|" /etc/default/grub
     fi
 else
-    sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth filesystems fsck)/' /etc/mkinitcpio.conf
+    run_checked "Initramfs hook configuration" sed -i 's/HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block plymouth filesystems fsck)/' /etc/mkinitcpio.conf
 fi
 
 if [[ "$de" != "none" ]]; then
@@ -776,46 +805,67 @@ if [[ "$install_pipewire" == "yes" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
 fi
 
+# Collect the complete graphics stack before running one package transaction.
+# The kms hook configured above handles early loading of in-tree GPU drivers;
+# leave the user's MODULES array unchanged.
+gpu_packages=()
+hybrid_graphics=no
+
 if [[ "$gpu" == "amd" || "$gpu" == "amd-nvidia" || "$gpu" == "intel-amd" || "$gpu" == "amd-amd" ]]; then
-    pacman -S mesa vulkan-radeon --noconfirm
-    if grep -q "^MODULES=()" /etc/mkinitcpio.conf; then
-        sed -i "s|^MODULES=()|MODULES=(amdgpu)|" /etc/mkinitcpio.conf
-    else
-        sed -i "s|^\(MODULES=(.*\))|\1 amdgpu)|" /etc/mkinitcpio.conf
-    fi
+    gpu_packages+=(mesa vulkan-radeon)
 fi
 
 if [[ "$gpu" == "intel" || "$gpu" == "intel-nvidia" || "$gpu" == "intel-amd" ]]; then
-    pacman -S mesa vulkan-intel intel-media-driver --noconfirm
+    gpu_packages+=(mesa vulkan-intel intel-media-driver)
 fi
 
 if [[ "$gpu" == "nvidia" || "$gpu" == "intel-nvidia" || "$gpu" == "amd-nvidia" ]]; then
-    if [[ "$kernel_variant" == "normal" ]]; then
-        pacman -S nvidia-open --noconfirm
-    elif [[ "$kernel_variant" == "lts" ]]; then
-        pacman -S nvidia-open-lts --noconfirm
-    elif [[ "$kernel_variant" == "zen" ]]; then
-        pacman -S nvidia-open-dkms linux-zen-headers --noconfirm
-    fi
-    pacman -S nvidia-settings --noconfirm
+    case "$kernel_variant" in
+        normal) gpu_packages+=(nvidia-open) ;;
+        lts) gpu_packages+=(nvidia-open-lts) ;;
+        zen) gpu_packages+=(nvidia-open-dkms linux-zen-headers) ;;
+        *)
+            printf 'Error: unsupported NVIDIA kernel variant: %s\n' "$kernel_variant" >&2
+            exit 1
+            ;;
+    esac
+    gpu_packages+=(nvidia-settings)
 fi
 
 if [[ "$gpu" == "other" ]]; then
-    pacman -S mesa --noconfirm
+    gpu_packages+=(mesa)
 fi
 
 case "$gpu" in
     intel-nvidia|amd-nvidia)
-        pacman -S nvidia-prime switcheroo-control --noconfirm
-        systemctl enable switcheroo-control
+        gpu_packages+=(nvidia-prime switcheroo-control)
+        hybrid_graphics=yes
         ;;
     intel-amd|amd-amd)
-        pacman -S vulkan-radeon switcheroo-control --noconfirm
-        systemctl enable switcheroo-control
+        gpu_packages+=(switcheroo-control)
+        hybrid_graphics=yes
         ;;
 esac
 
-grub-mkconfig -o /boot/grub/grub.cfg
+# Hybrid configurations can request the same package through both vendors.
+declare -A gpu_package_seen=()
+unique_gpu_packages=()
+for package in "${gpu_packages[@]}"; do
+    if [[ -z "${gpu_package_seen[$package]+present}" ]]; then
+        unique_gpu_packages+=("$package")
+        gpu_package_seen[$package]=1
+    fi
+done
+
+if (( ${#unique_gpu_packages[@]} > 0 )); then
+    run_checked "GPU driver installation" pacman -S --needed --noconfirm "${unique_gpu_packages[@]}"
+fi
+
+if [[ "$hybrid_graphics" == "yes" ]]; then
+    run_checked "Hybrid graphics service enablement" systemctl enable switcheroo-control
+fi
+
+run_checked "GRUB configuration generation" grub-mkconfig -o /boot/grub/grub.cfg
 
 if [[ "$de" == "gnome" ]]; then
     pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
@@ -866,7 +916,8 @@ fs-type = swap
 EOF
 fi
 
-mkinitcpio -P
+# Do not clean up or report success if any initramfs image fails to build.
+run_checked "Initramfs generation" mkinitcpio -P
 
 while pacman -Qdtq; do
     pacman -Runs $(pacman -Qdtq) --noconfirm
@@ -891,4 +942,4 @@ fi
 cp main.sh /mnt/
 cp config.conf /mnt/
 
-arch-chroot /mnt bash main.sh
+run_checked "Target system configuration" arch-chroot /mnt bash main.sh
