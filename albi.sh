@@ -829,6 +829,13 @@ fi
 
 sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/g' /etc/default/grub
 
+if grep -qE '^[[:space:]]*#?[[:space:]]*GRUB_DISABLE_BOOTNEXT=' /etc/default/grub; then
+    sed -i -E 's|^[[:space:]]*#?[[:space:]]*GRUB_DISABLE_BOOTNEXT=.*|GRUB_DISABLE_BOOTNEXT=true|' /etc/default/grub
+else
+    echo "" >> /etc/default/grub
+    echo 'GRUB_DISABLE_BOOTNEXT=true' >> /etc/default/grub
+fi
+
 if [[ "$install_pipewire" == "yes" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
 fi
