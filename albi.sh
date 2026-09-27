@@ -776,9 +776,8 @@ if [[ "$install_pipewire" == "yes" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
 fi
 
-# Install each GPU's stack independently so hybrid laptops get both drivers.
 if [[ "$gpu" == "amd" || "$gpu" == "amd-nvidia" || "$gpu" == "intel-amd" || "$gpu" == "amd-amd" ]]; then
-    pacman -S --needed mesa vulkan-radeon --noconfirm || exit 1
+    pacman -S mesa vulkan-radeon --noconfirm
     if grep -q "^MODULES=()" /etc/mkinitcpio.conf; then
         sed -i "s|^MODULES=()|MODULES=(amdgpu)|" /etc/mkinitcpio.conf
     else
@@ -787,39 +786,32 @@ if [[ "$gpu" == "amd" || "$gpu" == "amd-nvidia" || "$gpu" == "intel-amd" || "$gp
 fi
 
 if [[ "$gpu" == "intel" || "$gpu" == "intel-nvidia" || "$gpu" == "intel-amd" ]]; then
-    pacman -S --needed mesa vulkan-intel intel-media-driver --noconfirm || exit 1
+    pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 fi
 
 if [[ "$gpu" == "nvidia" || "$gpu" == "intel-nvidia" || "$gpu" == "amd-nvidia" ]]; then
     if [[ "$kernel_variant" == "normal" ]]; then
-        pacman -S --needed nvidia-open --noconfirm || exit 1
+        pacman -S nvidia-open --noconfirm
     elif [[ "$kernel_variant" == "lts" ]]; then
-        pacman -S --needed nvidia-open-lts --noconfirm || exit 1
+        pacman -S nvidia-open-lts --noconfirm
     elif [[ "$kernel_variant" == "zen" ]]; then
-        pacman -S --needed nvidia-open-dkms linux-zen-headers --noconfirm || exit 1
+        pacman -S nvidia-open-dkms linux-zen-headers --noconfirm
     fi
-    pacman -S --needed nvidia-settings --noconfirm || exit 1
-    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
-    else
-        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
-    fi
+    pacman -S nvidia-settings --noconfirm
 fi
 
 if [[ "$gpu" == "other" ]]; then
-    pacman -S --needed mesa --noconfirm || exit 1
+    pacman -S mesa --noconfirm
 fi
 
-# Keep offload settings per application; do not force the whole session onto the dGPU.
-# No static Xorg layout is needed for PRIME with the default modesetting driver.
 case "$gpu" in
     intel-nvidia|amd-nvidia)
-        pacman -S --needed nvidia-prime switcheroo-control --noconfirm || exit 1
-        systemctl enable switcheroo-control.service || exit 1
+        pacman -S nvidia-prime switcheroo-control --noconfirm
+        systemctl enable switcheroo-control
         ;;
     intel-amd|amd-amd)
-        pacman -S --needed vulkan-mesa-layers switcheroo-control --noconfirm || exit 1
-        systemctl enable switcheroo-control.service || exit 1
+        pacman -S vulkan-radeon switcheroo-control --noconfirm
+        systemctl enable switcheroo-control
         ;;
 esac
 
