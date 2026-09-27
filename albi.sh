@@ -217,7 +217,7 @@ tty_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
 install_pipewire="yes"  #### Install PipeWire (yes/no)
-gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none); nvidia-open packages require a Turing or newer GPU
+gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none)
 de="plasma"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
 
@@ -276,12 +276,6 @@ if ! [[ "$kernel_variant" == "normal" || "$kernel_variant" == "lts" || "$kernel_
     echo "Error: invalid value for the kernel variant: $kernel_variant"
     exit
 fi
-
-case "$kernel_variant" in
-    normal) kernel_package="linux" ;;
-    lts)    kernel_package="linux-lts" ;;
-    zen)    kernel_package="linux-zen" ;;
-esac
 
 if [[ "$passwd_length" == 0 ]]; then
     echo "Error: user password not set."
@@ -603,10 +597,12 @@ if [[ "$mirror_location" != "none" ]]; then
     fi
 fi
 
-if [[ "$gpu" == "nvidia" && "$kernel_variant" == "zen" ]]; then
-    pacstrap -K /mnt base "$kernel_package" linux-zen-headers linux-firmware
-else
-    pacstrap -K /mnt base "$kernel_package" linux-firmware
+if [[ "$kernel_variant" == "normal" ]]; then
+    pacstrap -K /mnt base linux linux-firmware
+elif [[ "$kernel_variant" == "lts" ]]; then
+    pacstrap -K /mnt base linux-lts linux-firmware
+elif [[ "$kernel_variant" == "zen" ]]; then
+    pacstrap -K /mnt base linux-zen linux-firmware
 fi
 
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -666,7 +662,7 @@ echo "KEYMAP=$tty_keyboard_layout" > /etc/vconsole.conf
 echo "$hostname" > /etc/hostname
 locale-gen
 
-pacman -Syu btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm || exit 1
+pacman -Sy btrfs-progs dosfstools dnsmasq inetutils xfsprogs base-devel polkit bash-completion nano grub ntfs-3g sshfs exfatprogs usbutils xdg-utils xdg-user-dirs unzip unrar zip 7zip os-prober plymouth --noconfirm
 
 if [[ "$network_management" == "network-manager" ]]; then
     pacman -S networkmanager --noconfirm
@@ -774,12 +770,19 @@ if [[ "$gpu" == "amd" ]]; then
 elif [[ "$gpu" == "intel" ]]; then
     pacman -S mesa vulkan-intel intel-media-driver --noconfirm
 elif [[ "$gpu" == "nvidia" ]]; then
-    case "$kernel_variant" in
-        normal) nvidia_package="nvidia-open" ;;
-        lts)    nvidia_package="nvidia-open-lts" ;;
-        zen)    nvidia_package="nvidia-open-dkms" ;;
-    esac
-    pacman -S "$nvidia_package" nvidia-settings --noconfirm
+    if [[ "$kernel_variant" == "normal" ]]; then
+        pacman -S nvidia-open --noconfirm
+    elif [[ "$kernel_variant" == "lts" ]]; then
+        pacman -S nvidia-open-lts --noconfirm
+    elif [[ "$kernel_variant" == "zen" ]]; then
+        pacman -S nvidia-open-dkms linux-zen-headers --noconfirm
+    fi
+    pacman -S nvidia-settings --noconfirm
+    if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
+    else
+        sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
+    fi
 elif [[ "$gpu" == "other" ]]; then
     pacman -S mesa --noconfirm
 fi
@@ -835,27 +838,7 @@ fs-type = swap
 EOF
 fi
 
-mkinitcpio -P || exit 1
-
-if [[ "$gpu" == "nvidia" ]]; then
-    case "$kernel_variant" in
-        normal) kernel_package="linux" ;;
-        lts)    kernel_package="linux-lts" ;;
-        zen)    kernel_package="linux-zen" ;;
-    esac
-    kernel_release=""
-    for pkgbase_file in /usr/lib/modules/*/pkgbase; do
-        if [[ -f "$pkgbase_file" && "$(< "$pkgbase_file")" == "$kernel_package" ]]; then
-            kernel_release="${pkgbase_file%/pkgbase}"
-            kernel_release="${kernel_release##*/}"
-            break
-        fi
-    done
-    if [[ -z "$kernel_release" ]] || ! modinfo -k "$kernel_release" nvidia >/dev/null 2>&1; then
-        echo "Error: $nvidia_package did not install a module for $kernel_package. Check the driver and pacman output above."
-        exit 1
-    fi
-fi
+mkinitcpio -P
 
 while pacman -Qdtq; do
     pacman -Runs $(pacman -Qdtq) --noconfirm
