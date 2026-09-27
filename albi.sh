@@ -103,7 +103,15 @@ if [[ -e "config.conf" ]]; then
             echo "PipeWire installation is disabled"
         fi
 
-        echo "GPU driver: $gpu"
+        echo "GPU configuration: $gpu"
+        case "$gpu" in
+            intel-nvidia|amd-nvidia)
+                echo "Hybrid graphics: run applications on NVIDIA with prime-run <command>."
+                ;;
+            intel-amd|amd-amd)
+                echo "Hybrid graphics: run applications on the secondary GPU with DRI_PRIME=1 <command>."
+                ;;
+        esac
         echo "Desktop environment: $de"
         
         if [[ "$install_cups" == "yes" ]]; then
@@ -217,7 +225,11 @@ tty_keyboard_layout="us"  #### TTY keyboard layout
 
 ### Software Selection
 install_pipewire="yes"  #### Install PipeWire (yes/no)
-gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none)
+gpu="amd"  #### Single GPU: amd/intel/nvidia/other/none; hybrid: intel-nvidia/amd-nvidia/intel-amd/amd-amd
+# Hybrid names list integrated GPU first, discrete GPU second. Enable hybrid mode in firmware.
+# NVIDIA options use nvidia-open (Turing or newer); legacy NVIDIA GPUs need a separate driver setup.
+# Per-app offload after login: prime-run <command> (NVIDIA), DRI_PRIME=1 <command> (AMD).
+# Desktop GPU selection is enabled through switcheroo-control where supported.
 de="plasma"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
 
@@ -297,10 +309,14 @@ if ! [[ "$install_cups" == "yes" || "$install_cups" == "no" ]]; then
     exit
 fi
 
-if ! [[ "$gpu" == "amd" || "$gpu" == "intel" || "$gpu" == "nvidia" || "$gpu" == "other" || "$gpu" == "none" ]]; then
-    echo "Error: invalid value for the GPU driver: $gpu"
-    exit
-fi
+case "$gpu" in
+    amd|intel|nvidia|other|none|intel-nvidia|amd-nvidia|intel-amd|amd-amd) ;;
+    *)
+        echo "Error: invalid value for the GPU configuration: $gpu"
+        echo "Choose amd, intel, nvidia, other, none, intel-nvidia, amd-nvidia, intel-amd, or amd-amd."
+        exit 1
+        ;;
+esac
 
 if [[ "$gpu" == "none" ]]; then
     if ! [[ "$de" == "none" ]]; then
@@ -760,32 +776,52 @@ if [[ "$install_pipewire" == "yes" ]]; then
     pacman -S pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber --noconfirm
 fi
 
-if [[ "$gpu" == "amd" ]]; then
-    pacman -S mesa vulkan-radeon --noconfirm
+# Install each GPU's stack independently so hybrid laptops get both drivers.
+if [[ "$gpu" == "amd" || "$gpu" == "amd-nvidia" || "$gpu" == "intel-amd" || "$gpu" == "amd-amd" ]]; then
+    pacman -S --needed mesa vulkan-radeon --noconfirm || exit 1
     if grep -q "^MODULES=()" /etc/mkinitcpio.conf; then
         sed -i "s|^MODULES=()|MODULES=(amdgpu)|" /etc/mkinitcpio.conf
     else
         sed -i "s|^\(MODULES=(.*\))|\1 amdgpu)|" /etc/mkinitcpio.conf
     fi
-elif [[ "$gpu" == "intel" ]]; then
-    pacman -S mesa vulkan-intel intel-media-driver --noconfirm
-elif [[ "$gpu" == "nvidia" ]]; then
+fi
+
+if [[ "$gpu" == "intel" || "$gpu" == "intel-nvidia" || "$gpu" == "intel-amd" ]]; then
+    pacman -S --needed mesa vulkan-intel intel-media-driver --noconfirm || exit 1
+fi
+
+if [[ "$gpu" == "nvidia" || "$gpu" == "intel-nvidia" || "$gpu" == "amd-nvidia" ]]; then
     if [[ "$kernel_variant" == "normal" ]]; then
-        pacman -S nvidia-open --noconfirm
+        pacman -S --needed nvidia-open --noconfirm || exit 1
     elif [[ "$kernel_variant" == "lts" ]]; then
-        pacman -S nvidia-open-lts --noconfirm
+        pacman -S --needed nvidia-open-lts --noconfirm || exit 1
     elif [[ "$kernel_variant" == "zen" ]]; then
-        pacman -S nvidia-open-dkms linux-zen-headers --noconfirm
+        pacman -S --needed nvidia-open-dkms linux-zen-headers --noconfirm || exit 1
     fi
-    pacman -S nvidia-settings --noconfirm
+    pacman -S --needed nvidia-settings --noconfirm || exit 1
     if grep -q "^GRUB_CMDLINE_LINUX=\"\"" /etc/default/grub; then
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\"\)\(.*\)\"|\1nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
     else
         sed -i "s|^\(GRUB_CMDLINE_LINUX=\".*\)\"|\1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1\"|" /etc/default/grub
     fi
-elif [[ "$gpu" == "other" ]]; then
-    pacman -S mesa --noconfirm
 fi
+
+if [[ "$gpu" == "other" ]]; then
+    pacman -S --needed mesa --noconfirm || exit 1
+fi
+
+# Keep offload settings per application; do not force the whole session onto the dGPU.
+# No static Xorg layout is needed for PRIME with the default modesetting driver.
+case "$gpu" in
+    intel-nvidia|amd-nvidia)
+        pacman -S --needed nvidia-prime switcheroo-control --noconfirm || exit 1
+        systemctl enable switcheroo-control.service || exit 1
+        ;;
+    intel-amd|amd-amd)
+        pacman -S --needed vulkan-mesa-layers switcheroo-control --noconfirm || exit 1
+        systemctl enable switcheroo-control.service || exit 1
+        ;;
+esac
 
 grub-mkconfig -o /boot/grub/grub.cfg
 
