@@ -3,13 +3,38 @@
 set -Eeo pipefail
 
 installation_started="false"
+installation_mounts=()
+staged_config="false"
+
+# Track only mounts made by this installer, leaving pre-existing mounts untouched.
+mount_install() {
+    local target="${@: -1}"
+    mount "$@"
+    installation_mounts+=("$target")
+}
+
+unmount_install() {
+    local i
+    for ((i=${#installation_mounts[@]}-1; i>=0; i--)); do
+        if mountpoint -q -- "${installation_mounts[i]}"; then
+            if ! umount -- "${installation_mounts[i]}"; then
+                echo "Warning: could not unmount ${installation_mounts[i]}." >&2
+            fi
+        fi
+    done
+    installation_mounts=()
+}
 
 cleanup_install() {
     if [[ "$installation_started" != "true" ]]; then
         return
     fi
 
-    umount -R /mnt 2>/dev/null || true
+    # A failed chroot may leave a config containing plaintext credentials.
+    if [[ "$staged_config" == "true" ]]; then
+        rm -f -- /mnt/config.conf /mnt/main.sh /mnt/tmpfile.sh || true
+    fi
+    unmount_install
 
     if [[ -n "${root_part_encrypted_name:-}" ]]; then
         cryptsetup close "$root_part_encrypted_name" 2>/dev/null || true
@@ -23,6 +48,30 @@ interrupt_handler() {
 
 trap interrupt_handler SIGINT SIGTERM
 trap cleanup_install EXIT
+
+# Read the existing key=value format without xargs changing passwords or quotes.
+# Values may be quoted and contain spaces, #, $, backslashes or = characters.
+read_config() {
+    local path="$1" line key value
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+
+        if [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*\"([^\"]*)\"[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*\'([^\']*)\'[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            echo 'Error: invalid configuration entry (expected key="value").' >&2
+            return 1
+        fi
+        printf -v "$key" '%s' "$value"
+    done < "$path"
+}
 
 cwd=$(pwd)
 
@@ -39,19 +88,7 @@ if [[ -e "config.conf" ]]; then
         echo "$output"
         exit
     else
-        while IFS='=' read -r key value; do
-            key=$(echo "$key" | sed 's/[[:space:]]\+#.*$//' | xargs)
-            value=$(echo "$value" | sed 's/[[:space:]]\+#.*$//' | xargs)
-
-            [[ -z "$key" ]] && continue
-            
-            value="${value%\"}"
-            value="${value#\"}"
-            value="${value%\'}"
-            value="${value#\'}"
-            
-            declare "$key=$value"
-        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
+        read_config "$cwd/config.conf"
         clear
         echo "Are these information correct?"
         echo ""
@@ -95,6 +132,7 @@ if [[ -e "config.conf" ]]; then
 
         if [[ "$boot_mode" == "UEFI" ]]; then
             echo "EFI partition: $efi_part at $efi_part_mountpoint"
+            echo "Install GRUB to UEFI fallback path: ${grub_install_fallback-yes}"
         else
             echo "GRUB disk: $grub_disk"
         fi
@@ -158,19 +196,7 @@ if [[ -e "config.conf" ]]; then
             fi
         done
 
-        while IFS='=' read -r key value; do
-            key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
-            value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
-            
-            [[ -z "$key" ]] && continue
-            
-            value="${value%\"}"
-            value="${value#\"}"
-            value="${value%\'}"
-            value="${value#\'}"
-            
-            declare "$key=$value"
-        done < <(grep -v '^#' "$cwd"/config.conf | grep -v '^$')
+        read_config "$cwd/config.conf"
     fi
 else
     touch config.conf
@@ -201,6 +227,7 @@ if [[ "$boot_mode" == "UEFI" ]]; then
     echo "### EFI partition settings" >> config.conf
     echo "efi_part=\"/dev/sdX#\"  #### EFI partition path" >> config.conf
     echo "efi_part_mountpoint=\"/boot/efi\"  #### EFI partition mountpoint" >> config.conf
+    echo "grub_install_fallback=\"yes\"  #### Install GRUB to the UEFI fallback boot path (yes/no)" >> config.conf
 else
     echo "" >> config.conf
     echo "### GRUB installation disk settings" >> config.conf
@@ -359,6 +386,10 @@ if [[ "$boot_mode" == "UEFI" ]]; then
         echo "For maximized system compatibility, ALBI only supports the following mount points: /boot/efi (recommended) and /efi."
         exit
     fi
+    if ! [[ "${grub_install_fallback-yes}" == "yes" || "${grub_install_fallback-yes}" == "no" ]]; then
+        echo "Error: invalid GRUB fallback option: $grub_install_fallback (expected yes/no)."
+        exit 1
+    fi
 fi
 
 if ! grep -qE "^#?\s*${language}" /etc/locale.gen; then
@@ -384,13 +415,37 @@ check_partition() {
         exit
     fi
 
-    local real_partition
+    local real_partition device_type
     real_partition=$(readlink -f "$partition")
+
+    # Formatting a whole disk can destroy its partition table. Also reject
+    # partitions (or their mapped descendants) currently in use.
+    device_type=$(lsblk -dn -o TYPE "$real_partition" | tr -d '[:space:]')
+    case "$device_type" in
+        part|lvm|crypt|raid*) ;;
+        *) echo "Error: $partition for $mount_name is not a partition or logical volume (type: $device_type)."; exit 1 ;;
+    esac
+    if lsblk -nr -o MOUNTPOINTS "$real_partition" | grep -q '[^[:space:]]'; then
+        echo "Error: $partition for $mount_name (or a child device) is already mounted or in use."
+        exit 1
+    fi
 
     if [[ -n "${used_partitions[$real_partition]:-}" ]]; then
         echo "Error: partition $partition is selected for both ${used_partitions[$real_partition]} and $mount_name."
         exit
     fi
+
+    # Prevent formatting a parent partition and a mapped child (e.g. its LV).
+    local prior prior_id current_id
+    current_id=$(lsblk -dn -o MAJ:MIN "$real_partition")
+    for prior in "${!used_partitions[@]}"; do
+        prior_id=$(lsblk -dn -o MAJ:MIN "$prior")
+        if lsblk -nr -o MAJ:MIN "$prior" | grep -Fxq "$current_id" || \
+           lsblk -nr -o MAJ:MIN "$real_partition" | grep -Fxq "$prior_id"; then
+            echo "Error: $partition and $prior overlap as parent/child devices."
+            exit 1
+        fi
+    done
 
     used_partitions["$real_partition"]="$mount_name"
 }
@@ -403,10 +458,42 @@ check_partition "/tmp" "$separate_tmp_part"
 
 if [[ "$boot_mode" == "UEFI" ]]; then
     check_partition "EFI" "$efi_part"
+else
+    if [[ "$(lsblk -dn -o TYPE "$grub_disk" 2>/dev/null | tr -d '[:space:]')" != "disk" ]]; then
+        echo "Error: GRUB installation target must be a whole disk: $grub_disk"
+        exit 1
+    fi
 fi
 
-mount_output=$(df -h)
-mount_partition=$(echo "$mount_output" | awk '$6=="/mnt" {print $1}')
+if [[ "$luks_encryption" == "yes" && "$root_part" == "none" ]]; then
+    echo "Error: LUKS encryption requires a selected root partition."
+    exit 1
+fi
+
+# Show the devices that will be formatted; the installation has already been confirmed.
+format_targets=()
+[[ "$root_part" != "none" ]] && format_targets+=("/: $root_part")
+[[ "$separate_home_part" != "none" ]] && format_targets+=("/home: $separate_home_part")
+[[ "$separate_boot_part" != "none" ]] && format_targets+=("/boot: $separate_boot_part")
+[[ "$separate_var_part" != "none" ]] && format_targets+=("/var: $separate_var_part")
+[[ "$separate_tmp_part" != "none" ]] && format_targets+=("/tmp: $separate_tmp_part")
+
+if [[ "$boot_mode" == "UEFI" ]]; then
+    efi_part_filesystem=$(blkid -s TYPE -o value "$efi_part" 2>/dev/null || true)
+    if [[ "$efi_part_filesystem" != "vfat" ]]; then
+        format_targets+=("EFI (FAT32): $efi_part [currently: ${efi_part_filesystem:-unformatted}]")
+    fi
+fi
+
+if (( ${#format_targets[@]} )); then
+    printf 'WARNING: These devices will be ERASED and formatted:\n'
+    printf '  %s\n' "${format_targets[@]}"
+    if [[ "$boot_mode" == "BIOS" ]]; then
+        echo "GRUB will also be installed to the boot sector of $grub_disk."
+    fi
+fi
+
+mount_partition=$(findmnt -rn -M /mnt -o SOURCE || true)
 installation_started="true"
 
 if [[ "$separate_boot_part" != "none" ]]; then
@@ -452,17 +539,17 @@ if [[ "$root_part" != "none" ]]; then
 
             if [[ "$root_part_filesystem" == "ext4" ]]; then
                 mkfs.ext4 -F "$root_part"
-                mount "$root_part" /mnt
+                mount_install "$root_part" /mnt
             elif [[ "$root_part_filesystem" == "ext3" ]]; then
                 mkfs.ext3 -F "$root_part"
-                mount "$root_part" /mnt
+                mount_install "$root_part" /mnt
             elif [[ "$root_part_filesystem" == "ext2" ]]; then
                 mkfs.ext2 -F "$root_part"
-                mount "$root_part" /mnt
+                mount_install "$root_part" /mnt
             elif [[ "$root_part_filesystem" == "btrfs" ]]; then
                 mkfs.btrfs -f "$root_part"
 
-                mount -t btrfs -o subvolid=5 "$root_part" /mnt
+                mount_install -t btrfs -o subvolid=5 "$root_part" /mnt
                 btrfs subvolume create /mnt/root
 
                 if [[ "$separate_home_part" == "none" ]]; then
@@ -470,16 +557,17 @@ if [[ "$root_part" != "none" ]]; then
                 fi
 
                 umount /mnt
+                installation_mounts=()
 
-                mount -t btrfs -o subvol=root,compress=zstd:1 "$root_part" /mnt
+                mount_install -t btrfs -o subvol=root,compress=zstd:1 "$root_part" /mnt
 
                 if [[ "$separate_home_part" == "none" ]]; then
                     mkdir -p /mnt/home
-                    mount -t btrfs -o subvol=home,compress=zstd:1 "$root_part" /mnt/home
+                    mount_install -t btrfs -o subvol=home,compress=zstd:1 "$root_part" /mnt/home
                 fi
             elif [[ "$root_part_filesystem" == "xfs" ]]; then
                 mkfs.xfs -f "$root_part"
-                mount "$root_part" /mnt
+                mount_install "$root_part" /mnt
             else
                 echo "Error: wrong filesystem for the / partition: $root_part_filesystem"
                 exit
@@ -527,23 +615,23 @@ if [[ "$home_part_exists" == "true" ]]; then
     if [[ "$separate_home_part_filesystem" == "ext4" ]]; then
         mkfs.ext4 -F "$separate_home_part"
         mkdir -p /mnt/home
-        mount "$separate_home_part" /mnt/home
+        mount_install "$separate_home_part" /mnt/home
     elif [[ "$separate_home_part_filesystem" == "ext3" ]]; then
         mkfs.ext3 -F "$separate_home_part"
         mkdir -p /mnt/home
-        mount "$separate_home_part" /mnt/home
+        mount_install "$separate_home_part" /mnt/home
     elif [[ "$separate_home_part_filesystem" == "ext2" ]]; then
         mkfs.ext2 -F "$separate_home_part"
         mkdir -p /mnt/home
-        mount "$separate_home_part" /mnt/home
+        mount_install "$separate_home_part" /mnt/home
     elif [[ "$separate_home_part_filesystem" == "btrfs" ]]; then
         mkfs.btrfs -f "$separate_home_part"
         mkdir -p /mnt/home
-        mount -t btrfs -o compress=zstd:1 "$separate_home_part" /mnt/home
+        mount_install -t btrfs -o compress=zstd:1 "$separate_home_part" /mnt/home
     elif [[ "$separate_home_part_filesystem" == "xfs" ]]; then
         mkfs.xfs -f "$separate_home_part"
         mkdir -p /mnt/home
-        mount "$separate_home_part" /mnt/home
+        mount_install "$separate_home_part" /mnt/home
     else
         echo "Error: wrong filesystem for the /home partition: $separate_home_part_filesystem"
         exit
@@ -554,23 +642,23 @@ if [[ "$boot_part_exists" == "true" ]]; then
     if [[ "$separate_boot_part_filesystem" == "ext4" ]]; then
         mkfs.ext4 -F "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount "$separate_boot_part" /mnt/boot
+        mount_install "$separate_boot_part" /mnt/boot
     elif [[ "$separate_boot_part_filesystem" == "ext3" ]]; then
         mkfs.ext3 -F "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount "$separate_boot_part" /mnt/boot
+        mount_install "$separate_boot_part" /mnt/boot
     elif [[ "$separate_boot_part_filesystem" == "ext2" ]]; then
         mkfs.ext2 -F "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount "$separate_boot_part" /mnt/boot
+        mount_install "$separate_boot_part" /mnt/boot
     elif [[ "$separate_boot_part_filesystem" == "btrfs" ]]; then
         mkfs.btrfs -f "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount -t btrfs "$separate_boot_part" /mnt/boot
+        mount_install -t btrfs "$separate_boot_part" /mnt/boot
     elif [[ "$separate_boot_part_filesystem" == "xfs" ]]; then
         mkfs.xfs -f "$separate_boot_part"
         mkdir -p /mnt/boot
-        mount "$separate_boot_part" /mnt/boot
+        mount_install "$separate_boot_part" /mnt/boot
     else
         echo "Error: wrong filesystem for the /boot partition: $separate_boot_part_filesystem"
         exit
@@ -581,23 +669,23 @@ if [[ "$var_part_exists" == "true" ]]; then
     if [[ "$separate_var_part_filesystem" == "ext4" ]]; then
         mkfs.ext4 -F "$separate_var_part"
         mkdir -p /mnt/var
-        mount "$separate_var_part" /mnt/var
+        mount_install "$separate_var_part" /mnt/var
     elif [[ "$separate_var_part_filesystem" == "ext3" ]]; then
         mkfs.ext3 -F "$separate_var_part"
         mkdir -p /mnt/var
-        mount "$separate_var_part" /mnt/var
+        mount_install "$separate_var_part" /mnt/var
     elif [[ "$separate_var_part_filesystem" == "ext2" ]]; then
         mkfs.ext2 -F "$separate_var_part"
         mkdir -p /mnt/var
-        mount "$separate_var_part" /mnt/var
+        mount_install "$separate_var_part" /mnt/var
     elif [[ "$separate_var_part_filesystem" == "btrfs" ]]; then
         mkfs.btrfs -f "$separate_var_part"
         mkdir -p /mnt/var
-        mount -t btrfs -o compress=zstd:1 "$separate_var_part" /mnt/var
+        mount_install -t btrfs -o compress=zstd:1 "$separate_var_part" /mnt/var
     elif [[ "$separate_var_part_filesystem" == "xfs" ]]; then
         mkfs.xfs -f "$separate_var_part"
         mkdir -p /mnt/var
-        mount "$separate_var_part" /mnt/var
+        mount_install "$separate_var_part" /mnt/var
     else
         echo "Error: wrong filesystem for the /var partition: $separate_var_part_filesystem"
         exit
@@ -608,23 +696,23 @@ if [[ "$tmp_part_exists" == "true" ]]; then
     if [[ "$separate_tmp_part_filesystem" == "ext4" ]]; then
         mkfs.ext4 -F "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount "$separate_tmp_part" /mnt/tmp
+        mount_install "$separate_tmp_part" /mnt/tmp
     elif [[ "$separate_tmp_part_filesystem" == "ext3" ]]; then
         mkfs.ext3 -F "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount "$separate_tmp_part" /mnt/tmp
+        mount_install "$separate_tmp_part" /mnt/tmp
     elif [[ "$separate_tmp_part_filesystem" == "ext2" ]]; then
         mkfs.ext2 -F "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount "$separate_tmp_part" /mnt/tmp
+        mount_install "$separate_tmp_part" /mnt/tmp
     elif [[ "$separate_tmp_part_filesystem" == "btrfs" ]]; then
         mkfs.btrfs -f "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount -t btrfs -o compress=zstd:1 "$separate_tmp_part" /mnt/tmp
+        mount_install -t btrfs -o compress=zstd:1 "$separate_tmp_part" /mnt/tmp
     elif [[ "$separate_tmp_part_filesystem" == "xfs" ]]; then
         mkfs.xfs -f "$separate_tmp_part"
         mkdir -p /mnt/tmp
-        mount "$separate_tmp_part" /mnt/tmp
+        mount_install "$separate_tmp_part" /mnt/tmp
     else
         echo "Error: wrong filesystem for the /tmp partition: $separate_tmp_part_filesystem"
         exit
@@ -636,21 +724,11 @@ if [[ "$boot_mode" == "UEFI" ]]; then
         exit
     fi
 
-    efi_part_filesystem=$(blkid -s TYPE -o value "$efi_part" 2>/dev/null || true)
     if [[ "$efi_part_filesystem" != "vfat" ]]; then
         mkfs.fat -F 32 "$efi_part"
-        mkdir -p /mnt"$efi_part_mountpoint"
-        mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
-    else
-        if ! findmnt --noheadings -o SOURCE /mnt"$efi_part_mountpoint" | grep -q "$efi_part"; then
-            mkdir -p /mnt"$efi_part_mountpoint"
-            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
-        else
-            umount /mnt"$efi_part_mountpoint"
-            mkdir -p /mnt"$efi_part_mountpoint"
-            mount -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
-        fi
     fi
+    mkdir -p /mnt"$efi_part_mountpoint"
+    mount_install -t vfat "$efi_part" /mnt"$efi_part_mountpoint"
 elif [[ "$boot_mode" == "BIOS" ]]; then
     if ! [[ -b "$grub_disk" ]]; then
         echo "Error: disk path $grub_disk is not accessible or does not exist."
@@ -693,19 +771,31 @@ interrupt_handler() {
 
 trap interrupt_handler SIGINT SIGTERM
 
-while IFS='=' read -r key value; do
-    key=$(echo "$key" | sed 's/ *#.*$//' | xargs)
-    value=$(echo "$value" | sed 's/ *#.*$//' | xargs)
+# Read the existing key=value format without xargs changing passwords or quotes.
+# Values may be quoted and contain spaces, #, $, backslashes or = characters.
+read_config() {
+    local path="$1" line key value
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
 
-    [[ -z "$key" ]] && continue
+        if [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*\"([^\"]*)\"[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*\'([^\']*)\'[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        elif [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*([^[:space:]#]+)[[:space:]]*(#.*)?$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+        else
+            echo 'Error: invalid configuration entry (expected key="value").' >&2
+            return 1
+        fi
+        printf -v "$key" '%s' "$value"
+    done < "$path"
+}
 
-    value="${value%\"}"
-    value="${value#\"}"
-    value="${value%\'}"
-    value="${value#\'}"
-            
-    declare "$key=$value"
-done < <(grep -v '^#' /config.conf | grep -v '^$')
+read_config /config.conf
 if [[ "$luks_encryption" == "yes" ]]; then
     source /tmpfile.sh
 fi
@@ -804,9 +894,107 @@ sed -i "${cln}s/$/\nILoveCandy/" /etc/pacman.conf
 sed -i "${dln}s/$/\nDefaults    pwfeedback/" /etc/sudoers
 sed -i "${dln}s/$/\n##/" /etc/sudoers
 
+# Verify the normal UEFI entry against the actual GPT EFI partition rather
+# than trusting an old NVRAM entry with the same "archlinux" label.
+# Exposes arch_efi_bootnum only if both the ESP PARTUUID and EFI path match.
+find_arch_efi_entry() {
+    local expected_uuid="${1,,}" entries line entry_lower entry_num
+    arch_efi_bootnum=""
+
+    entries=$(efibootmgr -v 2>/dev/null) || return 1
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^Boot([[:xdigit:]]{4})\*[[:space:]]+archlinux[[:space:]] ]]; then
+            entry_num="${BASH_REMATCH[1]}"
+            entry_lower="${line,,}"
+            if [[ "$entry_lower" == *"gpt,$expected_uuid,"* &&
+                  "$entry_lower" == *'file(\efi\archlinux\grubx64.efi)'* ]]; then
+                arch_efi_bootnum="${entry_num^^}"
+                return 0
+            fi
+        fi
+    done <<< "$entries"
+    return 1
+}
+
+# Put the verified Arch entry first, retaining every existing entry in BootOrder.
+prioritize_arch_efi_entry() {
+    local id="$1" current new_order candidate updated_order
+    local -a order_entries
+    current=$(efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1) || current=""
+    if [[ ! "$current" =~ ^[[:xdigit:]]{4}(,[[:xdigit:]]{4})*$ ]]; then
+        echo 'Warning: could not read UEFI BootOrder; leaving boot priority unchanged.' >&2
+        return 0
+    fi
+    IFS=',' read -r -a order_entries <<< "$current"
+    new_order="$id"
+    for candidate in "${order_entries[@]}"; do
+        [[ "${candidate^^}" == "$id" ]] && continue
+        new_order+=",${candidate^^}"
+    done
+    if [[ "${order_entries[0]^^}" != "$id" ]]; then
+        if ! efibootmgr --bootorder "$new_order"; then
+            echo 'Warning: firmware refused to set Arch first in UEFI BootOrder.' >&2
+        else
+            updated_order=$(efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1) || updated_order=""
+            if [[ "${updated_order%%,*}" != "$id" ]]; then
+                echo 'Warning: UEFI BootOrder did not retain Arch as the first entry.' >&2
+            fi
+        fi
+    fi
+}
+
 if [[ "$boot_mode" == "UEFI" ]]; then
-    grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --bootloader-id="archlinux"
-    grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --removable
+    # Ensure GRUB is written to the ESP ALBI was told to use.
+    esp_device=$(readlink -f -- "$efi_part")
+    mounted_esp=$(findmnt -rn -M "$efi_part_mountpoint" -o SOURCE || true)
+    if [[ -z "$mounted_esp" || "$(readlink -f -- "$mounted_esp")" != "$esp_device" ]]; then
+        echo "Error: $efi_part_mountpoint does not have the selected EFI partition mounted." >&2
+        exit 1
+    fi
+
+    if ! grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --bootloader-id="archlinux"; then
+        echo 'Warning: normal GRUB installation failed to register the UEFI entry; retrying file installation without NVRAM.' >&2
+        grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --bootloader-id="archlinux" --no-nvram
+    fi
+    if [[ ! -s "$efi_part_mountpoint/EFI/archlinux/grubx64.efi" ]]; then
+        echo 'Error: normal GRUB EFI executable is missing.' >&2
+        exit 1
+    fi
+
+    esp_disk=$(lsblk -dn -p -o PKNAME "$esp_device" 2>/dev/null | head -n 1) || esp_disk=""
+    esp_part_num=$(lsblk -dn -o PARTN "$esp_device" 2>/dev/null | head -n 1) || esp_part_num=""
+    esp_partuuid=$(blkid -s PARTUUID -o value "$esp_device" 2>/dev/null) || esp_partuuid=""
+    esp_pttype=$(lsblk -dn -o PTTYPE "$esp_disk" 2>/dev/null || true)
+    if [[ "$esp_pttype" == 'gpt' && -n "$esp_partuuid" &&
+          "$esp_part_num" =~ ^[0-9]+$ && -b "$esp_disk" ]]; then
+        if ! find_arch_efi_entry "$esp_partuuid"; then
+            echo 'Normal Arch UEFI entry missing or stale; creating an entry for the selected EFI partition...'
+            if ! efibootmgr --create --disk "$esp_disk" --part "$esp_part_num" \
+                --label 'archlinux' --loader '\EFI\archlinux\grubx64.efi'; then
+                echo 'Warning: firmware did not accept the new Arch UEFI entry.' >&2
+            fi
+        fi
+        if find_arch_efi_entry "$esp_partuuid"; then
+            echo "Verified Arch UEFI entry Boot$arch_efi_bootnum for ESP $esp_partuuid."
+            prioritize_arch_efi_entry "$arch_efi_bootnum"
+        else
+            echo 'Warning: could not verify a correct Arch UEFI boot entry in firmware NVRAM.' >&2
+            if [[ "${grub_install_fallback-yes}" != 'yes' ]]; then
+                echo 'Error: no verified UEFI entry and fallback installation is disabled.' >&2
+                exit 1
+            fi
+        fi
+    else
+        echo 'Warning: cannot automatically verify UEFI boot entry (requires a GPT EFI partition).' >&2
+        if [[ "${grub_install_fallback-yes}" != 'yes' ]]; then
+            echo 'Error: no verified UEFI entry and fallback installation is disabled.' >&2
+            exit 1
+        fi
+    fi
+
+    if [[ "${grub_install_fallback-yes}" == "yes" ]]; then
+        grub-install --target=x86_64-efi --efi-directory="$efi_part_mountpoint" --removable
+    fi
 elif [[ "$boot_mode" == "BIOS" ]]; then
     grub-install --target=i386-pc "$grub_disk"
 fi
@@ -878,8 +1066,6 @@ if [[ "$gpu" == *"+"* ]]; then
     systemctl enable switcheroo-control
 fi
 
-grub-mkconfig -o /boot/grub/grub.cfg
-
 if [[ "$de" == "gnome" ]]; then
     pacman -S gnome noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra gnome-tweaks gnome-shell-extensions gnome-browser-connector power-profiles-daemon --noconfirm
     systemctl enable gdm
@@ -931,6 +1117,22 @@ fi
 
 mkinitcpio -P
 
+# Check the selected kernel and initramfs before generating the final menu.
+case "$kernel_variant" in
+    normal) kernel_package="linux" ;;
+    lts)    kernel_package="linux-lts" ;;
+    zen)    kernel_package="linux-zen" ;;
+esac
+if [[ ! -s "/boot/vmlinuz-$kernel_package" || ! -s "/boot/initramfs-$kernel_package.img" ]]; then
+    echo "Error: kernel or initramfs missing for $kernel_package."
+    exit 1
+fi
+grub-mkconfig -o /boot/grub/grub.cfg
+if [[ ! -s /boot/grub/grub.cfg ]]; then
+    echo "Error: GRUB menu configuration is missing or empty."
+    exit 1
+fi
+
 while pacman -Qdtq; do
     pacman -Runs $(pacman -Qdtq) --noconfirm
 done
@@ -956,6 +1158,7 @@ fi
 
 cp main.sh /mnt/
 cp config.conf /mnt/
+staged_config="true"
 chmod 600 /mnt/config.conf
 
 if ! arch-chroot /mnt bash main.sh; then
@@ -965,8 +1168,11 @@ else
     installation_status=0
 fi
 
-echo "Unmounting partitions..."
-umount -R /mnt 2>/dev/null || true
+echo "Unmounting installer-mounted partitions..."
+if [[ "$staged_config" == "true" ]]; then
+    rm -f -- /mnt/config.conf /mnt/main.sh /mnt/tmpfile.sh
+fi
+unmount_install
 
 if [[ "$luks_encryption" == "yes" ]]; then
     cryptsetup close "$root_part_encrypted_name" 2>/dev/null || true
