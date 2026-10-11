@@ -906,8 +906,10 @@ find_arch_efi_entry() {
         if [[ "$line" =~ ^Boot([[:xdigit:]]{4})\*[[:space:]]+archlinux[[:space:]] ]]; then
             entry_num="${BASH_REMATCH[1]}"
             entry_lower="${line,,}"
+            # efibootmgr may display the loader as /File(\EFI\...) or
+            # directly as /\EFI\... depending on its version/firmware.
             if [[ "$entry_lower" == *"gpt,$expected_uuid,"* &&
-                  "$entry_lower" == *'file(\efi\archlinux\grubx64.efi)'* ]]; then
+                  "$entry_lower" == *'\efi\archlinux\grubx64.efi'* ]]; then
                 arch_efi_bootnum="${entry_num^^}"
                 return 0
             fi
