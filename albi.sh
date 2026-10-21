@@ -263,7 +263,7 @@ tty_keyboard_layout="us"  #### TTY keyboard layout
 ### Software Selection
 install_pipewire="yes"  #### Install PipeWire (yes/no)
 gpu="amd"  #### GPU driver (amd/intel/nvidia/other/none; hybrid: intel+nvidia/amd+nvidia/intel+amd/amd+amd)
-de="plasma"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
+de="gnome"  #### Desktop environment (gnome/plasma/xfce/mate/cinnamon/none)
 install_cups="yes"  #### Install CUPS (yes/no)
 
 ### Swap
